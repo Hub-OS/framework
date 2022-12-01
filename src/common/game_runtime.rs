@@ -1,4 +1,3 @@
-use crate::async_task::sleep;
 use crate::prelude::*;
 use crate::{cfg_sdl, cfg_winit};
 use instant::Instant;
@@ -44,6 +43,8 @@ impl<Globals> GameRuntime<Globals> {
 
     cfg_sdl! {
         pub async fn sleep(&self) {
+            use crate::async_task::sleep;
+
             let sleep_duration = self.game_io.attempted_sleep_duration();
 
             if !sleep_duration.is_zero() {
