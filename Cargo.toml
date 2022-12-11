@@ -34,7 +34,7 @@ simple_logger = { version = "2.2", default-features = false, features = [
   "colors"
 ] }
 winit = { version = "0.27", optional = true }
-gilrs = { version = "0.9", optional = true }
+gilrs = { version = "0.10", optional = true }
 async-io = { version = "1.7" }
 
 # desktop
@@ -67,7 +67,7 @@ web-sys = { version = "0.3", features = [
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
-gilrs = "0.9"
+gilrs = "0.10"
 
 # dependencies for examples
 [dev-dependencies]
