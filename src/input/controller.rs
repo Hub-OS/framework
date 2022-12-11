@@ -1,3 +1,4 @@
+use glam::Vec2;
 pub use strum::{EnumString, IntoStaticStr};
 
 #[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
@@ -63,7 +64,7 @@ pub enum Button {
     Paddle4,
 }
 
-use crate::prelude::RumblePack;
+use crate::{cfg_sdl, cfg_winit, inverse_lerp, prelude::RumblePack};
 use std::time::Duration;
 
 pub struct GameController {
@@ -72,12 +73,19 @@ pub struct GameController {
     latest_button: Option<Button>,
     previous_buttons: Vec<Button>,
     pressed_buttons: Vec<Button>,
+
+    raw_left_stick_x: f32,
+    raw_left_stick_y: f32,
+    raw_right_stick_x: f32,
+    raw_right_stick_y: f32,
+
     left_stick_x: f32,
     left_stick_y: f32,
     right_stick_x: f32,
     right_stick_y: f32,
     left_trigger: f32,
     right_trigger: f32,
+    deadzone: f32,
 }
 
 impl GameController {
@@ -88,12 +96,24 @@ impl GameController {
             latest_button: None,
             previous_buttons: Vec::new(),
             pressed_buttons: Vec::new(),
+
+            raw_left_stick_x: 0.0,
+            raw_left_stick_y: 0.0,
+            raw_right_stick_x: 0.0,
+            raw_right_stick_y: 0.0,
+
             left_stick_x: 0.0,
             left_stick_y: 0.0,
             right_stick_x: 0.0,
             right_stick_y: 0.0,
             left_trigger: 0.0,
             right_trigger: 0.0,
+            deadzone: {
+                // sdl does not automatically apply deadzone
+                cfg_sdl! { 0.05 }
+                // gilrs applies deadzone
+                cfg_winit! { 0.0 }
+            },
         }
     }
 
@@ -164,57 +184,102 @@ impl GameController {
     pub(crate) fn simulate_axis_movement(&mut self, axis: AnalogAxis, value: f32) {
         match axis {
             AnalogAxis::DPadX | AnalogAxis::DPadY => {}
-            AnalogAxis::LeftTrigger => self.left_trigger = value,
-            AnalogAxis::RightTrigger => self.right_trigger = value,
-            AnalogAxis::LeftStickX => {
-                self.left_stick_x = value;
+            AnalogAxis::LeftTrigger => {
+                self.left_trigger = if value < self.deadzone { 0.0 } else { value };
 
-                if value < 0.0 {
-                    self.simulate_button_press(Button::LeftStickLeft);
-                } else if value > 0.0 {
-                    self.simulate_button_press(Button::LeftStickRight);
+                if self.left_trigger > 0.0 {
+                    self.simulate_button_press(Button::LeftTrigger);
                 } else {
-                    self.simulate_button_release(Button::LeftStickLeft);
-                    self.simulate_button_release(Button::LeftStickRight);
+                    self.simulate_button_release(Button::LeftTrigger);
                 }
+            }
+            AnalogAxis::RightTrigger => {
+                self.right_trigger = if value < self.deadzone { 0.0 } else { value };
+
+                if self.right_trigger > 0.0 {
+                    self.simulate_button_press(Button::RightTrigger);
+                } else {
+                    self.simulate_button_release(Button::RightTrigger);
+                }
+            }
+            AnalogAxis::LeftStickX => {
+                self.raw_left_stick_x = value;
+
+                (self.left_stick_x, self.left_stick_y) =
+                    self.apply_deadzone(self.raw_left_stick_x, self.raw_left_stick_y);
+
+                self.axis_simulate_button(
+                    self.left_stick_x,
+                    Button::LeftStickLeft,
+                    Button::LeftStickRight,
+                );
             }
             AnalogAxis::LeftStickY => {
-                self.left_stick_y = value;
+                self.raw_left_stick_y = value;
 
-                if value < 0.0 {
-                    self.simulate_button_press(Button::LeftStickDown);
-                } else if value > 0.0 {
-                    self.simulate_button_press(Button::LeftStickUp);
-                } else {
-                    self.simulate_button_release(Button::LeftStickDown);
-                    self.simulate_button_release(Button::LeftStickUp);
-                }
+                (self.left_stick_x, self.left_stick_y) =
+                    self.apply_deadzone(self.raw_left_stick_x, self.raw_left_stick_y);
+
+                self.axis_simulate_button(
+                    self.left_stick_y,
+                    Button::LeftStickDown,
+                    Button::LeftStickUp,
+                );
             }
             AnalogAxis::RightStickX => {
-                self.right_stick_x = value;
+                self.raw_right_stick_x = value;
 
-                if value < 0.0 {
-                    self.simulate_button_press(Button::RightStickLeft);
-                } else if value > 0.0 {
-                    self.simulate_button_press(Button::RightStickRight);
-                } else {
-                    self.simulate_button_release(Button::RightStickLeft);
-                    self.simulate_button_release(Button::RightStickRight);
-                }
+                (self.right_stick_x, self.right_stick_y) =
+                    self.apply_deadzone(self.raw_right_stick_x, self.raw_right_stick_y);
+
+                self.axis_simulate_button(
+                    self.right_stick_x,
+                    Button::RightStickLeft,
+                    Button::RightStickRight,
+                );
             }
             AnalogAxis::RightStickY => {
-                self.right_stick_y = value;
+                self.raw_right_stick_y = value;
 
-                if value < 0.0 {
-                    self.simulate_button_press(Button::RightStickDown);
-                } else if value > 0.0 {
-                    self.simulate_button_press(Button::RightStickUp);
-                } else {
-                    self.simulate_button_release(Button::RightStickDown);
-                    self.simulate_button_release(Button::RightStickUp);
-                }
+                (self.right_stick_x, self.right_stick_y) =
+                    self.apply_deadzone(self.raw_right_stick_x, self.raw_right_stick_y);
+
+                self.axis_simulate_button(
+                    self.right_stick_y,
+                    Button::RightStickDown,
+                    Button::RightStickUp,
+                );
             }
         }
+    }
+
+    fn axis_simulate_button(&mut self, value: f32, low: Button, high: Button) {
+        if value < 0.0 {
+            self.simulate_button_press(low);
+        } else if value > 0.0 {
+            self.simulate_button_press(high);
+        } else {
+            self.simulate_button_release(low);
+            self.simulate_button_release(high);
+        }
+    }
+
+    fn apply_deadzone(&self, x: f32, y: f32) -> (f32, f32) {
+        if self.deadzone == 0.0 {
+            return (x, y);
+        }
+
+        let v = Vec2::new(x, y);
+
+        let length = v.length().min(1.0);
+
+        if length < self.deadzone {
+            return (0.0, 0.0);
+        }
+
+        let norm = inverse_lerp!(self.deadzone, 1.0, length) / length;
+
+        (v * norm).into()
     }
 
     pub(crate) fn flush(&mut self) {
