@@ -1,6 +1,6 @@
-pub use strum::EnumString;
+pub use strum::{EnumString, IntoStaticStr};
 
-#[derive(EnumString, Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum AnalogAxis {
     DPadX,
     DPadY,
@@ -28,7 +28,7 @@ impl AnalogAxis {
     }
 }
 
-#[derive(EnumString, Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Button {
     Meta,
     Start,
