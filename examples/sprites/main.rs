@@ -50,7 +50,7 @@ impl MainScene {
 
         Box::new(MainScene {
             camera,
-            render_pipeline: SpritePipeline::new(game_io, true),
+            render_pipeline: SpritePipeline::new(game_io),
             sprites,
             next_scene: NextScene::None,
         })
@@ -95,7 +95,8 @@ impl Scene<Globals> for MainScene {
         self.camera.scale_with_window(game_io.window());
 
         let uniforms = [self.camera.as_binding()];
-        let mut render_queue = SpriteQueue::new(game_io, &self.render_pipeline, uniforms);
+        let mut render_queue =
+            SpriteQueue::new(game_io, &self.render_pipeline, uniforms).with_inverted_y(true);
 
         for sprite in &self.sprites {
             render_queue.draw_sprite(sprite);

@@ -4,10 +4,11 @@ use std::sync::Arc;
 pub struct SpritePipeline<SpriteData: InstanceData> {
     render_pipeline: RenderPipeline<SpriteVertex, SpriteData>,
     mesh: Arc<Mesh<SpriteVertex>>,
+    inverted_mesh: Arc<Mesh<SpriteVertex>>,
 }
 
 impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, invert_y: bool) -> Self {
+    pub fn new<Globals>(game_io: &GameIO<Globals>) -> Self {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));
@@ -25,7 +26,8 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
 
         Self {
             render_pipeline,
-            mesh: Self::create_mesh(invert_y),
+            mesh: Self::create_mesh(false),
+            inverted_mesh: Self::create_mesh(true),
         }
     }
 
@@ -36,6 +38,7 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
         Self {
             render_pipeline,
             mesh: Self::create_mesh(invert_y),
+            inverted_mesh: Self::create_mesh(invert_y),
         }
     }
 
@@ -67,6 +70,10 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
 
     pub fn mesh(&self) -> &Arc<Mesh<SpriteVertex>> {
         &self.mesh
+    }
+
+    pub fn inverted_mesh(&self) -> &Arc<Mesh<SpriteVertex>> {
+        &self.inverted_mesh
     }
 }
 
