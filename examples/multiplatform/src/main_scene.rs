@@ -13,11 +13,6 @@ impl MainScene {
         camera.invert_y(true);
 
         let texture = Texture::load_from_memory(game_io, include_bytes!("sprite.png")).unwrap();
-        let sampler = game_io
-            .resource::<DefaultSpriteSampler>()
-            .unwrap()
-            .as_texture_sampler()
-            .clone();
 
         let mut sprites = Vec::new();
         let mut rng = rand::thread_rng();
@@ -26,7 +21,7 @@ impl MainScene {
         let camera_vertical_range = camera_bounds.vertical_range();
 
         for _ in 0..5000 {
-            let mut sprite = Sprite::new(texture.clone(), sampler.clone());
+            let mut sprite = Sprite::new(game_io, texture.clone());
 
             sprite.set_position(Vec2::new(
                 rng.gen_range(camera_horizontal_range.clone()),
@@ -77,12 +72,9 @@ impl Scene for MainScene {
         // self.camera.resize_to_window(window);
         self.camera.scale_with_window(game_io.window());
 
-        let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
-        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
-
         let uniforms = [self.camera.as_binding()];
         let mut render_queue =
-            SpriteQueue::new(game_io, render_pipeline, uniforms).with_inverted_y(true);
+            SpriteQueue::new_with_default_pipeline(game_io, uniforms).with_inverted_y(true);
 
         for sprite in &self.sprites {
             render_queue.draw_sprite(sprite);

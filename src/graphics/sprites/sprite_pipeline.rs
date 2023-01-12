@@ -1,10 +1,7 @@
 use crate::prelude::*;
-use std::sync::Arc;
 
 pub struct SpritePipeline<SpriteData: InstanceData> {
     render_pipeline: RenderPipeline<SpriteVertex, SpriteData>,
-    mesh: Arc<Mesh<SpriteVertex>>,
-    inverted_mesh: Arc<Mesh<SpriteVertex>>,
 }
 
 impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
@@ -24,53 +21,11 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
             .build::<SpriteVertex, SpriteData>()
             .unwrap();
 
-        Self {
-            render_pipeline,
-            mesh: Self::create_mesh(false),
-            inverted_mesh: Self::create_mesh(true),
-        }
+        Self { render_pipeline }
     }
 
     pub fn from_custom_pipeline(render_pipeline: RenderPipeline<SpriteVertex, SpriteData>) -> Self {
-        Self {
-            render_pipeline,
-            mesh: Self::create_mesh(false),
-            inverted_mesh: Self::create_mesh(true),
-        }
-    }
-
-    fn create_mesh(invert_y: bool) -> Arc<Mesh<SpriteVertex>> {
-        let (y1, y2) = if invert_y { (0.0, 1.0) } else { (1.0, 0.0) };
-
-        Mesh::new(
-            &[
-                SpriteVertex {
-                    vertex: [0.0, 0.0],
-                    uv: [0.0, y1],
-                },
-                SpriteVertex {
-                    vertex: [0.0, 1.0],
-                    uv: [0.0, y2],
-                },
-                SpriteVertex {
-                    vertex: [1.0, 1.0],
-                    uv: [1.0, y2],
-                },
-                SpriteVertex {
-                    vertex: [1.0, 0.0],
-                    uv: [1.0, y1],
-                },
-            ],
-            &[0, 1, 2, 2, 0, 3],
-        )
-    }
-
-    pub fn mesh(&self) -> &Arc<Mesh<SpriteVertex>> {
-        &self.mesh
-    }
-
-    pub fn inverted_mesh(&self) -> &Arc<Mesh<SpriteVertex>> {
-        &self.inverted_mesh
+        Self { render_pipeline }
     }
 }
 

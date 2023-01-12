@@ -3,9 +3,21 @@ use std::sync::Arc;
 
 /// RenderQueues only render when consumed by a RenderPass
 pub struct SpriteQueue<'a, InstanceData: self::InstanceData> {
-    sprite_pipeline: &'a SpritePipeline<InstanceData>,
+    game_io: &'a GameIO,
     render_queue: RenderQueue<'a, SpriteVertex, InstanceData>,
     mesh: &'a Arc<Mesh<SpriteVertex>>,
+}
+
+impl<'a> SpriteQueue<'a, SpriteInstanceData> {
+    pub fn new_with_default_pipeline<'b, I>(game_io: &'a GameIO, uniform_resources: I) -> Self
+    where
+        I: IntoIterator<Item = BindingResource<'b>>,
+    {
+        let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
+
+        Self::new(game_io, render_pipeline, uniform_resources)
+    }
 }
 
 impl<'a, InstanceData: self::InstanceData> SpriteQueue<'a, InstanceData> {
@@ -17,20 +29,24 @@ impl<'a, InstanceData: self::InstanceData> SpriteQueue<'a, InstanceData> {
     where
         I: IntoIterator<Item = BindingResource<'b>>,
     {
-        let mesh = sprite_pipeline.mesh();
-
         Self {
-            sprite_pipeline,
+            game_io,
             render_queue: RenderQueue::new(game_io, sprite_pipeline, uniform_resources),
-            mesh,
+            mesh: game_io.resource::<DefaultSpriteMesh>().unwrap().as_mesh(),
         }
     }
 
     pub fn with_inverted_y(mut self, invert: bool) -> Self {
         self.mesh = if invert {
-            self.sprite_pipeline.inverted_mesh()
+            self.game_io
+                .resource::<DefaultSpriteMeshInverted>()
+                .unwrap()
+                .as_mesh()
         } else {
-            self.sprite_pipeline.mesh()
+            self.game_io
+                .resource::<DefaultSpriteMesh>()
+                .unwrap()
+                .as_mesh()
         };
 
         self

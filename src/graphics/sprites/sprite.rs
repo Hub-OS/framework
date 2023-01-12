@@ -14,7 +14,18 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn new(texture: Arc<Texture>, sampler: Arc<TextureSampler>) -> Self {
+    pub fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
+        Self::new_with_sampler(
+            texture,
+            game_io
+                .resource::<DefaultSpriteSampler>()
+                .unwrap()
+                .as_texture_sampler()
+                .clone(),
+        )
+    }
+
+    pub fn new_with_sampler(texture: Arc<Texture>, sampler: Arc<TextureSampler>) -> Self {
         Self {
             texture,
             sampler,
