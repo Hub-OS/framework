@@ -62,7 +62,7 @@ pub struct OrthoCamera {
 }
 
 impl OrthoCamera {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, view_size: Vec2) -> OrthoCamera {
+    pub fn new(game_io: &GameIO, view_size: Vec2) -> OrthoCamera {
         let state = CameraState {
             translation: Vec3::ZERO,
             invert_y: 1.0,

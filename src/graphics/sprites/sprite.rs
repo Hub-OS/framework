@@ -14,7 +14,7 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    pub fn new_sampler<Globals>(game_io: &GameIO<Globals>) -> Arc<TextureSampler> {
+    pub fn new_sampler(game_io: &GameIO) -> Arc<TextureSampler> {
         TextureSampler::new(game_io, SamplingFilter::Nearest, EdgeSampling::Clamp)
     }
 

@@ -4,17 +4,14 @@ use winit::event::StartCause as WinitEventStartCause;
 use winit::event_loop::ControlFlow;
 use winit::window::WindowId;
 
-pub(super) struct ActiveHandler<Globals: 'static> {
+pub(super) struct ActiveHandler {
     window_id: WindowId,
-    game_runtime: GameRuntime<Globals>,
+    game_runtime: GameRuntime,
     controller_event_pump: ControllerEventPump,
 }
 
-impl<Globals> ActiveHandler<Globals> {
-    pub(super) async fn new(
-        window: Window,
-        loop_params: WindowLoopParams<Globals>,
-    ) -> anyhow::Result<Self> {
+impl ActiveHandler {
+    pub(super) async fn new(window: Window, loop_params: WindowLoopParams) -> anyhow::Result<Self> {
         let window_id = window.id();
         let mut game_runtime = GameRuntime::new(window, loop_params).await?;
         let controller_event_pump = ControllerEventPump::new(&mut game_runtime)?;
@@ -27,7 +24,7 @@ impl<Globals> ActiveHandler<Globals> {
     }
 }
 
-impl<Globals> super::WinitEventHandler for ActiveHandler<Globals> {
+impl super::WinitEventHandler for ActiveHandler {
     fn handle_event(
         &mut self,
         winit_event: WinitEvent<'_, ()>,

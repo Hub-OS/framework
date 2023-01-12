@@ -1,17 +1,15 @@
 use framework::prelude::*;
 use rand::prelude::*;
 
-pub type Globals = ();
-
 pub struct MainScene {
     sprites: Vec<Sprite>,
     camera: OrthoCamera,
     render_pipeline: SpritePipeline<SpriteInstanceData>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl MainScene {
-    pub fn new(game_io: &mut GameIO<Globals>) -> Box<MainScene> {
+    pub fn new(game_io: &mut GameIO) -> Box<MainScene> {
         let mut camera = OrthoCamera::new(game_io, Vec2::new(800.0, 600.0));
         camera.invert_y(true);
 
@@ -50,12 +48,12 @@ impl MainScene {
     }
 }
 
-impl Scene<Globals> for MainScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for MainScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         let a = std::f32::consts::PI / 180.0 * 3.0;
         for sprite in &mut self.sprites {
             let rotation = sprite.rotation();
@@ -75,7 +73,7 @@ impl Scene<Globals> for MainScene {
         self.camera.set_position(camera_pos);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // self.camera.resize_to_window(window);
         self.camera.scale_with_window(game_io.window());
 

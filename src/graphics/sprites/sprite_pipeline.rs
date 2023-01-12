@@ -8,7 +8,7 @@ pub struct SpritePipeline<SpriteData: InstanceData> {
 }
 
 impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
-    pub fn new<Globals>(game_io: &GameIO<Globals>) -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));

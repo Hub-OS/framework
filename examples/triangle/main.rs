@@ -4,12 +4,10 @@ use framework::logging::*;
 use framework::prelude::*;
 use triangle::{Triangle, TriangleInstanceData, TriangleVertex};
 
-type Globals = ();
-
 fn main() -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Triangle Example", (800, 600), |_| ());
+    let game = Game::new("Triangle Example", (800, 600));
 
     game.run(|game_io| MainScene::new(game_io))
 }
@@ -17,11 +15,11 @@ fn main() -> anyhow::Result<()> {
 struct MainScene {
     render_pipeline: RenderPipeline<TriangleVertex, TriangleInstanceData>,
     triangle: Triangle,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl MainScene {
-    fn new(game_io: &mut GameIO<Globals>) -> Box<MainScene> {
+    fn new(game_io: &mut GameIO) -> Box<MainScene> {
         let graphics = game_io.graphics();
 
         let shader = graphics
@@ -42,14 +40,14 @@ impl MainScene {
     }
 }
 
-impl Scene<Globals> for MainScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for MainScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, _game_io: &mut GameIO<Globals>) {}
+    fn update(&mut self, _game_io: &mut GameIO) {}
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let mut render_queue = RenderQueue::new(game_io, &self.render_pipeline, []);
         render_queue.draw_model(&self.triangle);
         render_pass.consume_queue(render_queue);

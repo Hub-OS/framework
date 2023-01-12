@@ -6,7 +6,7 @@ pub struct ColorResource {
 }
 
 impl ColorResource {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, color: Color) -> Self {
+    pub fn new(game_io: &GameIO, color: Color) -> Self {
         Self {
             color,
             buffer_resource: BufferResource::new(game_io, bytemuck::cast_slice(&[color])),

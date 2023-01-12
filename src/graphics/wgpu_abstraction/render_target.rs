@@ -7,7 +7,7 @@ pub struct RenderTarget {
 }
 
 impl RenderTarget {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, size: UVec2) -> Self {
+    pub fn new(game_io: &GameIO, size: UVec2) -> Self {
         Self {
             texture: RenderTarget::create_texture(game_io, size),
             clear_color: Color::TRANSPARENT,
@@ -29,7 +29,7 @@ impl RenderTarget {
         self.texture.size
     }
 
-    pub fn resize<Globals>(&mut self, game_io: &GameIO<Globals>, size: UVec2) {
+    pub fn resize(&mut self, game_io: &GameIO, size: UVec2) {
         if self.texture.size == size {
             return;
         }
@@ -60,7 +60,7 @@ impl RenderTarget {
         None
     }
 
-    fn create_texture<Globals>(game_io: &GameIO<Globals>, size: UVec2) -> Arc<Texture> {
+    fn create_texture(game_io: &GameIO, size: UVec2) -> Arc<Texture> {
         let graphics = game_io.graphics();
         let device = graphics.device();
         let format = graphics.surface_config().format;

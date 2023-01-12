@@ -1,25 +1,17 @@
 use crate::prelude::*;
 
-type GlobalsConstructor<Globals> = Box<dyn FnOnce(&mut GameIO<Globals>) -> Globals>;
-type SceneConstructor<Globals> = Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn Scene<Globals>>>;
-type OverlayConstructor<Globals> =
-    Box<dyn FnOnce(&mut GameIO<Globals>) -> Box<dyn SceneOverlay<Globals>>>;
+type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
+type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn SceneOverlay>>;
 
-pub struct Game<Globals: 'static> {
-    globals_constructor: GlobalsConstructor<Globals>,
+pub struct Game {
     window_config: WindowConfig,
     target_fps: u16,
-    overlay_constructor: Option<OverlayConstructor<Globals>>,
+    overlay_constructor: Option<OverlayConstructor>,
 }
 
-impl<Globals> Game<Globals> {
-    pub fn new(
-        title: &str,
-        size: (u32, u32),
-        globals_constructor: impl FnOnce(&mut GameIO<Globals>) -> Globals + 'static,
-    ) -> Game<Globals> {
+impl Game {
+    pub fn new(title: &str, size: (u32, u32)) -> Game {
         Game {
-            globals_constructor: Box::new(globals_constructor),
             target_fps: 60,
             window_config: WindowConfig {
                 title: String::from(title),
@@ -70,8 +62,7 @@ impl<Globals> Game<Globals> {
         overlay_constuctor: OverlayConstructor,
     ) -> Self
     where
-        OverlayConstructor:
-            FnOnce(&mut GameIO<Globals>) -> Box<dyn SceneOverlay<Globals>> + 'static,
+        OverlayConstructor: FnOnce(&mut GameIO) -> Box<dyn SceneOverlay> + 'static,
     {
         self.overlay_constructor = Some(Box::new(overlay_constuctor));
         self
@@ -79,12 +70,11 @@ impl<Globals> Game<Globals> {
 
     pub fn run<SceneConstructor>(self, scene_constructor: SceneConstructor) -> anyhow::Result<()>
     where
-        SceneConstructor: FnOnce(&mut GameIO<Globals>) -> Box<dyn Scene<Globals>> + 'static,
+        SceneConstructor: FnOnce(&mut GameIO) -> Box<dyn Scene> + 'static,
     {
         let window_loop = Window::build(self.window_config)?;
 
         let params = WindowLoopParams {
-            globals_constructor: self.globals_constructor,
             scene_constructor: Box::new(scene_constructor),
             target_fps: self.target_fps,
             overlay_constructor: self.overlay_constructor,
@@ -94,9 +84,8 @@ impl<Globals> Game<Globals> {
     }
 }
 
-pub(crate) struct WindowLoopParams<Globals: 'static> {
-    pub globals_constructor: GlobalsConstructor<Globals>,
-    pub scene_constructor: SceneConstructor<Globals>,
+pub(crate) struct WindowLoopParams {
+    pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
-    pub overlay_constructor: Option<OverlayConstructor<Globals>>,
+    pub overlay_constructor: Option<OverlayConstructor>,
 }

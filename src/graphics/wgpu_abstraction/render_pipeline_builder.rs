@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
-pub struct RenderPipelineBuilder<'a, Globals: 'static> {
-    game_io: &'a GameIO<Globals>,
+pub struct RenderPipelineBuilder<'a> {
+    game_io: &'a GameIO,
     uniform_bind_group_layout_entries: Vec<wgpu::BindGroupLayoutEntry>,
     instance_bind_group_layout_entries: Vec<wgpu::BindGroupLayoutEntry>,
     vertex_shader: Option<(&'a wgpu::ShaderModule, String)>,
@@ -13,8 +13,8 @@ pub struct RenderPipelineBuilder<'a, Globals: 'static> {
     multisample: wgpu::MultisampleState,
 }
 
-impl<'a, Globals> RenderPipelineBuilder<'a, Globals> {
-    pub fn new(game_io: &'a GameIO<Globals>) -> Self {
+impl<'a> RenderPipelineBuilder<'a> {
+    pub fn new(game_io: &'a GameIO) -> Self {
         Self {
             game_io,
             uniform_bind_group_layout_entries: Vec::new(),

@@ -25,8 +25,8 @@ impl TextureSampler {
         }
     }
 
-    pub fn new<Globals>(
-        game_io: &GameIO<Globals>,
+    pub fn new(
+        game_io: &GameIO,
         sampling_filter: SamplingFilter,
         edge_sampling: EdgeSampling,
     ) -> Arc<Self> {

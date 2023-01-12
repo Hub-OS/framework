@@ -5,19 +5,19 @@ use crate::prelude::*;
 use winit::event::Event as WinitEvent;
 use winit::event_loop::ControlFlow;
 
-struct StartingHandlerInitParams<Globals: 'static> {
+struct StartingHandlerInitParams {
     window: Window,
-    loop_params: WindowLoopParams<Globals>,
+    loop_params: WindowLoopParams,
 }
 
-pub(super) struct StartingHandler<Globals: 'static> {
+pub(super) struct StartingHandler {
     async_executor: async_executor::LocalExecutor<'static>,
-    starting_handler_init_params: Option<StartingHandlerInitParams<Globals>>,
-    task: Option<async_executor::Task<anyhow::Result<ActiveHandler<Globals>>>>,
+    starting_handler_init_params: Option<StartingHandlerInitParams>,
+    task: Option<async_executor::Task<anyhow::Result<ActiveHandler>>>,
 }
 
-impl<Globals> StartingHandler<Globals> {
-    pub(super) fn new(window: Window, loop_params: WindowLoopParams<Globals>) -> Self {
+impl StartingHandler {
+    pub(super) fn new(window: Window, loop_params: WindowLoopParams) -> Self {
         #[allow(unused_mut)]
         let mut starting_handler = Self {
             async_executor: async_executor::LocalExecutor::new(),
@@ -36,7 +36,7 @@ impl<Globals> StartingHandler<Globals> {
     }
 }
 
-impl<Globals> StartingHandler<Globals> {
+impl StartingHandler {
     fn start_active_handler_task(&mut self) {
         if let Some(params) = self.starting_handler_init_params.take() {
             self.task = Some(
@@ -47,7 +47,7 @@ impl<Globals> StartingHandler<Globals> {
     }
 }
 
-impl<Globals> WinitEventHandler for StartingHandler<Globals> {
+impl WinitEventHandler for StartingHandler {
     fn handle_event(
         &mut self,
         winit_event: WinitEvent<'_, ()>,

@@ -9,8 +9,8 @@ pub struct SpriteQueue<'a, InstanceData: self::InstanceData> {
 }
 
 impl<'a, InstanceData: self::InstanceData> SpriteQueue<'a, InstanceData> {
-    pub fn new<'b, Globals, I>(
-        game_io: &'a GameIO<Globals>,
+    pub fn new<'b, I>(
+        game_io: &'a GameIO,
         sprite_pipeline: &'a SpritePipeline<InstanceData>,
         uniform_resources: I,
     ) -> Self

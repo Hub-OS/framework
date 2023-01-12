@@ -3,23 +3,20 @@ use crate::{cfg_sdl, cfg_winit};
 use instant::Instant;
 use std::cell::RefCell;
 
-pub(crate) struct GameRuntime<Globals: 'static> {
+pub(crate) struct GameRuntime {
     event_buffer: Vec<WindowEvent>,
-    scene_manager: SceneManager<Globals>,
+    scene_manager: SceneManager,
     frame_end: Instant,
-    game_io: GameIO<Globals>,
-    overlay: Option<Box<dyn SceneOverlay<Globals>>>,
+    game_io: GameIO,
+    overlay: Option<Box<dyn SceneOverlay>>,
 }
 
-impl<Globals> GameRuntime<Globals> {
-    pub(crate) async fn new(
-        window: Window,
-        loop_params: WindowLoopParams<Globals>,
-    ) -> anyhow::Result<Self> {
+impl GameRuntime {
+    pub(crate) async fn new(window: Window, loop_params: WindowLoopParams) -> anyhow::Result<Self> {
         let window_size = window.size();
         let graphics = GraphicsContext::new(&window, window_size.x, window_size.y).await?;
 
-        let mut game_io = GameIO::new(window, graphics, loop_params.globals_constructor);
+        let mut game_io = GameIO::new(window, graphics);
         game_io.set_target_fps(loop_params.target_fps);
 
         let initial_scene = (loop_params.scene_constructor)(&mut game_io);

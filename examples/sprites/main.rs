@@ -2,12 +2,10 @@ use framework::logging::*;
 use framework::prelude::*;
 use rand::prelude::*;
 
-type Globals = ();
-
 fn main() -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Sprites", (800, 600), |_| ());
+    let game = Game::new("Sprites", (800, 600));
 
     game.run(|game_io| MainScene::new(game_io))
 }
@@ -16,11 +14,11 @@ struct MainScene {
     sprites: Vec<Sprite>,
     camera: OrthoCamera,
     render_pipeline: SpritePipeline<SpriteInstanceData>,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
 impl MainScene {
-    fn new(game_io: &mut GameIO<Globals>) -> Box<MainScene> {
+    fn new(game_io: &mut GameIO) -> Box<MainScene> {
         let mut camera = OrthoCamera::new(game_io, Vec2::new(800.0, 600.0));
         camera.invert_y(true);
 
@@ -30,7 +28,7 @@ impl MainScene {
         let mut sprites = Vec::new();
         let mut rng = rand::thread_rng();
 
-        for _ in 0..50000 {
+        for _ in 0..500 {
             let mut sprite = Sprite::new(texture.clone(), sampler.clone());
 
             let camera_bounds = camera.bounds();
@@ -57,12 +55,12 @@ impl MainScene {
     }
 }
 
-impl Scene<Globals> for MainScene {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for MainScene {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         let a = std::f32::consts::PI / 180.0 * 3.0;
 
         for sprite in &mut self.sprites {
@@ -90,7 +88,7 @@ impl Scene<Globals> for MainScene {
         self.camera.set_position(camera_pos);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // self.camera.resize_to_window(window);
         self.camera.scale_with_window(game_io.window());
 

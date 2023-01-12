@@ -9,7 +9,7 @@ pub(crate) struct ControllerEventPump {
 }
 
 impl ControllerEventPump {
-    pub(crate) fn new<Globals>(game_runtime: &mut GameRuntime<Globals>) -> anyhow::Result<Self> {
+    pub(crate) fn new(game_runtime: &mut GameRuntime) -> anyhow::Result<Self> {
         let gilrs = gilrs::Gilrs::new().map_err(|e| {
             crate::logging::error!("{e}");
             anyhow::anyhow!("Failed to initialize game controller subsystem")
@@ -29,7 +29,7 @@ impl ControllerEventPump {
         Ok(Self { gilrs })
     }
 
-    pub(crate) fn pump<Globals>(&mut self, game_runtime: &mut GameRuntime<Globals>) {
+    pub(crate) fn pump(&mut self, game_runtime: &mut GameRuntime) {
         // Examine new events
         while let Some(gilrs::Event { id, event, time: _ }) = self.gilrs.borrow_mut().next_event() {
             let input_event = convert_event(&self.gilrs, id, event);

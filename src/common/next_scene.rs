@@ -1,39 +1,39 @@
 use super::*;
 
-pub enum NextScene<Globals> {
+pub enum NextScene {
     Push {
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
+        scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
     },
     Swap {
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
+        scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
     },
     PopSwap {
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
+        scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
     },
     Pop {
-        transition: Option<Box<dyn Transition<Globals>>>,
+        transition: Option<Box<dyn Transition>>,
     },
     // skips calling Scene::enter
     #[doc(hidden)]
     __InternalPush {
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
+        scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
     },
     // skips calling Scene::enter
     #[doc(hidden)]
     __InternalSwap {
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
+        scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
     },
     None,
 }
 
-impl<Globals> NextScene<Globals> {
+impl NextScene {
     #[inline]
-    pub fn new_push(scene: impl Scene<Globals> + 'static) -> Self {
+    pub fn new_push(scene: impl Scene + 'static) -> Self {
         NextScene::Push {
             scene: Box::new(scene),
             transition: None,
@@ -41,7 +41,7 @@ impl<Globals> NextScene<Globals> {
     }
 
     #[inline]
-    pub fn new_swap(scene: impl Scene<Globals> + 'static) -> Self {
+    pub fn new_swap(scene: impl Scene + 'static) -> Self {
         NextScene::Swap {
             scene: Box::new(scene),
             transition: None,
@@ -49,7 +49,7 @@ impl<Globals> NextScene<Globals> {
     }
 
     #[inline]
-    pub fn new_pop_swap(scene: impl Scene<Globals> + 'static) -> Self {
+    pub fn new_pop_swap(scene: impl Scene + 'static) -> Self {
         NextScene::PopSwap {
             scene: Box::new(scene),
             transition: None,
@@ -61,7 +61,7 @@ impl<Globals> NextScene<Globals> {
         NextScene::Pop { transition: None }
     }
 
-    pub fn with_transition(mut self, transition: impl Transition<Globals> + 'static) -> Self {
+    pub fn with_transition(mut self, transition: impl Transition + 'static) -> Self {
         match &mut self {
             NextScene::Push {
                 transition: set_transition,
@@ -102,14 +102,14 @@ impl<Globals> NextScene<Globals> {
         !matches!(self, NextScene::None)
     }
 
-    pub fn take(&mut self) -> NextScene<Globals> {
+    pub fn take(&mut self) -> NextScene {
         let mut next_scene = NextScene::None;
         std::mem::swap(&mut next_scene, self);
         next_scene
     }
 }
 
-impl<Globals> Default for NextScene<Globals> {
+impl Default for NextScene {
     fn default() -> Self {
         Self::None
     }

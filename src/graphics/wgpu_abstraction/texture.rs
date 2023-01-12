@@ -20,10 +20,7 @@ impl Texture {
         }
     }
 
-    pub fn load_from_memory<Globals>(
-        game_io: &GameIO<Globals>,
-        bytes: &[u8],
-    ) -> anyhow::Result<Arc<Self>> {
+    pub fn load_from_memory(game_io: &GameIO, bytes: &[u8]) -> anyhow::Result<Arc<Self>> {
         let image = image::load_from_memory(bytes)?;
         let rgba_image = image.to_rgba8();
         let size = rgba_image.dimensions();

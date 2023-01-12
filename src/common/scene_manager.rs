@@ -1,29 +1,29 @@
 use crate::prelude::*;
 use log::error;
 
-pub(crate) struct SceneManager<Globals: 'static> {
-    scenes: Vec<Box<dyn Scene<Globals>>>,
+pub(crate) struct SceneManager {
+    scenes: Vec<Box<dyn Scene>>,
 }
 
-impl<Globals> SceneManager<Globals> {
-    pub(crate) fn new(initial_scene: Box<dyn Scene<Globals>>) -> Self {
+impl SceneManager {
+    pub(crate) fn new(initial_scene: Box<dyn Scene>) -> Self {
         Self {
             scenes: vec![initial_scene],
         }
     }
 
-    fn active_scene_mut(&mut self) -> &mut Box<dyn Scene<Globals>> {
+    fn active_scene_mut(&mut self) -> &mut Box<dyn Scene> {
         self.scenes.last_mut().unwrap()
     }
 
-    pub(crate) fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    pub(crate) fn update(&mut self, game_io: &mut GameIO) {
         let active_scene = self.active_scene_mut();
         active_scene.update(game_io);
 
         while self.handle_scene_request(game_io) {}
     }
 
-    fn handle_scene_request(&mut self, game_io: &mut GameIO<Globals>) -> bool {
+    fn handle_scene_request(&mut self, game_io: &mut GameIO) -> bool {
         let active_scene = self.active_scene_mut();
 
         let to_scene_request = active_scene.next_scene().take();
@@ -74,11 +74,7 @@ impl<Globals> SceneManager<Globals> {
         }
     }
 
-    fn push_scene(
-        &mut self,
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
-    ) {
+    fn push_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
         if let Some(transition) = transition {
             let current_scene = self.scenes.pop().unwrap();
 
@@ -91,11 +87,7 @@ impl<Globals> SceneManager<Globals> {
         }
     }
 
-    fn swap_scene(
-        &mut self,
-        scene: Box<dyn Scene<Globals>>,
-        transition: Option<Box<dyn Transition<Globals>>>,
-    ) {
+    fn swap_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
         let current_scene = self.scenes.pop().unwrap();
 
         if let Some(transition) = transition {
@@ -110,11 +102,7 @@ impl<Globals> SceneManager<Globals> {
         }
     }
 
-    fn pop_scene(
-        &mut self,
-        game_io: &mut GameIO<Globals>,
-        transition: Option<Box<dyn Transition<Globals>>>,
-    ) {
+    fn pop_scene(&mut self, game_io: &mut GameIO, transition: Option<Box<dyn Transition>>) {
         let current_scene = self.scenes.pop().unwrap();
         let to_scene = self.scenes.pop();
 
@@ -140,28 +128,28 @@ impl<Globals> SceneManager<Globals> {
 
     pub(crate) fn draw<'a: 'b, 'b>(
         &'a mut self,
-        game_io: &'a mut GameIO<Globals>,
+        game_io: &'a mut GameIO,
         render_pass: &'b mut RenderPass<'_>,
     ) {
         self.active_scene_mut().draw(game_io, render_pass);
     }
 }
 
-struct TransitionWrapper<Globals> {
-    transition: Box<dyn Transition<Globals>>,
-    from_scene: Option<Box<dyn Scene<Globals>>>,
-    to_scene: Option<Box<dyn Scene<Globals>>>,
+struct TransitionWrapper {
+    transition: Box<dyn Transition>,
+    from_scene: Option<Box<dyn Scene>>,
+    to_scene: Option<Box<dyn Scene>>,
     replaces: bool,
     resumes: bool,
     popping: bool,
-    next_scene: NextScene<Globals>,
+    next_scene: NextScene,
 }
 
-impl<Globals> TransitionWrapper<Globals> {
+impl TransitionWrapper {
     fn new(
-        transition: Box<dyn Transition<Globals>>,
-        from_scene: Box<dyn Scene<Globals>>,
-        to_scene: Box<dyn Scene<Globals>>,
+        transition: Box<dyn Transition>,
+        from_scene: Box<dyn Scene>,
+        to_scene: Box<dyn Scene>,
     ) -> Self {
         Self {
             transition,
@@ -175,12 +163,12 @@ impl<Globals> TransitionWrapper<Globals> {
     }
 }
 
-impl<Globals: 'static> Scene<Globals> for TransitionWrapper<Globals> {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for TransitionWrapper {
+    fn next_scene(&mut self) -> &mut NextScene {
         &mut self.next_scene
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+    fn enter(&mut self, game_io: &mut GameIO) {
         if let Some(scene) = self.to_scene.as_mut() {
             scene.enter(game_io);
         }
@@ -190,7 +178,7 @@ impl<Globals: 'static> Scene<Globals> for TransitionWrapper<Globals> {
         }
     }
 
-    fn resume(&mut self, game_io: &mut GameIO<Globals>) {
+    fn resume(&mut self, game_io: &mut GameIO) {
         if self.popping || !self.transition.is_complete() {
             return;
         }
@@ -203,7 +191,7 @@ impl<Globals: 'static> Scene<Globals> for TransitionWrapper<Globals> {
         resumed_scene.resume(game_io);
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         if self.next_scene.is_none()
             && !self.popping
             && !game_io.is_in_transition()
@@ -287,7 +275,7 @@ impl<Globals: 'static> Scene<Globals> for TransitionWrapper<Globals> {
         game_io.set_transitioning(started_in_transition);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass<'_>) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass<'_>) {
         let started_in_transition = game_io.is_in_transition();
         game_io.set_transitioning(true);
 
@@ -307,14 +295,14 @@ impl<Globals: 'static> Scene<Globals> for TransitionWrapper<Globals> {
 }
 
 // resumes scenes stuck in a transition
-struct TransitionResumer<Globals: 'static> {
-    wrapped_scene: Option<Box<dyn Scene<Globals>>>,
-    next_scene: NextScene<Globals>,
+struct TransitionResumer {
+    wrapped_scene: Option<Box<dyn Scene>>,
+    next_scene: NextScene,
     resumed: bool,
 }
 
-impl<Globals> TransitionResumer<Globals> {
-    fn new(scene: Box<dyn Scene<Globals>>) -> Self {
+impl TransitionResumer {
+    fn new(scene: Box<dyn Scene>) -> Self {
         Self {
             wrapped_scene: Some(scene),
             next_scene: NextScene::None,
@@ -323,27 +311,27 @@ impl<Globals> TransitionResumer<Globals> {
     }
 }
 
-impl<Globals> Scene<Globals> for TransitionResumer<Globals> {
-    fn next_scene(&mut self) -> &mut NextScene<Globals> {
+impl Scene for TransitionResumer {
+    fn next_scene(&mut self) -> &mut NextScene {
         self.wrapped_scene
             .as_mut()
             .map(|scene| scene.next_scene())
             .unwrap_or(&mut self.next_scene)
     }
 
-    fn enter(&mut self, game_io: &mut GameIO<Globals>) {
+    fn enter(&mut self, game_io: &mut GameIO) {
         if let Some(scene) = self.wrapped_scene.as_mut() {
             scene.enter(game_io);
         }
     }
 
-    fn resume(&mut self, game_io: &mut GameIO<Globals>) {
+    fn resume(&mut self, game_io: &mut GameIO) {
         if let Some(scene) = self.wrapped_scene.as_mut() {
             scene.resume(game_io);
         }
     }
 
-    fn update(&mut self, game_io: &mut GameIO<Globals>) {
+    fn update(&mut self, game_io: &mut GameIO) {
         let wrapped_scene = self.wrapped_scene.as_mut().unwrap();
 
         if !self.resumed && !game_io.is_in_transition() {
@@ -363,7 +351,7 @@ impl<Globals> Scene<Globals> for TransitionResumer<Globals> {
         }
     }
 
-    fn draw(&mut self, game_io: &mut GameIO<Globals>, render_pass: &mut RenderPass) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         match self.wrapped_scene.as_mut() {
             Some(scene) => scene.draw(game_io, render_pass),
             None => unreachable!(),

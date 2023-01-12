@@ -15,10 +15,7 @@ impl WindowLoop {
         Self { window, event_loop }
     }
 
-    pub(crate) async fn run<Globals>(
-        mut self,
-        params: WindowLoopParams<Globals>,
-    ) -> anyhow::Result<()> {
+    pub(crate) async fn run(mut self, params: WindowLoopParams) -> anyhow::Result<()> {
         let mut event_handler: Box<dyn WinitEventHandler> =
             Box::new(StartingHandler::new(self.window, params));
 

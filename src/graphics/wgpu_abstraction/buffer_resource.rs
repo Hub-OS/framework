@@ -8,7 +8,7 @@ pub struct BufferResource {
 }
 
 impl BufferResource {
-    pub fn new<Globals>(game_io: &GameIO<Globals>, data: &[u8]) -> Self {
+    pub fn new(game_io: &GameIO, data: &[u8]) -> Self {
         let graphics = game_io.graphics();
         let device = graphics.device();
 

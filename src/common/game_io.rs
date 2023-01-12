@@ -1,11 +1,13 @@
 use crate::prelude::*;
+use std::any::{Any, TypeId};
+use std::collections::HashMap;
 use std::future::Future;
 use std::time::Duration;
 
-pub struct GameIO<Globals: 'static> {
+pub struct GameIO {
     window: Window,
     graphics: GraphicsContext,
-    globals: Option<Globals>,
+    resources: HashMap<TypeId, Box<dyn Any>>,
     async_executor: async_executor::LocalExecutor<'static>,
     input_manager: InputManager,
     target_fps: u16,
@@ -20,19 +22,12 @@ pub struct GameIO<Globals: 'static> {
     quitting: bool,
 }
 
-impl<Globals> GameIO<Globals> {
-    pub(crate) fn new<GlobalsConstructor>(
-        window: Window,
-        graphics: GraphicsContext,
-        globals_constructor: GlobalsConstructor,
-    ) -> Self
-    where
-        GlobalsConstructor: FnOnce(&mut GameIO<Globals>) -> Globals,
-    {
-        let mut game_io = GameIO {
+impl GameIO {
+    pub(crate) fn new(window: Window, graphics: GraphicsContext) -> Self {
+        Self {
             window,
             graphics,
-            globals: None,
+            resources: HashMap::new(),
             async_executor: async_executor::LocalExecutor::new(),
             input_manager: InputManager::new(),
             target_fps: 60,
@@ -45,11 +40,7 @@ impl<Globals> GameIO<Globals> {
             lost_duration: Duration::ZERO,
             transitioning: false,
             quitting: false,
-        };
-
-        game_io.globals = Some(globals_constructor(&mut game_io));
-
-        game_io
+        }
     }
 
     pub fn window(&self) -> &Window {
@@ -76,12 +67,18 @@ impl<Globals> GameIO<Globals> {
         &mut self.input_manager
     }
 
-    pub fn globals(&self) -> &Globals {
-        self.globals.as_ref().unwrap()
+    pub fn resource<R: Any>(&self) -> Option<&R> {
+        self.resources.get(&TypeId::of::<R>())?.downcast_ref::<R>()
     }
 
-    pub fn globals_mut(&mut self) -> &mut Globals {
-        self.globals.as_mut().unwrap()
+    pub fn resource_mut<R: Any>(&mut self) -> Option<&mut R> {
+        self.resources
+            .get_mut(&TypeId::of::<R>())?
+            .downcast_mut::<R>()
+    }
+
+    pub fn set_resource<R: Any>(&mut self, r: R) {
+        self.resources.insert(r.type_id(), Box::new(r));
     }
 
     pub fn target_fps(&self) -> u16 {

@@ -29,8 +29,8 @@ pub struct RenderQueue<'a, Vertex: super::Vertex, InstanceData: super::InstanceD
 impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
     RenderQueue<'a, Vertex, InstanceData>
 {
-    pub fn new<'b, Globals, RenderPipeline, I>(
-        game_io: &'a GameIO<Globals>,
+    pub fn new<'b, RenderPipeline, I>(
+        game_io: &'a GameIO,
         render_pipeline: &'a RenderPipeline,
         uniform_resources: I,
     ) -> Self
