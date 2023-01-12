@@ -7,8 +7,8 @@ type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 pub struct Game {
     window_config: WindowConfig,
     target_fps: u16,
-    overlay_constructor: Option<OverlayConstructor>,
-    setup_callback: Option<SetupCallback>,
+    overlay_constructors: Vec<OverlayConstructor>,
+    setup_callbacks: Vec<SetupCallback>,
 }
 
 impl Game {
@@ -20,8 +20,8 @@ impl Game {
                 size,
                 ..Default::default()
             },
-            overlay_constructor: None,
-            setup_callback: None,
+            overlay_constructors: Vec::new(),
+            setup_callbacks: Vec::new(),
         }
     }
 
@@ -64,7 +64,7 @@ impl Game {
     where
         SetupCallback: FnOnce(&mut GameIO) + 'static,
     {
-        self.setup_callback = Some(Box::new(setup_callback));
+        self.setup_callbacks.push(Box::new(setup_callback));
         self
     }
 
@@ -75,7 +75,7 @@ impl Game {
     where
         OverlayConstructor: FnOnce(&mut GameIO) -> Box<dyn SceneOverlay> + 'static,
     {
-        self.overlay_constructor = Some(Box::new(overlay_constuctor));
+        self.overlay_constructors.push(Box::new(overlay_constuctor));
         self
     }
 
@@ -88,8 +88,8 @@ impl Game {
         let params = WindowLoopParams {
             scene_constructor: Box::new(scene_constructor),
             target_fps: self.target_fps,
-            overlay_constructor: self.overlay_constructor,
-            setup_callback: self.setup_callback,
+            overlay_constructors: self.overlay_constructors,
+            setup_callbacks: self.setup_callbacks,
         };
 
         pollster::block_on(window_loop.run(params))
@@ -99,6 +99,6 @@ impl Game {
 pub(crate) struct WindowLoopParams {
     pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
-    pub overlay_constructor: Option<OverlayConstructor>,
-    pub setup_callback: Option<SetupCallback>,
+    pub overlay_constructors: Vec<OverlayConstructor>,
+    pub setup_callbacks: Vec<SetupCallback>,
 }

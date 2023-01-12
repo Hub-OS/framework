@@ -8,7 +8,7 @@ pub(crate) struct GameRuntime {
     scene_manager: SceneManager,
     frame_end: Instant,
     game_io: GameIO,
-    overlay: Option<Box<dyn SceneOverlay>>,
+    overlays: Vec<Box<dyn SceneOverlay>>,
 }
 
 impl GameRuntime {
@@ -21,22 +21,24 @@ impl GameRuntime {
 
         super::default_resources::inject(&mut game_io);
 
-        if let Some(callback) = loop_params.setup_callback {
+        for callback in loop_params.setup_callbacks {
             callback(&mut game_io);
         }
 
         let initial_scene = (loop_params.scene_constructor)(&mut game_io);
 
-        let overlay = loop_params
-            .overlay_constructor
-            .map(|constructor| constructor(&mut game_io));
+        let overlays = loop_params
+            .overlay_constructors
+            .into_iter()
+            .map(|constructor| constructor(&mut game_io))
+            .collect();
 
         Ok(Self {
             event_buffer: Vec::new(),
             scene_manager: SceneManager::new(initial_scene),
             frame_end: Instant::now(),
             game_io,
-            overlay,
+            overlays,
         })
     }
 
@@ -90,7 +92,7 @@ impl GameRuntime {
 
         self.scene_manager.update(game_io);
 
-        if let Some(overlay) = self.overlay.as_mut() {
+        for overlay in &mut self.overlays {
             overlay.update(game_io);
         }
 
@@ -126,8 +128,8 @@ impl GameRuntime {
             // draw scene
             self.scene_manager.draw(game_io, &mut render_pass);
 
-            // draw overlay
-            if let Some(overlay) = self.overlay.as_mut() {
+            // draw overlays
+            for overlay in &mut self.overlays {
                 overlay.draw(game_io, &mut render_pass);
             }
 
