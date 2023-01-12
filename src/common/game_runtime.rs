@@ -19,6 +19,10 @@ impl GameRuntime {
         let mut game_io = GameIO::new(window, graphics);
         game_io.set_target_fps(loop_params.target_fps);
 
+        if let Some(callback) = loop_params.setup_callback {
+            callback(&mut game_io);
+        }
+
         let initial_scene = (loop_params.scene_constructor)(&mut game_io);
 
         let overlay = loop_params

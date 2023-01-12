@@ -2,11 +2,13 @@ use crate::prelude::*;
 
 type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
 type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn SceneOverlay>>;
+type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 
 pub struct Game {
     window_config: WindowConfig,
     target_fps: u16,
     overlay_constructor: Option<OverlayConstructor>,
+    setup_callback: Option<SetupCallback>,
 }
 
 impl Game {
@@ -19,6 +21,7 @@ impl Game {
                 ..Default::default()
             },
             overlay_constructor: None,
+            setup_callback: None,
         }
     }
 
@@ -57,6 +60,14 @@ impl Game {
         self
     }
 
+    pub fn with_setup<SetupCallback>(mut self, setup_callback: SetupCallback) -> Self
+    where
+        SetupCallback: FnOnce(&mut GameIO) + 'static,
+    {
+        self.setup_callback = Some(Box::new(setup_callback));
+        self
+    }
+
     pub fn with_overlay<OverlayConstructor>(
         mut self,
         overlay_constuctor: OverlayConstructor,
@@ -78,6 +89,7 @@ impl Game {
             scene_constructor: Box::new(scene_constructor),
             target_fps: self.target_fps,
             overlay_constructor: self.overlay_constructor,
+            setup_callback: self.setup_callback,
         };
 
         pollster::block_on(window_loop.run(params))
@@ -88,4 +100,5 @@ pub(crate) struct WindowLoopParams {
     pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
     pub overlay_constructor: Option<OverlayConstructor>,
+    pub setup_callback: Option<SetupCallback>,
 }
