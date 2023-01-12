@@ -8,7 +8,7 @@ pub struct SpritePipeline<SpriteData: InstanceData> {
 }
 
 impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
-    pub fn new(game_io: &GameIO) -> Self {
+    pub(crate) fn new(game_io: &GameIO) -> Self {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));
@@ -31,14 +31,11 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
         }
     }
 
-    pub fn from_custom_pipeline(
-        render_pipeline: RenderPipeline<SpriteVertex, SpriteData>,
-        invert_y: bool,
-    ) -> Self {
+    pub fn from_custom_pipeline(render_pipeline: RenderPipeline<SpriteVertex, SpriteData>) -> Self {
         Self {
             render_pipeline,
-            mesh: Self::create_mesh(invert_y),
-            inverted_mesh: Self::create_mesh(invert_y),
+            mesh: Self::create_mesh(false),
+            inverted_mesh: Self::create_mesh(true),
         }
     }
 

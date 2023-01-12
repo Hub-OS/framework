@@ -1,3 +1,4 @@
+mod default_resources;
 mod game;
 mod game_io;
 mod game_runtime;

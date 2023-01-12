@@ -4,7 +4,6 @@ use rand::prelude::*;
 pub struct MainScene {
     sprites: Vec<Sprite>,
     camera: OrthoCamera,
-    render_pipeline: SpritePipeline<SpriteInstanceData>,
     next_scene: NextScene,
 }
 
@@ -13,10 +12,12 @@ impl MainScene {
         let mut camera = OrthoCamera::new(game_io, Vec2::new(800.0, 600.0));
         camera.invert_y(true);
 
-        let render_pipeline = SpritePipeline::new(game_io);
-
         let texture = Texture::load_from_memory(game_io, include_bytes!("sprite.png")).unwrap();
-        let sampler = Sprite::new_sampler(game_io);
+        let sampler = game_io
+            .resource::<DefaultSpriteSampler>()
+            .unwrap()
+            .as_texture_sampler()
+            .clone();
 
         let mut sprites = Vec::new();
         let mut rng = rand::thread_rng();
@@ -41,7 +42,6 @@ impl MainScene {
 
         Box::new(MainScene {
             camera,
-            render_pipeline,
             sprites,
             next_scene: NextScene::None,
         })
@@ -77,9 +77,12 @@ impl Scene for MainScene {
         // self.camera.resize_to_window(window);
         self.camera.scale_with_window(game_io.window());
 
+        let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
+
         let uniforms = [self.camera.as_binding()];
         let mut render_queue =
-            SpriteQueue::new(game_io, &self.render_pipeline, uniforms).with_inverted_y(true);
+            SpriteQueue::new(game_io, render_pipeline, uniforms).with_inverted_y(true);
 
         for sprite in &self.sprites {
             render_queue.draw_sprite(sprite);

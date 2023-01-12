@@ -19,6 +19,8 @@ impl GameRuntime {
         let mut game_io = GameIO::new(window, graphics);
         game_io.set_target_fps(loop_params.target_fps);
 
+        super::default_resources::inject(&mut game_io);
+
         if let Some(callback) = loop_params.setup_callback {
             callback(&mut game_io);
         }
