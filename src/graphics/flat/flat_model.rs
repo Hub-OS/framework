@@ -1,8 +1,8 @@
 use crate::prelude::*;
 use std::sync::Arc;
 
-pub struct FlatShapeModel {
-    mesh: Arc<Mesh<FlatShapeVertex>>,
+pub struct FlatModel {
+    mesh: Arc<Mesh<FlatVertex>>,
     color: Color,
     origin: Vec2,
     position: Vec2,
@@ -10,8 +10,8 @@ pub struct FlatShapeModel {
     rotation: f32,
 }
 
-impl FlatShapeModel {
-    pub fn new(mesh: Arc<Mesh<FlatShapeVertex>>) -> Self {
+impl FlatModel {
+    pub fn new(mesh: Arc<Mesh<FlatVertex>>) -> Self {
         Self {
             mesh,
             color: Color::WHITE,
@@ -22,17 +22,17 @@ impl FlatShapeModel {
         }
     }
 
-    pub fn new_square_mesh() -> Arc<Mesh<FlatShapeVertex>> {
+    pub fn new_square_mesh() -> Arc<Mesh<FlatVertex>> {
         Mesh::new(
             &[
-                FlatShapeVertex {
+                FlatVertex {
                     vertex: [-0.5, -0.5],
                 },
-                FlatShapeVertex {
+                FlatVertex {
                     vertex: [-0.5, 0.5],
                 },
-                FlatShapeVertex { vertex: [0.5, 0.5] },
-                FlatShapeVertex {
+                FlatVertex { vertex: [0.5, 0.5] },
+                FlatVertex {
                     vertex: [0.5, -0.5],
                 },
             ],
@@ -44,7 +44,7 @@ impl FlatShapeModel {
         Self::new(Self::new_square_mesh())
     }
 
-    pub fn new_circle_mesh(vertex_count: usize) -> Arc<Mesh<FlatShapeVertex>> {
+    pub fn new_circle_mesh(vertex_count: usize) -> Arc<Mesh<FlatVertex>> {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
@@ -53,12 +53,12 @@ impl FlatShapeModel {
 
         let angle_increment = std::f32::consts::TAU / vertex_count as f32;
 
-        vertices.push(FlatShapeVertex { vertex: [0.0, 0.0] });
+        vertices.push(FlatVertex { vertex: [0.0, 0.0] });
 
         for i in 0..vertex_count {
             let angle = angle_increment * i as f32;
 
-            vertices.push(FlatShapeVertex {
+            vertices.push(FlatVertex {
                 vertex: [angle.cos() * 0.5, angle.sin() * 0.5],
             });
         }
@@ -123,19 +123,19 @@ impl FlatShapeModel {
     }
 }
 
-impl Model<FlatShapeVertex, FlatShapeInstanceData> for FlatShapeModel {
-    fn mesh(&self) -> &Arc<Mesh<FlatShapeVertex>> {
+impl Model<FlatVertex, FlatInstanceData> for FlatModel {
+    fn mesh(&self) -> &Arc<Mesh<FlatVertex>> {
         &self.mesh
     }
 }
 
-impl Instance<FlatShapeInstanceData> for FlatShapeModel {
-    fn instance_data(&self) -> FlatShapeInstanceData {
+impl Instance<FlatInstanceData> for FlatModel {
+    fn instance_data(&self) -> FlatInstanceData {
         let mut transform =
             Mat3::from_scale_angle_translation(self.scale, self.rotation, self.position);
         transform *= Mat3::from_translation(-self.origin);
 
-        FlatShapeInstanceData {
+        FlatInstanceData {
             transform,
             color: self.color,
         }
@@ -148,11 +148,11 @@ impl Instance<FlatShapeInstanceData> for FlatShapeModel {
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct FlatShapeVertex {
+pub struct FlatVertex {
     pub vertex: [f32; 2],
 }
 
-impl Vertex for FlatShapeVertex {
+impl Vertex for FlatVertex {
     fn vertex_layout() -> VertexLayout {
         VertexLayout::new(&[VertexFormat::Float32x2])
     }
@@ -160,12 +160,12 @@ impl Vertex for FlatShapeVertex {
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct FlatShapeInstanceData {
+pub struct FlatInstanceData {
     transform: Mat3,
     color: Color,
 }
 
-impl InstanceData for FlatShapeInstanceData {
+impl InstanceData for FlatInstanceData {
     fn instance_layout() -> InstanceLayout {
         InstanceLayout::new(&[
             VertexFormat::Float32x3,

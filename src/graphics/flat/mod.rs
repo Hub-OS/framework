@@ -1,5 +1,5 @@
-mod flat_shape_model;
-mod flat_shape_pipeline;
+mod flat_model;
+mod flat_pipeline;
 
-pub use flat_shape_model::*;
-pub use flat_shape_pipeline::*;
+pub use flat_model::*;
+pub use flat_pipeline::*;
