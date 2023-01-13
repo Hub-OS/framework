@@ -143,7 +143,12 @@ impl OrthoCamera {
         self.state.scale = scale;
     }
 
-    pub fn scale_with_window(&mut self, window: &Window) {
+    pub fn scale_to(&mut self, size: Vec2) {
+        self.state.width = size.x;
+        self.state.height = size.y;
+    }
+
+    pub fn scale_to_window(&mut self, window: &Window) {
         let res = window.resolution();
 
         self.state.width = res.x as f32;

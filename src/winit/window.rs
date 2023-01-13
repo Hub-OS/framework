@@ -42,6 +42,10 @@ impl Window {
         self.size
     }
 
+    pub fn has_static_resolution(&self) -> bool {
+        self.static_resolution
+    }
+
     pub fn resolution(&self) -> UVec2 {
         self.resolution
     }

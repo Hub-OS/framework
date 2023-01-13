@@ -9,6 +9,9 @@ pub(crate) struct GameRuntime {
     frame_end: Instant,
     game_io: GameIO,
     overlays: Vec<Box<dyn SceneOverlay>>,
+    render_sprite: Sprite,
+    render_target: RenderTarget,
+    camera: OrthoCamera,
 }
 
 impl GameRuntime {
@@ -33,12 +36,19 @@ impl GameRuntime {
             .map(|constructor| constructor(&mut game_io))
             .collect();
 
+        let render_target = RenderTarget::new(&game_io, window_size);
+        let render_sprite = Sprite::new(&game_io, render_target.texture().clone());
+        let camera = OrthoCamera::new(&game_io, window_size.as_vec2());
+
         Ok(Self {
             event_buffer: Vec::new(),
             scene_manager: SceneManager::new(initial_scene),
             frame_end: Instant::now(),
             game_io,
             overlays,
+            render_sprite,
+            render_target,
+            camera,
         })
     }
 
@@ -101,49 +111,71 @@ impl GameRuntime {
 
         let update_instant = Instant::now();
 
-        // draw - completing render?
+        // draw
         let graphics = game_io.graphics();
-        let draw_duration = if let Ok(frame) = graphics.surface().get_current_texture() {
+        let device = graphics.device();
+
+        let encoder = RefCell::new(device.create_command_encoder(
+            &wgpu::CommandEncoderDescriptor {
+                label: Some("window_command_encoder"),
+            },
+        ));
+
+        let resolution = game_io.window().resolution();
+        self.render_target.resize(game_io, resolution);
+
+        let mut render_pass = RenderPass::new(&encoder, &self.render_target);
+
+        // draw scene
+        self.scene_manager.draw(game_io, &mut render_pass);
+
+        // draw overlays
+        for overlay in &mut self.overlays {
+            overlay.draw(game_io, &mut render_pass);
+        }
+
+        render_pass.flush();
+
+        // update camera
+        let graphics = game_io.graphics();
+        let window = game_io.window();
+
+        if window.has_static_resolution() {
+            self.camera.scale_to(graphics.surface_size().as_vec2());
+        } else {
+            self.camera.resize(window.resolution().as_vec2());
+        }
+
+        // render to window
+        if let Ok(frame) = graphics.surface().get_current_texture() {
             let texture = &frame.texture;
             let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
             let texture_size = graphics.surface_size();
 
-            let mut render_target = RenderTarget::from_view(view, texture_size);
-            render_target.set_clear_color(graphics.clear_color());
+            let mut window_target = RenderTarget::from_view(view, texture_size);
+            window_target.set_clear_color(graphics.clear_color());
 
-            // actual draw
-            // -- "continuation" instant, as there seems to be a significant amount of time between the update instant
-            // -- and this one, likely completing rendering
-            let render_continuation_instant = Instant::now();
-            let device = graphics.device();
+            let mut render_pass = RenderPass::new(&encoder, &window_target);
 
-            let encoder = RefCell::new(device.create_command_encoder(
-                &wgpu::CommandEncoderDescriptor {
-                    label: Some("window_command_encoder"),
-                },
-            ));
+            // render as a sprite
+            self.render_sprite
+                .set_texture(self.render_target.texture().clone());
+            self.render_sprite
+                .set_origin(self.render_sprite.size() * 0.5);
 
-            let mut render_pass = RenderPass::new(&encoder, &render_target);
+            let uniforms = [self.camera.as_binding()];
+            let mut sprite_queue = SpriteQueue::new_with_default_pipeline(game_io, uniforms);
+            sprite_queue.draw_sprite(&self.render_sprite);
 
-            // draw scene
-            self.scene_manager.draw(game_io, &mut render_pass);
-
-            // draw overlays
-            for overlay in &mut self.overlays {
-                overlay.draw(game_io, &mut render_pass);
-            }
-
+            render_pass.consume_queue(sprite_queue);
             render_pass.flush();
 
-            let queue = game_io.graphics().queue();
-
+            let queue = graphics.queue();
             queue.submit([encoder.into_inner().finish()]);
             frame.present();
+        }
 
-            Instant::now() - render_continuation_instant
-        } else {
-            Duration::ZERO
-        };
+        let draw_duration = Instant::now() - update_instant;
 
         let end_instant = Instant::now();
 
