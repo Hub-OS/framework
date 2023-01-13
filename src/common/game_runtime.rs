@@ -160,8 +160,6 @@ impl GameRuntime {
 
         // post processing
         for post_process in &mut self.post_processes {
-            post_process.pre_render(game_io, self.render_target.texture());
-
             // set the texture for the post model to the latest texture
             self.post_model
                 .set_texture(self.render_target.texture().clone());
@@ -179,8 +177,6 @@ impl GameRuntime {
             queue.draw_model(&self.post_model);
             render_pass.consume_queue(queue);
             render_pass.flush();
-
-            post_process.post_render(game_io, self.render_target.texture());
         }
 
         // update camera
