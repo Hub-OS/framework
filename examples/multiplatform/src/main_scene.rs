@@ -70,7 +70,7 @@ impl Scene for MainScene {
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         // self.camera.resize_to_window(window);
-        self.camera.scale_with_window(game_io.window());
+        self.camera.scale_to_window(game_io.window());
 
         let uniforms = [self.camera.as_binding()];
         let mut render_queue =
