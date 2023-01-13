@@ -165,7 +165,7 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
         !latest_resources
             .iter()
             .zip(resources)
-            .all(|(a, b)| std::ptr::eq(&*a, &*b))
+            .all(|(a, b)| Arc::ptr_eq(a, b))
     }
 
     fn set_mesh(&mut self, mesh: &Arc<super::Mesh<Vertex>>) {
@@ -211,6 +211,8 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
             // nothing to draw
             return;
         }
+
+        println!("???");
 
         // create buffer for instance data
         use wgpu::util::DeviceExt;
