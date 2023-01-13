@@ -212,8 +212,6 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
             return;
         }
 
-        println!("???");
-
         // create buffer for instance data
         use wgpu::util::DeviceExt;
 
