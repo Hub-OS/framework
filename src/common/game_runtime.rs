@@ -193,6 +193,7 @@ impl GameRuntime {
         let window = game_io.window();
 
         if window.has_locked_resolution() {
+            self.camera.resize(window.resolution().as_vec2());
             self.camera.scale_to(graphics.surface_size().as_vec2());
         } else {
             self.camera.resize(window.resolution().as_vec2());
