@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use crate::{cfg_sdl, cfg_winit};
 use instant::Instant;
+use std::any::TypeId;
 use std::cell::RefCell;
 
 pub(crate) struct GameRuntime {
@@ -9,7 +10,7 @@ pub(crate) struct GameRuntime {
     frame_end: Instant,
     game_io: GameIO,
     overlays: Vec<Box<dyn SceneOverlay>>,
-    post_processes: Vec<Box<dyn PostProcess>>,
+    post_processes: Vec<(TypeId, Box<dyn PostProcess>)>,
     post_model: PostProcessModel,
     render_sprite: Sprite,
     render_target: RenderTarget,
@@ -120,7 +121,11 @@ impl GameRuntime {
             overlay.update(game_io);
         }
 
-        for post_process in &mut self.post_processes {
+        for (id, post_process) in &mut self.post_processes {
+            if !game_io.graphics().internal_is_post_process_enabled(*id) {
+                continue;
+            }
+
             post_process.update(game_io);
         }
 
@@ -159,7 +164,11 @@ impl GameRuntime {
         render_pass.flush();
 
         // post processing
-        for post_process in &mut self.post_processes {
+        for (id, post_process) in &mut self.post_processes {
+            if !game_io.graphics().internal_is_post_process_enabled(*id) {
+                continue;
+            }
+
             // set the texture for the post model to the latest texture
             self.post_model
                 .set_texture(self.render_target.texture().clone());

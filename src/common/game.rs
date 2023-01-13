@@ -1,8 +1,9 @@
 use crate::prelude::*;
+use std::any::TypeId;
 
 type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
 type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn SceneOverlay>>;
-type PostProcessConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn PostProcess>>;
+type PostProcessConstructor = Box<dyn FnOnce(&mut GameIO) -> (TypeId, Box<dyn PostProcess>)>;
 type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 
 pub struct Game {
@@ -79,13 +80,17 @@ impl Game {
         self
     }
 
-    pub fn with_post_process<PostProcessConstructor>(
+    pub fn with_post_process<PostProcessConstructor, P>(
         mut self,
         constructor: PostProcessConstructor,
     ) -> Self
     where
-        PostProcessConstructor: FnOnce(&mut GameIO) -> Box<dyn PostProcess> + 'static,
+        PostProcessConstructor: FnOnce(&mut GameIO) -> P + 'static,
+        P: PostProcess + 'static,
     {
+        let constructor = |game_io: &mut GameIO| -> (TypeId, Box<dyn PostProcess>) {
+            (TypeId::of::<P>(), Box::new(constructor(game_io)))
+        };
         self.post_process_constructors.push(Box::new(constructor));
         self
     }

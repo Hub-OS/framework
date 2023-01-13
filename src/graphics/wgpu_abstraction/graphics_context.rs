@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use std::any::TypeId;
 use std::borrow::Cow;
 use std::future::Future;
 use std::path::Path;
@@ -12,6 +13,7 @@ pub struct GraphicsContext {
     device: Arc<wgpu::Device>,
     queue: Arc<wgpu::Queue>,
     clear_color: Color,
+    disabled_post_processes: Vec<TypeId>,
 }
 
 impl GraphicsContext {
@@ -45,6 +47,32 @@ impl GraphicsContext {
 
     pub fn set_clear_color(&mut self, color: Color) {
         self.clear_color = color
+    }
+
+    pub fn set_post_process_enabled<P: PostProcess + 'static>(&mut self, enabled: bool) {
+        let id = TypeId::of::<P>();
+
+        if let Some(index) = self
+            .disabled_post_processes
+            .iter()
+            .position(|stored| *stored == id)
+        {
+            if enabled {
+                self.disabled_post_processes.remove(index);
+            }
+        } else if !enabled {
+            self.disabled_post_processes.push(id);
+        }
+    }
+
+    pub fn is_post_process_enabled<P: PostProcess + 'static>(&self) -> bool {
+        let id = TypeId::of::<P>();
+
+        !self.disabled_post_processes.contains(&id)
+    }
+
+    pub(crate) fn internal_is_post_process_enabled(&self, id: TypeId) -> bool {
+        !self.disabled_post_processes.contains(&id)
     }
 
     pub fn load_wgsl<P: AsRef<Path> + ?Sized>(
@@ -160,6 +188,7 @@ impl GraphicsContext {
             device: Arc::new(device),
             queue: Arc::new(queue),
             clear_color: Color::TRANSPARENT,
+            disabled_post_processes: Vec::new(),
         })
     }
 
