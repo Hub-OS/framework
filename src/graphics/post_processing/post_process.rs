@@ -5,4 +5,17 @@ pub trait PostProcess {
     fn uniform_resources(&self) -> Vec<BindingResource>;
 
     fn update(&mut self, _game_io: &GameIO) {}
+
+    fn draw(
+        &mut self,
+        game_io: &GameIO,
+        mut render_pass: RenderPass,
+        texture_source: &TextureSourceModel,
+    ) {
+        let mut queue = RenderQueue::new(game_io, self.render_pipeline(), self.uniform_resources());
+
+        queue.draw_model(texture_source);
+        render_pass.consume_queue(queue);
+        render_pass.flush();
+    }
 }

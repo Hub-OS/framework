@@ -1,14 +1,14 @@
 use crate::prelude::*;
 use std::sync::Arc;
 
-pub(crate) struct PostProcessModel {
+pub struct TextureSourceModel {
     mesh: Arc<Mesh<Vec2>>,
     texture: Arc<Texture>,
     sampler: Arc<TextureSampler>,
 }
 
-impl PostProcessModel {
-    pub(crate) fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
+impl TextureSourceModel {
+    pub fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
         Self {
             mesh: Mesh::new(
                 &[
@@ -28,12 +28,16 @@ impl PostProcessModel {
         }
     }
 
-    pub(crate) fn set_texture(&mut self, texture: Arc<Texture>) {
+    pub fn texture(&self) -> &Arc<Texture> {
+        &self.texture
+    }
+
+    pub fn set_texture(&mut self, texture: Arc<Texture>) {
         self.texture = texture;
     }
 }
 
-impl Instance<()> for PostProcessModel {
+impl Instance<()> for TextureSourceModel {
     fn instance_data(&self) {}
 
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>> {
@@ -41,7 +45,7 @@ impl Instance<()> for PostProcessModel {
     }
 }
 
-impl Model<Vec2, ()> for PostProcessModel {
+impl Model<Vec2, ()> for TextureSourceModel {
     fn mesh(&self) -> &Arc<Mesh<Vec2>> {
         &self.mesh
     }

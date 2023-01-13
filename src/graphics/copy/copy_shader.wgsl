@@ -13,7 +13,6 @@ fn vs_main(@location(0) v_in: vec2<f32>) -> VertexOutput {
     return output;
 }
 
-// example
 @group(1) @binding(0)
 var txture: texture_2d<f32>;
 @group(1) @binding(1)

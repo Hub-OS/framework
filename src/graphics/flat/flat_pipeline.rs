@@ -6,7 +6,7 @@ pub struct FlatPipeline {
 }
 
 impl FlatPipeline {
-    pub fn new(game_io: &GameIO) -> Self {
+    pub(crate) fn new(game_io: &GameIO) -> Self {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("flat_shader.wgsl"));
