@@ -72,10 +72,14 @@ impl Game {
         self
     }
 
-    pub fn with_overlay<OverlayConstructor>(mut self, constructor: OverlayConstructor) -> Self
+    pub fn with_overlay<OverlayConstructor, O>(mut self, constructor: OverlayConstructor) -> Self
     where
-        OverlayConstructor: FnOnce(&mut GameIO) -> Box<dyn SceneOverlay> + 'static,
+        OverlayConstructor: FnOnce(&mut GameIO) -> O + 'static,
+        O: SceneOverlay + 'static,
     {
+        let constructor =
+            |game_io: &mut GameIO| -> Box<dyn SceneOverlay> { Box::new(constructor(game_io)) };
+
         self.overlay_constructors.push(Box::new(constructor));
         self
     }
@@ -95,11 +99,15 @@ impl Game {
         self
     }
 
-    pub fn run<SceneConstructor>(self, scene_constructor: SceneConstructor) -> anyhow::Result<()>
+    pub fn run<SceneConstructor, S>(self, scene_constructor: SceneConstructor) -> anyhow::Result<()>
     where
-        SceneConstructor: FnOnce(&mut GameIO) -> Box<dyn Scene> + 'static,
+        SceneConstructor: FnOnce(&mut GameIO) -> S + 'static,
+        S: Scene + 'static,
     {
         let window_loop = Window::build(self.window_config)?;
+
+        let scene_constructor =
+            |game_io: &mut GameIO| -> Box<dyn Scene> { Box::new(scene_constructor(game_io)) };
 
         let params = WindowLoopParams {
             scene_constructor: Box::new(scene_constructor),

@@ -19,7 +19,7 @@ struct MainScene {
 }
 
 impl MainScene {
-    fn new(game_io: &mut GameIO) -> Box<MainScene> {
+    fn new(game_io: &mut GameIO) -> MainScene {
         let graphics = game_io.graphics();
 
         let shader = graphics
@@ -32,11 +32,11 @@ impl MainScene {
             .build::<TriangleVertex, TriangleInstanceData>()
             .unwrap();
 
-        Box::new(MainScene {
+        MainScene {
             render_pipeline,
             triangle: Triangle::new(),
             next_scene: NextScene::None,
-        })
+        }
     }
 }
 
