@@ -9,8 +9,11 @@ pub(crate) struct GameRuntime {
     frame_end: Instant,
     game_io: GameIO,
     overlays: Vec<Box<dyn SceneOverlay>>,
+    post_processes: Vec<Box<dyn PostProcess>>,
+    post_model: PostProcessModel,
     render_sprite: Sprite,
     render_target: RenderTarget,
+    render_target_b: RenderTarget,
     camera: OrthoCamera,
 }
 
@@ -36,9 +39,17 @@ impl GameRuntime {
             .map(|constructor| constructor(&mut game_io))
             .collect();
 
+        let post_processes = loop_params
+            .post_process_constructors
+            .into_iter()
+            .map(|constructor| constructor(&mut game_io))
+            .collect();
+
         let render_target = RenderTarget::new(&game_io, window_size);
+        let render_target_b = RenderTarget::new(&game_io, window_size);
         let render_sprite = Sprite::new(&game_io, render_target.texture().clone());
         let camera = OrthoCamera::new(&game_io, window_size.as_vec2());
+        let post_model = PostProcessModel::new(&game_io, render_target.texture().clone());
 
         Ok(Self {
             event_buffer: Vec::new(),
@@ -46,8 +57,11 @@ impl GameRuntime {
             frame_end: Instant::now(),
             game_io,
             overlays,
+            post_processes,
+            post_model,
             render_sprite,
             render_target,
+            render_target_b,
             camera,
         })
     }
@@ -106,6 +120,10 @@ impl GameRuntime {
             overlay.update(game_io);
         }
 
+        for post_process in &mut self.post_processes {
+            post_process.update(game_io);
+        }
+
         // kick off new tasks
         game_io.handle_tasks();
 
@@ -123,6 +141,10 @@ impl GameRuntime {
 
         let resolution = game_io.window().resolution();
         self.render_target.resize(game_io, resolution);
+        self.render_target_b.resize(game_io, resolution);
+
+        self.render_target.set_clear_color(graphics.clear_color());
+        self.render_target_b.set_clear_color(graphics.clear_color());
 
         let mut render_pass = RenderPass::new(&encoder, &self.render_target);
 
@@ -135,6 +157,31 @@ impl GameRuntime {
         }
 
         render_pass.flush();
+
+        // post processing
+        for post_process in &mut self.post_processes {
+            post_process.pre_render(game_io, self.render_target.texture());
+
+            // set the texture for the post model to the latest texture
+            self.post_model
+                .set_texture(self.render_target.texture().clone());
+
+            // swap primary target
+            std::mem::swap(&mut self.render_target, &mut self.render_target_b);
+
+            let mut render_pass = RenderPass::new(&encoder, &self.render_target);
+            let mut queue = RenderQueue::new(
+                game_io,
+                post_process.render_pipeline(),
+                post_process.uniform_resources(),
+            );
+
+            queue.draw_model(&self.post_model);
+            render_pass.consume_queue(queue);
+            render_pass.flush();
+
+            post_process.post_render(game_io, self.render_target.texture());
+        }
 
         // update camera
         let graphics = game_io.graphics();
