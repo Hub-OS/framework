@@ -10,6 +10,12 @@ pub trait InstanceData: bytemuck::Pod {
     fn instance_layout() -> InstanceLayout;
 }
 
+impl InstanceData for () {
+    fn instance_layout() -> InstanceLayout {
+        InstanceLayout::new(&[])
+    }
+}
+
 pub struct InstanceLayout {
     size: wgpu::BufferAddress,
     attributes: Vec<wgpu::VertexAttribute>,

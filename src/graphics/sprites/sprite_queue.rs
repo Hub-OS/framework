@@ -14,7 +14,7 @@ impl<'a> SpriteQueue<'a, SpriteInstanceData> {
         I: IntoIterator<Item = BindingResource<'b>>,
     {
         let default_sprite_pipeline = game_io.resource::<DefaultSpritePipeline>().unwrap();
-        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline().clone();
+        let render_pipeline = default_sprite_pipeline.as_sprite_pipeline();
 
         Self::new(game_io, render_pipeline, uniform_resources)
     }

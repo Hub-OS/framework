@@ -1,3 +1,6 @@
+use glam::{Vec2, Vec3, Vec4};
+use wgpu::VertexFormat;
+
 pub trait Vertex: bytemuck::Pod {
     fn vertex_layout() -> VertexLayout;
 }
@@ -49,5 +52,23 @@ impl VertexLayout {
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &self.attributes,
         })
+    }
+}
+
+impl Vertex for Vec2 {
+    fn vertex_layout() -> VertexLayout {
+        VertexLayout::new(&[VertexFormat::Float32x2])
+    }
+}
+
+impl Vertex for Vec3 {
+    fn vertex_layout() -> VertexLayout {
+        VertexLayout::new(&[VertexFormat::Float32x3])
+    }
+}
+
+impl Vertex for Vec4 {
+    fn vertex_layout() -> VertexLayout {
+        VertexLayout::new(&[VertexFormat::Float32x4])
     }
 }

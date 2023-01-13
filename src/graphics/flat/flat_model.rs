@@ -2,7 +2,7 @@ use crate::prelude::*;
 use std::sync::Arc;
 
 pub struct FlatModel {
-    mesh: Arc<Mesh<FlatVertex>>,
+    mesh: Arc<Mesh<Vec2>>,
     color: Color,
     origin: Vec2,
     position: Vec2,
@@ -11,7 +11,7 @@ pub struct FlatModel {
 }
 
 impl FlatModel {
-    pub fn new(mesh: Arc<Mesh<FlatVertex>>) -> Self {
+    pub fn new(mesh: Arc<Mesh<Vec2>>) -> Self {
         Self {
             mesh,
             color: Color::WHITE,
@@ -22,19 +22,13 @@ impl FlatModel {
         }
     }
 
-    pub fn new_square_mesh() -> Arc<Mesh<FlatVertex>> {
+    pub fn new_square_mesh() -> Arc<Mesh<Vec2>> {
         Mesh::new(
             &[
-                FlatVertex {
-                    vertex: [-0.5, -0.5],
-                },
-                FlatVertex {
-                    vertex: [-0.5, 0.5],
-                },
-                FlatVertex { vertex: [0.5, 0.5] },
-                FlatVertex {
-                    vertex: [0.5, -0.5],
-                },
+                Vec2::new(-0.5, -0.5),
+                Vec2::new(-0.5, 0.5),
+                Vec2::new(0.5, 0.5),
+                Vec2::new(0.5, -0.5),
             ],
             &[0, 1, 2, 2, 0, 3],
         )
@@ -44,7 +38,7 @@ impl FlatModel {
         Self::new(Self::new_square_mesh())
     }
 
-    pub fn new_circle_mesh(vertex_count: usize) -> Arc<Mesh<FlatVertex>> {
+    pub fn new_circle_mesh(vertex_count: usize) -> Arc<Mesh<Vec2>> {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
@@ -53,14 +47,12 @@ impl FlatModel {
 
         let angle_increment = std::f32::consts::TAU / vertex_count as f32;
 
-        vertices.push(FlatVertex { vertex: [0.0, 0.0] });
+        vertices.push(Vec2::ZERO);
 
         for i in 0..vertex_count {
             let angle = angle_increment * i as f32;
 
-            vertices.push(FlatVertex {
-                vertex: [angle.cos() * 0.5, angle.sin() * 0.5],
-            });
+            vertices.push(Vec2::from_angle(angle) * 0.5);
         }
 
         for i in 1..vertex_count {
@@ -123,8 +115,8 @@ impl FlatModel {
     }
 }
 
-impl Model<FlatVertex, FlatInstanceData> for FlatModel {
-    fn mesh(&self) -> &Arc<Mesh<FlatVertex>> {
+impl Model<Vec2, FlatInstanceData> for FlatModel {
+    fn mesh(&self) -> &Arc<Mesh<Vec2>> {
         &self.mesh
     }
 }
@@ -143,18 +135,6 @@ impl Instance<FlatInstanceData> for FlatModel {
 
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>> {
         vec![]
-    }
-}
-
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct FlatVertex {
-    pub vertex: [f32; 2],
-}
-
-impl Vertex for FlatVertex {
-    fn vertex_layout() -> VertexLayout {
-        VertexLayout::new(&[VertexFormat::Float32x2])
     }
 }
 
