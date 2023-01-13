@@ -7,7 +7,7 @@ pub struct Window {
     position: IVec2,
     size: UVec2,
     resolution: UVec2,
-    static_resolution: bool,
+    locked_resolution: bool,
 }
 
 impl Window {
@@ -42,8 +42,18 @@ impl Window {
         self.size
     }
 
-    pub fn has_static_resolution(&self) -> bool {
-        self.static_resolution
+    pub fn has_locked_resolution(&self) -> bool {
+        self.locked_resolution
+    }
+
+    pub fn lock_resolution(&mut self, resolution: UVec2) {
+        self.resolution = resolution;
+        self.locked_resolution = true;
+    }
+
+    pub fn unlock_resolution(&mut self) {
+        self.resolution = self.size;
+        self.locked_resolution = false;
     }
 
     pub fn resolution(&self) -> UVec2 {
@@ -105,7 +115,7 @@ impl Window {
                 .resolution
                 .unwrap_or(window_config.size)
                 .into(),
-            static_resolution: window_config.resolution.is_some(),
+            locked_resolution: window_config.resolution.is_some(),
         };
 
         let window_loop = WindowLoop::new(window, event_loop);
@@ -124,7 +134,7 @@ impl Window {
     pub(crate) fn resized(&mut self, size: UVec2) {
         self.size = size;
 
-        if !self.static_resolution {
+        if !self.locked_resolution {
             self.resolution = size;
         }
     }

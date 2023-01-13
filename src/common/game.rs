@@ -54,8 +54,8 @@ impl Game {
         self
     }
 
-    pub fn with_resolution(mut self, resolution: (u32, u32)) -> Self {
-        self.window_config.resolution = Some(resolution);
+    pub fn with_locked_resolution(mut self, resolution: Option<(u32, u32)>) -> Self {
+        self.window_config.resolution = resolution;
         self
     }
 
