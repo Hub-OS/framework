@@ -6,7 +6,7 @@ pub struct PostPipeline {
 }
 
 impl PostPipeline {
-    pub fn new<'a, U>(
+    pub fn new(
         game_io: &GameIO,
         fragment_shader: &wgpu::ShaderModule,
         fragment_entry: &str,
