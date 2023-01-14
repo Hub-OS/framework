@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-pub struct SpritePipeline<SpriteData: InstanceData> {
+pub struct SpritePipeline<SpriteData: InstanceData = SpriteInstanceData> {
     render_pipeline: RenderPipeline<SpriteVertex, SpriteData>,
 }
 
