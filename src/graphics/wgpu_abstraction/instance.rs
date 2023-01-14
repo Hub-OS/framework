@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 pub trait Instance<InstanceData: self::InstanceData> {
     fn instance_data(&self) -> InstanceData;
-    fn bind_group_layout() -> &'static [BindGroupLayoutEntry];
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>>;
 }
 

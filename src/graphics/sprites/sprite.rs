@@ -161,23 +161,6 @@ impl Instance<SpriteInstanceData> for Sprite {
         }
     }
 
-    fn bind_group_layout() -> &'static [BindGroupLayoutEntry] {
-        &[
-            BindGroupLayoutEntry {
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                binding_type: wgpu::BindingType::Texture {
-                    multisampled: false,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                },
-            },
-            BindGroupLayoutEntry {
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                binding_type: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-            },
-        ]
-    }
-
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>> {
         vec![self.texture.clone(), self.sampler.clone()]
     }

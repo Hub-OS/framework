@@ -38,23 +38,6 @@ impl TextureSourceModel {
 }
 
 impl Instance<()> for TextureSourceModel {
-    fn bind_group_layout() -> &'static [BindGroupLayoutEntry] {
-        &[
-            BindGroupLayoutEntry {
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                binding_type: wgpu::BindingType::Texture {
-                    multisampled: false,
-                    view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                },
-            },
-            BindGroupLayoutEntry {
-                visibility: wgpu::ShaderStages::FRAGMENT,
-                binding_type: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-            },
-        ]
-    }
-
     fn instance_data(&self) {}
 
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>> {
