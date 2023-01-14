@@ -6,19 +6,22 @@ pub struct PostPipeline {
 }
 
 impl PostPipeline {
-    pub fn new(
+    pub fn new<U>(
         game_io: &GameIO,
         fragment_shader: &wgpu::ShaderModule,
         fragment_entry: &str,
-        uniform_bind_group: Vec<BindGroupLayoutEntry>,
-    ) -> Self {
+        uniform_bind_group: U,
+    ) -> Self
+    where
+        U: IntoIterator<Item = BindGroupLayoutEntry>,
+    {
         let device = game_io.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("../copy/copy_shader.wgsl"));
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
             .with_uniform_bind_group(uniform_bind_group)
-            .with_instance_bind_group(vec![
+            .with_instance_bind_group([
                 BindGroupLayoutEntry {
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     binding_type: wgpu::BindingType::Texture {

@@ -29,19 +29,26 @@ impl<'a> RenderPipelineBuilder<'a> {
         }
     }
 
-    pub fn with_uniform_bind_group(mut self, entries: Vec<BindGroupLayoutEntry>) -> Self {
+    pub fn with_uniform_bind_group<I>(mut self, entries: I) -> Self
+    where
+        I: IntoIterator<Item = BindGroupLayoutEntry>,
+    {
         self.uniform_bind_group_layout_entries = Self::map_bind_group_layout_entries(entries);
         self
     }
 
-    pub fn with_instance_bind_group(mut self, entries: Vec<BindGroupLayoutEntry>) -> Self {
+    pub fn with_instance_bind_group<I>(mut self, entries: I) -> Self
+    where
+        I: IntoIterator<Item = BindGroupLayoutEntry>,
+    {
         self.instance_bind_group_layout_entries = Self::map_bind_group_layout_entries(entries);
         self
     }
 
-    fn map_bind_group_layout_entries(
-        entries: Vec<BindGroupLayoutEntry>,
-    ) -> Vec<wgpu::BindGroupLayoutEntry> {
+    fn map_bind_group_layout_entries<I>(entries: I) -> Vec<wgpu::BindGroupLayoutEntry>
+    where
+        I: IntoIterator<Item = BindGroupLayoutEntry>,
+    {
         entries
             .into_iter()
             .enumerate()

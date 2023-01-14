@@ -11,11 +11,11 @@ impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
         let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
-            .with_uniform_bind_group(vec![BindGroupLayoutEntry {
+            .with_uniform_bind_group([BindGroupLayoutEntry {
                 visibility: wgpu::ShaderStages::VERTEX,
                 binding_type: OrthoCamera::binding_type(),
             }])
-            .with_instance_bind_group(vec![
+            .with_instance_bind_group([
                 BindGroupLayoutEntry {
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     binding_type: wgpu::BindingType::Texture {
