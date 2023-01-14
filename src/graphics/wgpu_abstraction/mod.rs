@@ -1,7 +1,7 @@
+mod bind_group_layout_entry;
 mod binding_resource;
 mod buffer_resource;
 mod color;
-mod color_resource;
 mod graphics_context;
 mod instance;
 mod mesh;
@@ -16,10 +16,10 @@ mod texture;
 mod texture_sampler;
 mod vertex;
 
+pub use bind_group_layout_entry::*;
 pub use binding_resource::*;
 pub use buffer_resource::*;
 pub use color::*;
-pub use color_resource::*;
 pub use graphics_context::*;
 pub use instance::*;
 pub use mesh::*;

@@ -7,19 +7,6 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn bind_group_layout_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-        wgpu::BindGroupLayoutEntry {
-            binding,
-            visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Texture {
-                multisampled: false,
-                view_dimension: wgpu::TextureViewDimension::D2,
-                sample_type: wgpu::TextureSampleType::Float { filterable: true },
-            },
-            count: None,
-        }
-    }
-
     pub fn load_from_memory(game_io: &GameIO, bytes: &[u8]) -> anyhow::Result<Arc<Self>> {
         let image = image::load_from_memory(bytes)?;
         let rgba_image = image.to_rgba8();

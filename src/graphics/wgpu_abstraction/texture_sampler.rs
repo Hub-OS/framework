@@ -16,15 +16,6 @@ pub struct TextureSampler {
 }
 
 impl TextureSampler {
-    pub fn bind_group_layout_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
-        wgpu::BindGroupLayoutEntry {
-            binding,
-            visibility: wgpu::ShaderStages::FRAGMENT,
-            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-            count: None,
-        }
-    }
-
     pub fn new(
         game_io: &GameIO,
         sampling_filter: SamplingFilter,

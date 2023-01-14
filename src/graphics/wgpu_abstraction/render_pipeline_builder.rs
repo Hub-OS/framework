@@ -29,17 +29,29 @@ impl<'a> RenderPipelineBuilder<'a> {
         }
     }
 
-    pub fn with_uniform_bind_group(mut self, entries: Vec<wgpu::BindGroupLayoutEntry>) -> Self {
-        self.uniform_bind_group_layout_entries = entries;
+    pub fn with_uniform_bind_group(mut self, entries: Vec<BindGroupLayoutEntry>) -> Self {
+        self.uniform_bind_group_layout_entries = Self::map_bind_group_layout_entries(entries);
         self
     }
 
-    pub fn with_instance_bind_group_layout(
-        mut self,
-        layout: Vec<wgpu::BindGroupLayoutEntry>,
-    ) -> Self {
-        self.instance_bind_group_layout_entries = layout;
+    pub fn with_instance_bind_group(mut self, entries: Vec<BindGroupLayoutEntry>) -> Self {
+        self.instance_bind_group_layout_entries = Self::map_bind_group_layout_entries(entries);
         self
+    }
+
+    fn map_bind_group_layout_entries(
+        entries: Vec<BindGroupLayoutEntry>,
+    ) -> Vec<wgpu::BindGroupLayoutEntry> {
+        entries
+            .into_iter()
+            .enumerate()
+            .map(|(i, entry)| wgpu::BindGroupLayoutEntry {
+                binding: i as u32,
+                visibility: entry.visibility,
+                ty: entry.binding_type,
+                count: None,
+            })
+            .collect()
     }
 
     pub fn with_vertex_shader(mut self, shader: &'a wgpu::ShaderModule, entry: &str) -> Self {

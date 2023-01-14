@@ -12,7 +12,10 @@ impl FlatPipeline {
         let shader = device.create_shader_module(include_wgsl!("flat_shader.wgsl"));
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
-            .with_uniform_bind_group(vec![OrthoCamera::bind_group_layout_entry(0)])
+            .with_uniform_bind_group(vec![BindGroupLayoutEntry {
+                visibility: wgpu::ShaderStages::VERTEX,
+                binding_type: OrthoCamera::binding_type(),
+            }])
             .with_vertex_shader(&shader, "vs_main")
             .with_fragment_shader(&shader, "fs_main")
             .build::<Vec2, FlatInstanceData>()

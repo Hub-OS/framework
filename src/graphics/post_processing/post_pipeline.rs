@@ -10,7 +10,7 @@ impl PostPipeline {
         game_io: &GameIO,
         fragment_shader: &wgpu::ShaderModule,
         fragment_entry: &str,
-        uniform_bind_group: Vec<wgpu::BindGroupLayoutEntry>,
+        uniform_bind_group: Vec<BindGroupLayoutEntry>,
     ) -> Self {
         let device = game_io.graphics().device();
 
@@ -18,9 +18,19 @@ impl PostPipeline {
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
             .with_uniform_bind_group(uniform_bind_group)
-            .with_instance_bind_group_layout(vec![
-                Texture::bind_group_layout_entry(0),
-                TextureSampler::bind_group_layout_entry(1),
+            .with_instance_bind_group(vec![
+                BindGroupLayoutEntry {
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    binding_type: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                },
+                BindGroupLayoutEntry {
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    binding_type: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                },
             ])
             .with_vertex_shader(&shader, "vs_main")
             .with_fragment_shader(fragment_shader, fragment_entry)
