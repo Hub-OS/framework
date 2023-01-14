@@ -12,7 +12,7 @@ impl CopyPipeline {
         let shader = device.create_shader_module(include_wgsl!("copy_shader.wgsl"));
 
         let render_pipeline = RenderPipelineBuilder::new(game_io)
-            .with_instance_bind_group([
+            .with_instance_bind_group(&[
                 BindGroupLayoutEntry {
                     visibility: wgpu::ShaderStages::FRAGMENT,
                     binding_type: wgpu::BindingType::Texture {

@@ -133,6 +133,10 @@ impl Instance<FlatInstanceData> for FlatModel {
         }
     }
 
+    fn bind_group_layout() -> &'static [BindGroupLayoutEntry] {
+        &[]
+    }
+
     fn instance_resources(&self) -> Vec<Arc<dyn AsBinding>> {
         vec![]
     }
