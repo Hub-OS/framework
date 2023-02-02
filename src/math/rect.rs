@@ -58,6 +58,10 @@ macro_rules! impl_rect2 {
                 $vec2::new(self.left(), self.top())
             }
 
+            pub fn top_center(&self) -> $vec2 {
+                $vec2::new((self.left() + self.right()) / ($one + $one), self.top())
+            }
+
             pub fn top_right(&self) -> $vec2 {
                 $vec2::new(self.right(), self.top())
             }
@@ -68,6 +72,10 @@ macro_rules! impl_rect2 {
 
             pub fn bottom_left(&self) -> $vec2 {
                 $vec2::new(self.left(), self.bottom())
+            }
+
+            pub fn bottom_center(&self) -> $vec2 {
+                $vec2::new((self.left() + self.right()) / ($one + $one), self.bottom())
             }
 
             pub fn bottom_right(&self) -> $vec2 {
