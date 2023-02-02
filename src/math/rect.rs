@@ -51,7 +51,7 @@ macro_rules! impl_rect2 {
             }
 
             pub fn center_left(&self) -> $vec2 {
-                $vec2::new(self.left(), (self.top() + self.bottom()) / ($one + $one))
+                $vec2::new(self.left(), self.center_y())
             }
 
             pub fn top_left(&self) -> $vec2 {
@@ -59,7 +59,7 @@ macro_rules! impl_rect2 {
             }
 
             pub fn top_center(&self) -> $vec2 {
-                $vec2::new((self.left() + self.right()) / ($one + $one), self.top())
+                $vec2::new(self.center_x(), self.top())
             }
 
             pub fn top_right(&self) -> $vec2 {
@@ -67,7 +67,7 @@ macro_rules! impl_rect2 {
             }
 
             pub fn center_right(&self) -> $vec2 {
-                $vec2::new(self.right(), (self.top() + self.bottom()) / ($one + $one))
+                $vec2::new(self.right(), self.center_y())
             }
 
             pub fn bottom_left(&self) -> $vec2 {
@@ -75,11 +75,23 @@ macro_rules! impl_rect2 {
             }
 
             pub fn bottom_center(&self) -> $vec2 {
-                $vec2::new((self.left() + self.right()) / ($one + $one), self.bottom())
+                $vec2::new(self.center_x(), self.bottom())
             }
 
             pub fn bottom_right(&self) -> $vec2 {
                 $vec2::new(self.right(), self.bottom())
+            }
+
+            pub fn center(&self) -> $vec2 {
+                $vec2::new(self.center_x(), self.center_y())
+            }
+
+            pub fn center_x(&self) -> $type {
+                self.left() + self.right() / ($one + $one)
+            }
+
+            pub fn center_y(&self) -> $type {
+                self.top() + self.bottom() / ($one + $one)
             }
 
             /// Same as self.left()..self.right()
