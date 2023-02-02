@@ -87,11 +87,11 @@ macro_rules! impl_rect2 {
             }
 
             pub fn center_x(&self) -> $type {
-                self.left() + self.right() / ($one + $one)
+                (self.left() + self.right()) / ($one + $one)
             }
 
             pub fn center_y(&self) -> $type {
-                self.top() + self.bottom() / ($one + $one)
+                (self.top() + self.bottom()) / ($one + $one)
             }
 
             /// Same as self.left()..self.right()
