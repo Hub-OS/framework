@@ -2,7 +2,6 @@ use crate::prelude::*;
 use crate::{cfg_sdl, cfg_winit};
 use instant::Instant;
 use std::any::TypeId;
-use std::cell::RefCell;
 
 pub(crate) struct GameRuntime {
     event_buffer: Vec<WindowEvent>,
@@ -138,11 +137,9 @@ impl GameRuntime {
         let graphics = game_io.graphics();
         let device = graphics.device();
 
-        let encoder = RefCell::new(device.create_command_encoder(
-            &wgpu::CommandEncoderDescriptor {
-                label: Some("window_command_encoder"),
-            },
-        ));
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("window_command_encoder"),
+        });
 
         let resolution = game_io.window().resolution();
         self.render_target.resize(game_io, resolution);
@@ -151,7 +148,7 @@ impl GameRuntime {
         self.render_target.set_clear_color(graphics.clear_color());
         self.render_target_b.set_clear_color(graphics.clear_color());
 
-        let mut render_pass = RenderPass::new(&encoder, &self.render_target);
+        let mut render_pass = RenderPass::new(&mut encoder, &self.render_target);
 
         // draw scene
         self.scene_manager.draw(game_io, &mut render_pass);
@@ -176,7 +173,7 @@ impl GameRuntime {
             // swap primary target
             std::mem::swap(&mut self.render_target, &mut self.render_target_b);
 
-            let render_pass = RenderPass::new(&encoder, &self.render_target);
+            let render_pass = RenderPass::new(&mut encoder, &self.render_target);
             post_process.draw(game_io, render_pass, &self.post_model);
         }
 
@@ -200,7 +197,7 @@ impl GameRuntime {
             let mut window_target = RenderTarget::from_view(view, texture_size);
             window_target.set_clear_color(graphics.clear_color());
 
-            let mut render_pass = RenderPass::new(&encoder, &window_target);
+            let mut render_pass = RenderPass::new(&mut encoder, &window_target);
 
             // render as a sprite
             self.render_sprite
@@ -216,7 +213,7 @@ impl GameRuntime {
             render_pass.flush();
 
             let queue = graphics.queue();
-            queue.submit([encoder.into_inner().finish()]);
+            queue.submit([encoder.finish()]);
             frame.present();
         }
 

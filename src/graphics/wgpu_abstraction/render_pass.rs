@@ -1,10 +1,9 @@
 use super::*;
 use crate::math::{Rect, UVec2};
-use std::cell::RefCell;
 
 /// "RenderPasses only render when flushed"
 pub struct RenderPass<'a> {
-    encoder: &'a RefCell<wgpu::CommandEncoder>,
+    encoder: &'a mut wgpu::CommandEncoder,
     label: Option<&'a str>,
     color_attachments: Vec<Option<wgpu::RenderPassColorAttachment<'a>>>,
     depth_attachment: Option<wgpu::RenderPassDepthStencilAttachment<'a>>,
@@ -14,8 +13,8 @@ pub struct RenderPass<'a> {
 }
 
 impl<'a> RenderPass<'a> {
-    pub(crate) fn new<'b: 'a>(
-        encoder: &'a RefCell<wgpu::CommandEncoder>,
+    pub fn new<'b: 'a>(
+        encoder: &'a mut wgpu::CommandEncoder,
         render_target: &'b RenderTarget,
     ) -> Self {
         Self {
@@ -37,7 +36,7 @@ impl<'a> RenderPass<'a> {
         self.clear_color
     }
 
-    pub fn create_subpass<'b: 'a>(&'a self, render_target: &'b RenderTarget) -> Self {
+    pub fn create_subpass<'b: 'a>(&'a mut self, render_target: &'b RenderTarget) -> Self {
         Self {
             encoder: self.encoder,
             label: Some("render_target_pass"),
@@ -64,7 +63,7 @@ impl<'a> RenderPass<'a> {
             depth_stencil_attachment: self.depth_attachment,
         };
 
-        let mut encoder = self.encoder.borrow_mut();
+        let encoder = self.encoder;
         let mut render_pass = encoder.begin_render_pass(&descriptor);
 
         for queue in &self.queues {
