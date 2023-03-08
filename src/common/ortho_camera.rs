@@ -143,7 +143,7 @@ impl OrthoCamera {
         self.state.requested_height = self.state.height;
     }
 
-    pub fn scale(&mut self) -> Vec2 {
+    pub fn scale(&self) -> Vec2 {
         self.state.calculate_final_scale()
     }
 
