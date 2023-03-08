@@ -20,6 +20,19 @@ struct CameraState {
 }
 
 impl CameraState {
+    fn calculate_final_scale(&self) -> Vec2 {
+        let width_ratio = self.width / self.requested_width;
+        let height_ratio = self.height / self.requested_height;
+
+        let scale_correction = if width_ratio < height_ratio {
+            self.width / self.requested_width
+        } else {
+            self.height / self.requested_height
+        };
+
+        self.scale * scale_correction
+    }
+
     fn create_matrix(&self) -> Mat4 {
         let half_width = self.width * 0.5;
         let half_height = self.height * 0.5;
@@ -34,16 +47,7 @@ impl CameraState {
         );
 
         // scale
-        let width_ratio = self.width / self.requested_width;
-        let height_ratio = self.height / self.requested_height;
-
-        let scale_correction = if width_ratio < height_ratio {
-            self.width / self.requested_width
-        } else {
-            self.height / self.requested_height
-        };
-
-        let scale = self.scale * scale_correction;
+        let scale = self.calculate_final_scale();
         view_projection *= Mat4::from_scale(Vec3::new(scale.x, scale.y, 1.0));
 
         // translate
@@ -139,7 +143,11 @@ impl OrthoCamera {
         self.state.requested_height = self.state.height;
     }
 
-    pub fn scale(&mut self, scale: Vec2) {
+    pub fn scale(&mut self) -> Vec2 {
+        self.state.calculate_final_scale()
+    }
+
+    pub fn set_scale(&mut self, scale: Vec2) {
         self.state.scale = scale;
     }
 
