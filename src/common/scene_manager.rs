@@ -129,7 +129,7 @@ impl SceneManager {
     pub(crate) fn draw<'a: 'b, 'b>(
         &'a mut self,
         game_io: &'a mut GameIO,
-        render_pass: &'b mut RenderPass<'_>,
+        render_pass: &'b mut RenderPass,
     ) {
         self.active_scene_mut().draw(game_io, render_pass);
     }
@@ -275,7 +275,7 @@ impl Scene for TransitionWrapper {
         game_io.set_transitioning(started_in_transition);
     }
 
-    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass<'_>) {
+    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
         let started_in_transition = game_io.is_in_transition();
         game_io.set_transitioning(true);
 

@@ -4,7 +4,7 @@ use crate::math::{Rect, UVec2};
 /// "RenderPasses only render when flushed"
 pub struct RenderPass<'a> {
     encoder: &'a mut wgpu::CommandEncoder,
-    label: Option<&'a str>,
+    label: Option<&'static str>,
     color_attachments: Vec<Option<wgpu::RenderPassColorAttachment<'a>>>,
     depth_attachment: Option<wgpu::RenderPassDepthStencilAttachment<'a>>,
     queues: Vec<Vec<RenderOperation>>,
@@ -13,10 +13,7 @@ pub struct RenderPass<'a> {
 }
 
 impl<'a> RenderPass<'a> {
-    pub fn new<'b: 'a>(
-        encoder: &'a mut wgpu::CommandEncoder,
-        render_target: &'b RenderTarget,
-    ) -> Self {
+    pub fn new(encoder: &'a mut wgpu::CommandEncoder, render_target: &'a RenderTarget) -> Self {
         Self {
             encoder,
             label: None,
@@ -36,8 +33,8 @@ impl<'a> RenderPass<'a> {
         self.clear_color
     }
 
-    pub fn create_subpass<'b: 'a>(&'a mut self, render_target: &'b RenderTarget) -> Self {
-        Self {
+    pub fn create_subpass<'b>(&'b mut self, render_target: &'b RenderTarget) -> RenderPass<'b> {
+        RenderPass {
             encoder: self.encoder,
             label: Some("render_target_pass"),
             color_attachments: vec![Some(render_target.color_attachment())],
