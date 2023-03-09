@@ -164,15 +164,20 @@ impl OrthoCamera {
     }
 
     pub fn size(&self) -> Vec2 {
-        Vec2::new(self.state.height, self.state.width)
+        let scale = self.scale();
+        Vec2::new(self.state.width, self.state.height) / scale
     }
 
     pub fn bounds(&self) -> Rect {
+        let scale = self.scale();
+        let corrected_width = self.state.width / scale.x;
+        let corrected_height = self.state.height / scale.y;
+
         Rect::new(
-            self.state.translation.x - self.state.width * 0.5,
-            self.state.translation.y - self.state.height * 0.5,
-            self.state.width,
-            self.state.height,
+            self.state.translation.x - corrected_width * 0.5,
+            self.state.translation.y - corrected_height * 0.5,
+            corrected_width,
+            corrected_height,
         )
     }
 
