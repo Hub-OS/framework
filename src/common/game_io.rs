@@ -18,6 +18,7 @@ pub struct GameIO {
     frame_duration: Duration,
     sleep_duration: Duration,
     lost_duration: Duration,
+    buffer_aquire_duration: Duration,
     transitioning: bool,
     quitting: bool,
 }
@@ -38,6 +39,7 @@ impl GameIO {
             frame_duration: Duration::ZERO,
             sleep_duration: Duration::ZERO,
             lost_duration: Duration::ZERO,
+            buffer_aquire_duration: Duration::ZERO,
             transitioning: false,
             quitting: false,
         }
@@ -213,11 +215,17 @@ impl GameIO {
         self.lost_duration = duration;
     }
 
+    pub(super) fn set_buffer_aquire_duration(&mut self, duration: Duration) {
+        self.buffer_aquire_duration = duration;
+    }
+
     pub(crate) fn update_sleep_duration(&mut self) {
-        let target_seconds = 1.0 / self.target_fps() as f64;
         // adding lost_duration to frame_duration to catch up
-        let used_seconds = (self.frame_duration + self.lost_duration).as_secs_f64();
-        let remaining_seconds = target_seconds - used_seconds;
+        // subtracting buffer_aquire_duration to remain synced with vsync
+        let used_duration = self.frame_duration + self.lost_duration - self.buffer_aquire_duration;
+
+        let target_seconds = 1.0 / self.target_fps() as f64;
+        let remaining_seconds = target_seconds - used_duration.as_secs_f64();
 
         self.sleep_duration = if remaining_seconds > 0.0 {
             Duration::from_secs_f64(remaining_seconds)

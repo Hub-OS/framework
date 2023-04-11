@@ -189,7 +189,12 @@ impl GameRuntime {
         }
 
         // render to window
+        let buffer_aquire_start = Instant::now();
+        let mut buffer_aquire_end = buffer_aquire_start;
+
         if let Ok(frame) = graphics.surface().get_current_texture() {
+            buffer_aquire_end = Instant::now();
+
             let texture = &frame.texture;
             let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
             let texture_size = graphics.surface_size();
@@ -224,6 +229,7 @@ impl GameRuntime {
         game_io.set_update_duration(update_instant - start_instant);
         game_io.set_draw_duration(draw_duration);
         game_io.set_frame_duration(end_instant - start_instant);
+        game_io.set_buffer_aquire_duration(buffer_aquire_end - buffer_aquire_start);
         game_io.update_sleep_duration();
 
         self.frame_end = end_instant;
