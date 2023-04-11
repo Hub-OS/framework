@@ -217,9 +217,8 @@ impl GameRuntime {
             frame.present();
         }
 
-        let draw_duration = Instant::now() - update_instant;
-
         let end_instant = Instant::now();
+        let draw_duration = end_instant - update_instant;
 
         // tracking time spent
         game_io.set_update_duration(update_instant - start_instant);
