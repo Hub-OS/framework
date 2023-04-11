@@ -75,6 +75,20 @@ impl GraphicsContext {
         !self.disabled_post_processes.contains(&id)
     }
 
+    pub fn set_vsync_enabled(&mut self, enabled: bool) {
+        self.surface_config.present_mode = if enabled {
+            wgpu::PresentMode::AutoVsync
+        } else {
+            wgpu::PresentMode::AutoNoVsync
+        };
+
+        self.surface.configure(&self.device, &self.surface_config);
+    }
+
+    pub fn vsync_enabled(&self) -> bool {
+        self.surface_config.present_mode == wgpu::PresentMode::AutoVsync
+    }
+
     pub fn load_wgsl<P: AsRef<Path> + ?Sized>(
         &self,
         path: &P,
