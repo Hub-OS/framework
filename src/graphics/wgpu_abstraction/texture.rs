@@ -31,6 +31,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8UnormSrgb,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
         });
 
         let image_copy_texture = wgpu::ImageCopyTexture {
@@ -42,8 +43,8 @@ impl Texture {
 
         let image_data_layout = wgpu::ImageDataLayout {
             offset: 0,
-            bytes_per_row: std::num::NonZeroU32::new(4 * width),
-            rows_per_image: std::num::NonZeroU32::new(height),
+            bytes_per_row: Some(4 * width),
+            rows_per_image: Some(height),
         };
 
         queue.write_texture(image_copy_texture, &rgba_image, image_data_layout, extent);

@@ -148,11 +148,11 @@ impl GraphicsContext {
                 wgpu::Instance::new(wgpu::Backends::GL)
             }
             crate::cfg_desktop_and_web! {
-                wgpu::Instance::new(wgpu::Backends::all())
+                wgpu::Instance::default()
             }
         };
 
-        let surface = unsafe { instance.create_surface(window) };
+        let surface = unsafe { instance.create_surface(window).unwrap() };
 
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -185,14 +185,11 @@ impl GraphicsContext {
             )
             .await?;
 
-        let surface_config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
-            width,
-            height,
-            present_mode: wgpu::PresentMode::AutoVsync,
-            alpha_mode: wgpu::CompositeAlphaMode::Auto,
-        };
+        let mut surface_config = surface
+            .get_default_config(&adapter, width, height)
+            .expect("Surface unsupported by adapter");
+        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
+
         surface.configure(&device, &surface_config);
 
         Ok(GraphicsContext {

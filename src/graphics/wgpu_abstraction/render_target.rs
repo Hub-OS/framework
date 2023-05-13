@@ -79,6 +79,7 @@ impl RenderTarget {
                 | wgpu::TextureUsages::COPY_SRC
                 | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: None,
+            view_formats: &[],
         };
 
         let texture = device.create_texture(&texture_desc);
