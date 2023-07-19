@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
 
     let game = Game::new("Sprites", (800, 600));
 
-    game.run(|game_io| MainScene::new(game_io))
+    game.run(MainScene::new)
 }
 
 struct MainScene {

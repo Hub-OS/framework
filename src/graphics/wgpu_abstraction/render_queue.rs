@@ -169,10 +169,8 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
     }
 
     fn set_mesh(&mut self, mesh: &Arc<super::Mesh<Vertex>>) {
-        let device = self.graphics.device();
-
         self.operations
-            .push(RenderOperation::SetMesh(mesh.buffers(device)));
+            .push(RenderOperation::SetMesh(mesh.buffers().clone()));
 
         self.latest_mesh = Some(mesh.clone());
     }

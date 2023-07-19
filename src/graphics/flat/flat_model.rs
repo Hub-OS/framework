@@ -22,8 +22,9 @@ impl FlatModel {
         }
     }
 
-    pub fn new_square_mesh() -> Arc<Mesh<Vec2>> {
+    pub fn new_square_mesh(game_io: &GameIO) -> Arc<Mesh<Vec2>> {
         Mesh::new(
+            game_io,
             &[
                 Vec2::new(-0.5, -0.5),
                 Vec2::new(-0.5, 0.5),
@@ -34,11 +35,11 @@ impl FlatModel {
         )
     }
 
-    pub fn new_square_model() -> Self {
-        Self::new(Self::new_square_mesh())
+    pub fn new_square_model(game_io: &GameIO) -> Self {
+        Self::new(Self::new_square_mesh(game_io))
     }
 
-    pub fn new_circle_mesh(vertex_count: usize) -> Arc<Mesh<Vec2>> {
+    pub fn new_circle_mesh(game_io: &GameIO, vertex_count: usize) -> Arc<Mesh<Vec2>> {
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
 
@@ -67,11 +68,11 @@ impl FlatModel {
             indices.push(vertex_count as u32);
         }
 
-        Mesh::new(&vertices, &indices)
+        Mesh::new(game_io, &vertices, &indices)
     }
 
-    pub fn new_circle_model(vertex_count: usize) -> Self {
-        Self::new(Self::new_circle_mesh(vertex_count))
+    pub fn new_circle_model(game_io: &GameIO, vertex_count: usize) -> Self {
+        Self::new(Self::new_circle_mesh(game_io, vertex_count))
     }
 
     pub fn color(&self) -> Color {

@@ -29,9 +29,10 @@ pub struct Triangle {
 }
 
 impl Triangle {
-    pub fn new() -> Self {
+    pub fn new(game_io: &GameIO) -> Self {
         Self {
             mesh: Mesh::new(
+                game_io,
                 &[
                     TriangleVertex {
                         vertex: [0.0, 0.8],

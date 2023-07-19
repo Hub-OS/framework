@@ -65,7 +65,7 @@ In Cargo.toml:
 
 ```toml
 [target.'cfg(target_os = "android")'.dependencies]
-ndk-glue = "0.5" # version depends on winit: https://github.com/rust-windowing/winit#android
+ndk-glue = "0.7" # version depends on winit: https://github.com/rust-windowing/winit#android
 
 # also used in wasm builds
 [lib]

@@ -40,16 +40,17 @@ pub struct DefaultSpriteMesh {
 }
 
 impl DefaultSpriteMesh {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(game_io: &GameIO) -> Self {
         Self {
-            mesh: Self::create_mesh(false),
+            mesh: Self::create_mesh(game_io, false),
         }
     }
 
-    fn create_mesh(invert_y: bool) -> Arc<Mesh<SpriteVertex>> {
+    fn create_mesh(game_io: &GameIO, invert_y: bool) -> Arc<Mesh<SpriteVertex>> {
         let (y1, y2) = if invert_y { (0.0, 1.0) } else { (1.0, 0.0) };
 
         Mesh::new(
+            game_io,
             &[
                 SpriteVertex {
                     vertex: [0.0, 0.0],
@@ -82,9 +83,9 @@ pub struct DefaultSpriteMeshInverted {
 }
 
 impl DefaultSpriteMeshInverted {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(game_io: &GameIO) -> Self {
         Self {
-            mesh: DefaultSpriteMesh::create_mesh(true),
+            mesh: DefaultSpriteMesh::create_mesh(game_io, true),
         }
     }
 

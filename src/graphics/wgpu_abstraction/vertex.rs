@@ -1,7 +1,7 @@
 use glam::{Vec2, Vec3, Vec4};
 use wgpu::VertexFormat;
 
-pub trait Vertex: bytemuck::Pod {
+pub trait Vertex: bytemuck::Pod + Send + Sync {
     fn vertex_layout() -> VertexLayout;
 }
 

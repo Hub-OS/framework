@@ -9,7 +9,7 @@ fn main() -> anyhow::Result<()> {
 
     let game = Game::new("Triangle Example", (800, 600));
 
-    game.run(|game_io| MainScene::new(game_io))
+    game.run(MainScene::new)
 }
 
 struct MainScene {
@@ -26,7 +26,7 @@ impl MainScene {
             .load_shader_from_descriptor(include_wgsl!("triangle.wgsl"))
             .unwrap();
 
-        let render_pipeline = RenderPipelineBuilder::new(&game_io)
+        let render_pipeline = RenderPipelineBuilder::new(game_io)
             .with_vertex_shader(&shader, "vs_main")
             .with_fragment_shader(&shader, "fs_main")
             .build::<TriangleVertex, TriangleInstanceData>()
@@ -34,7 +34,7 @@ impl MainScene {
 
         MainScene {
             render_pipeline,
-            triangle: Triangle::new(),
+            triangle: Triangle::new(game_io),
             next_scene: NextScene::None,
         }
     }

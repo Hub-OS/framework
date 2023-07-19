@@ -11,6 +11,7 @@ impl TextureSourceModel {
     pub fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
         Self {
             mesh: Mesh::new(
+                game_io,
                 &[
                     Vec2::new(-1.0, -1.0),
                     Vec2::new(-1.0, 1.0),
