@@ -16,7 +16,7 @@ pub struct InputManager {
     dropping_data: bool,
     dropped_file: Option<PathBuf>,
     dropped_text: Option<String>,
-    mouse: Vec2,
+    mouse_position: Vec2,
     text: String,
     accept_text: bool,
     accept_text_last_frame: bool,
@@ -28,7 +28,7 @@ impl InputManager {
             clipboard: Clipboard::new().ok(),
             latest_mouse_button: None,
             latest_key: None,
-            mouse: Vec2::new(0.0, 0.0),
+            mouse_position: Vec2::new(0.0, 0.0),
             previous_mouse_buttons: Vec::new(),
             pressed_mouse_buttons: Vec::new(),
             previous_keys: Vec::new(),
@@ -72,8 +72,8 @@ impl InputManager {
         &self.text
     }
 
-    pub fn mouse(&self) -> Vec2 {
-        self.mouse
+    pub fn mouse_position(&self) -> Vec2 {
+        self.mouse_position
     }
 
     pub fn latest_mouse_button(&self) -> Option<MouseButton> {
@@ -238,7 +238,7 @@ impl InputManager {
     pub(crate) fn handle_event(&mut self, event: InputEvent) {
         // println!("{:?}", event);
         match event {
-            InputEvent::MouseMoved { x, y } => self.mouse = Vec2::new(x, y),
+            InputEvent::MouseMoved { x, y } => self.mouse_position = Vec2::new(x, y),
             InputEvent::MouseButtonDown(button) => self.simulate_mouse_press(button),
             InputEvent::MouseButtonUp(button) => self.simulate_mouse_release(button),
             InputEvent::KeyDown(key) => self.simulate_key_press(key),
