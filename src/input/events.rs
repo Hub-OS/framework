@@ -36,3 +36,23 @@ pub(crate) enum InputEvent {
         value: f32,
     },
 }
+
+impl InputEvent {
+    pub(crate) fn scale_mouse_event(&mut self, window: &Window) {
+        let Self::MouseMoved { x, y } = self else {
+            return;
+        };
+
+        let window_size = window.size().as_vec2();
+        let scale = window_size / window.resolution().as_vec2();
+
+        *x = *x / window_size.x * 2.0 - 1.0;
+        *y = -(*y / window_size.y * 2.0 - 1.0);
+
+        if scale.x > scale.y {
+            *x *= scale.x / scale.y;
+        } else {
+            *y *= scale.y / scale.x;
+        }
+    }
+}

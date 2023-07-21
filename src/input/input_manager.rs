@@ -72,6 +72,7 @@ impl InputManager {
         &self.text
     }
 
+    // Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
     pub fn mouse_position(&self) -> Vec2 {
         self.mouse_position
     }

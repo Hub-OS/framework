@@ -188,8 +188,9 @@ impl GameIO {
                     self.window.resized(size);
                     self.graphics.resized(size);
                 }
-                WindowEvent::InputEvent(input_event) => {
-                    self.input_manager.handle_event(input_event)
+                WindowEvent::InputEvent(mut input_event) => {
+                    input_event.scale_mouse_event(&self.window);
+                    self.input_manager.handle_event(input_event);
                 }
             }
         }
