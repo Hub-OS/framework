@@ -8,9 +8,9 @@ license = "Zlib"
 [dependencies]
 log = { version = "0.4", features = ["std"] }
 # using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "0.16", features = ["webgl"] }
+wgpu = { version = "0.17", features = ["webgl"] }
 bytemuck = { version = "1", features = ["derive"] }
-glam = { version = "0.23", features = ["bytemuck"] }
+glam = { version = "0.24", features = ["bytemuck"] }
 image = "0.24"
 raw-window-handle = "0.5"
 anyhow = "1"
@@ -18,7 +18,7 @@ instant = "0.1"
 async-executor = "1"
 async-task = "4"
 pollster = "0.3"
-strum = { version = "0.24", features = ["derive"] }
+strum = { version = "0.25", features = ["derive"] }
 termcolor = "1"
 arboard = "3"
 futures-lite = "1"
