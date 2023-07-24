@@ -16,18 +16,6 @@ pub enum NextScene {
     Pop {
         transition: Option<Box<dyn Transition>>,
     },
-    // skips calling Scene::enter
-    #[doc(hidden)]
-    __InternalPush {
-        scene: Box<dyn Scene>,
-        transition: Option<Box<dyn Transition>>,
-    },
-    // skips calling Scene::enter
-    #[doc(hidden)]
-    __InternalSwap {
-        scene: Box<dyn Scene>,
-        transition: Option<Box<dyn Transition>>,
-    },
     None,
 }
 
@@ -62,31 +50,14 @@ impl NextScene {
     }
 
     pub fn with_transition(mut self, transition: impl Transition + 'static) -> Self {
+        let boxed_transition = Box::new(transition);
+
         match &mut self {
-            NextScene::Push {
-                transition: set_transition,
-                ..
-            }
-            | NextScene::Swap {
-                transition: set_transition,
-                ..
-            }
-            | NextScene::PopSwap {
-                transition: set_transition,
-                ..
-            }
-            | NextScene::Pop {
-                transition: set_transition,
-            }
-            | NextScene::__InternalPush {
-                transition: set_transition,
-                ..
-            }
-            | NextScene::__InternalSwap {
-                transition: set_transition,
-                ..
-            } => {
-                *set_transition = Some(Box::new(transition));
+            NextScene::Push { transition, .. }
+            | NextScene::Swap { transition, .. }
+            | NextScene::PopSwap { transition, .. }
+            | NextScene::Pop { transition } => {
+                *transition = Some(boxed_transition);
             }
             NextScene::None => {}
         }

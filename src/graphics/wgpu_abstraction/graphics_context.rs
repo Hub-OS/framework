@@ -12,7 +12,7 @@ pub struct GraphicsContext {
     adapter: Arc<wgpu::Adapter>,
     device: Arc<wgpu::Device>,
     queue: Arc<wgpu::Queue>,
-    clear_color: Color,
+    clear_color: Option<Color>,
     disabled_post_processes: Vec<TypeId>,
 }
 
@@ -41,11 +41,11 @@ impl GraphicsContext {
         &self.queue
     }
 
-    pub fn clear_color(&self) -> Color {
+    pub fn clear_color(&self) -> Option<Color> {
         self.clear_color
     }
 
-    pub fn set_clear_color(&mut self, color: Color) {
+    pub fn set_clear_color(&mut self, color: Option<Color>) {
         self.clear_color = color
     }
 
@@ -198,7 +198,7 @@ impl GraphicsContext {
             adapter: Arc::new(adapter),
             device: Arc::new(device),
             queue: Arc::new(queue),
-            clear_color: Color::TRANSPARENT,
+            clear_color: Some(Color::TRANSPARENT),
             disabled_post_processes: Vec::new(),
         })
     }

@@ -9,7 +9,7 @@ pub struct RenderPass<'a> {
     depth_attachment: Option<wgpu::RenderPassDepthStencilAttachment<'a>>,
     queues: Vec<Vec<RenderOperation>>,
     texture_size: UVec2,
-    clear_color: Color,
+    clear_color: Option<Color>,
 }
 
 impl<'a> RenderPass<'a> {
@@ -29,7 +29,7 @@ impl<'a> RenderPass<'a> {
         self.texture_size
     }
 
-    pub fn clear_color(&self) -> Color {
+    pub fn clear_color(&self) -> Option<Color> {
         self.clear_color
     }
 

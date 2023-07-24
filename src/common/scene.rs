@@ -7,9 +7,6 @@ pub trait Scene {
     /// Called when this scene is processed as the NextScene
     fn enter(&mut self, _game_io: &mut GameIO) {}
 
-    /// Called when a scene is popped and the transition is completed or None
-    fn resume(&mut self, _game_io: &mut GameIO) {}
-
     /// Called every tick, put game logic here
     fn update(&mut self, game_io: &mut GameIO);
 

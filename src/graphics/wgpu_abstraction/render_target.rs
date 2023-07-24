@@ -2,7 +2,7 @@ use crate::prelude::*;
 use std::sync::Arc;
 
 pub struct RenderTarget {
-    clear_color: Color,
+    clear_color: Option<Color>,
     texture: Arc<Texture>,
 }
 
@@ -10,14 +10,14 @@ impl RenderTarget {
     pub fn new(game_io: &GameIO, size: UVec2) -> Self {
         Self {
             texture: RenderTarget::create_texture(game_io, size),
-            clear_color: Color::TRANSPARENT,
+            clear_color: Some(Color::TRANSPARENT),
         }
     }
 
     pub(crate) fn from_view(view: wgpu::TextureView, size: UVec2) -> Self {
         Self {
             texture: Arc::new(Texture { view, size }),
-            clear_color: Color::TRANSPARENT,
+            clear_color: Some(Color::TRANSPARENT),
         }
     }
 
@@ -37,11 +37,11 @@ impl RenderTarget {
         self.texture = RenderTarget::create_texture(game_io, size);
     }
 
-    pub fn clear_color(&self) -> Color {
+    pub fn clear_color(&self) -> Option<Color> {
         self.clear_color
     }
 
-    pub fn set_clear_color(&mut self, color: Color) {
+    pub fn set_clear_color(&mut self, color: Option<Color>) {
         self.clear_color = color;
     }
 
@@ -50,7 +50,10 @@ impl RenderTarget {
             view: &self.texture.view,
             resolve_target: None,
             ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(self.clear_color.into()),
+                load: match self.clear_color {
+                    Some(color) => wgpu::LoadOp::Clear(color.into()),
+                    None => wgpu::LoadOp::Load,
+                },
                 store: true,
             },
         }

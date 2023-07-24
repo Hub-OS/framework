@@ -145,20 +145,28 @@ impl GameRuntime {
         self.render_target.resize(game_io, resolution);
         self.render_target_b.resize(game_io, resolution);
 
-        self.render_target.set_clear_color(graphics.clear_color());
-        self.render_target_b.set_clear_color(graphics.clear_color());
-
-        let mut render_pass = RenderPass::new(&mut encoder, &self.render_target);
+        let clear_color = graphics.clear_color();
+        self.render_target.set_clear_color(clear_color);
+        self.render_target_b.set_clear_color(clear_color);
 
         // draw scene
-        self.scene_manager.draw(game_io, &mut render_pass);
+        self.scene_manager.draw(
+            game_io,
+            &mut encoder,
+            &mut self.render_target,
+            &mut self.render_target_b,
+        );
 
-        // draw overlays
+        // draw overlays, set clear color to None to recycle previous render
+        self.render_target.set_clear_color(None);
+        let mut render_pass = RenderPass::new(&mut encoder, &self.render_target);
+
         for overlay in &mut self.overlays {
             overlay.draw(game_io, &mut render_pass);
         }
 
         render_pass.flush();
+        self.render_target.set_clear_color(clear_color);
 
         // post processing
         for (id, post_process) in &mut self.post_processes {

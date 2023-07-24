@@ -5,8 +5,8 @@ pub trait Transition {
         &mut self,
         game_io: &mut GameIO,
         render_pass: &mut RenderPass,
-        previous_scene: &mut Box<dyn Scene>,
-        next_scene: &mut Box<dyn Scene>,
+        draw_previous_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
+        draw_next_scene: &mut dyn FnMut(&mut GameIO, &mut RenderPass),
     );
 
     fn is_complete(&self) -> bool;

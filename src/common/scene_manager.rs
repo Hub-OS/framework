@@ -1,34 +1,168 @@
 use crate::prelude::*;
-use log::error;
+use slotmap::DefaultKey as SceneIndex;
+use slotmap::SlotMap;
+use wgpu::CommandEncoder;
+
+type SceneArena = SlotMap<SceneIndex, Box<dyn Scene>>;
+
+struct TransitionTracker {
+    transition: Box<dyn Transition>,
+    from_index: SceneIndex,
+    to_index: SceneIndex,
+    delete_indices: Vec<SceneIndex>,
+}
+
+impl std::fmt::Debug for TransitionTracker {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TransitionTracker")
+            .field("from_index", &self.from_index)
+            .field("to_index", &self.to_index)
+            .field("delete_indices", &self.delete_indices)
+            .finish()
+    }
+}
+
+impl TransitionTracker {
+    fn unwind_iter(
+        final_index: SceneIndex,
+        trackers: &[TransitionTracker],
+    ) -> impl Iterator<Item = &TransitionTracker> {
+        let mut to_index = final_index;
+
+        std::iter::from_fn(move || {
+            let tracker = trackers
+                .iter()
+                .find(|tracker| tracker.to_index == to_index)?;
+
+            to_index = tracker.from_index;
+
+            Some(tracker)
+        })
+    }
+
+    fn unwind_indices(
+        final_index: SceneIndex,
+        trackers: &[TransitionTracker],
+    ) -> impl Iterator<Item = usize> + '_ {
+        let mut to_index = final_index;
+
+        std::iter::from_fn(move || {
+            let (index, tracker) = trackers
+                .iter()
+                .enumerate()
+                .find(|(_, tracker)| tracker.to_index == to_index)?;
+
+            to_index = tracker.from_index;
+
+            Some(index)
+        })
+    }
+}
 
 pub(crate) struct SceneManager {
-    scenes: Vec<Box<dyn Scene>>,
+    final_indices: Vec<SceneIndex>,
+    scenes: SceneArena,
+    transitions: Vec<TransitionTracker>,
 }
 
 impl SceneManager {
     pub(crate) fn new(initial_scene: Box<dyn Scene>) -> Self {
+        let mut scenes = SceneArena::new();
+        let top_index = scenes.insert(initial_scene);
+
         Self {
-            scenes: vec![initial_scene],
+            final_indices: vec![top_index],
+            scenes,
+            transitions: Vec::new(),
         }
     }
 
-    fn active_scene_mut(&mut self) -> &mut Box<dyn Scene> {
-        self.scenes.last_mut().unwrap()
+    fn top_index_mut(&mut self) -> &mut SceneIndex {
+        self.final_indices.last_mut().unwrap()
+    }
+
+    fn cleanup_transitions(&mut self) {
+        let mut pending_removal = Vec::new();
+
+        for (index, tracker) in self.transitions.iter().enumerate() {
+            if tracker.transition.is_complete() {
+                pending_removal.push(index);
+            }
+        }
+
+        if pending_removal.is_empty() {
+            return;
+        }
+
+        // update links
+        let mut links_unresolved = true;
+        let scenes_pending_removal: Vec<_> = pending_removal
+            .iter()
+            .map(|tracker_index| {
+                let tracker = &self.transitions[*tracker_index];
+                (tracker.to_index, tracker.delete_indices.clone())
+            })
+            .collect();
+
+        while links_unresolved {
+            links_unresolved = false;
+
+            for &(to_index, ref delete_indices) in &scenes_pending_removal {
+                for tracker in &mut self.transitions {
+                    if !delete_indices.contains(&tracker.to_index) {
+                        continue;
+                    }
+
+                    tracker.to_index = to_index;
+                    links_unresolved = true;
+                }
+            }
+        }
+
+        // delete
+        for transition_index in pending_removal.into_iter().rev() {
+            let tracker = self.transitions.remove(transition_index);
+
+            // delete dead scenes
+            for scene_index in tracker.delete_indices {
+                // todo: call scene.exit(game_io)?
+                self.scenes.remove(scene_index);
+            }
+        }
     }
 
     pub(crate) fn update(&mut self, game_io: &mut GameIO) {
-        let active_scene = self.active_scene_mut();
-        active_scene.update(game_io);
+        self.cleanup_transitions();
+
+        let top_index = *self.top_index_mut();
+
+        // update scenes visible from transitions
+        let visible_transition_iter = TransitionTracker::unwind_iter(top_index, &self.transitions);
+
+        // reset transitioning state
+        game_io.set_transitioning(false);
+
+        for tracker in visible_transition_iter {
+            // update transitioning state
+            game_io.set_transitioning(true);
+
+            // update scene
+            self.scenes[tracker.from_index].update(game_io);
+        }
+
+        // update top scene
+        self.scenes[top_index].update(game_io);
 
         while self.handle_scene_request(game_io) {}
     }
 
     fn handle_scene_request(&mut self, game_io: &mut GameIO) -> bool {
-        let active_scene = self.active_scene_mut();
+        let top_index = *self.top_index_mut();
+        let top_scene = &mut self.scenes[top_index];
 
-        let to_scene_request = active_scene.next_scene().take();
+        let next_scene = top_scene.next_scene().take();
 
-        match to_scene_request {
+        match next_scene {
             NextScene::None => false,
             NextScene::Push {
                 mut scene,
@@ -51,310 +185,154 @@ impl SceneManager {
                 transition,
             } => {
                 scene.enter(game_io);
-
-                // remove the scene under the current one
-                self.scenes.remove(self.scenes.len() - 2);
-
-                // swap with the top scene
-                self.swap_scene(scene, transition);
-                true
-            }
-            NextScene::__InternalPush { scene, transition } => {
-                self.push_scene(scene, transition);
-                true
-            }
-            NextScene::__InternalSwap { scene, transition } => {
-                self.swap_scene(scene, transition);
+                self.pop_swap_scene(scene, transition);
                 true
             }
             NextScene::Pop { transition } => {
-                self.pop_scene(game_io, transition);
+                self.pop_scene(transition);
+
+                let top_index = *self.top_index_mut();
+                self.scenes[top_index].enter(game_io);
                 true
             }
         }
     }
 
     fn push_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
+        let top_index = self.top_index_mut();
+
+        let from_index = *top_index;
+        let to_index = self.scenes.insert(scene);
+
+        // push to_index
+        self.final_indices.push(to_index);
+
         if let Some(transition) = transition {
-            let current_scene = self.scenes.pop().unwrap();
-
-            let transition_scene =
-                Box::new(TransitionWrapper::new(transition, current_scene, scene));
-
-            self.scenes.push(transition_scene);
-        } else {
-            self.scenes.push(scene);
+            self.transitions.push(TransitionTracker {
+                transition,
+                from_index,
+                to_index,
+                delete_indices: Vec::new(),
+            });
         }
     }
 
     fn swap_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
-        let current_scene = self.scenes.pop().unwrap();
+        let to_index = self.scenes.insert(scene);
+
+        let top_index = self.top_index_mut();
+        let from_index = *top_index;
+
+        // swap top index
+        *top_index = to_index;
 
         if let Some(transition) = transition {
-            let mut transition_scene =
-                Box::new(TransitionWrapper::new(transition, current_scene, scene));
-
-            transition_scene.replaces = true;
-
-            self.scenes.push(transition_scene);
-        } else {
-            self.scenes.push(scene);
+            self.transitions.push(TransitionTracker {
+                transition,
+                from_index,
+                to_index,
+                delete_indices: vec![from_index],
+            });
         }
     }
 
-    fn pop_scene(&mut self, game_io: &mut GameIO, transition: Option<Box<dyn Transition>>) {
-        let current_scene = self.scenes.pop().unwrap();
-        let to_scene = self.scenes.pop();
+    fn pop_swap_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
+        if self.final_indices.len() == 1 {
+            log::error!("No scene to pop into");
+            return;
+        }
 
-        if let Some(mut to_scene) = to_scene {
-            to_scene.enter(game_io);
+        let from_index = *self.top_index_mut();
+        let to_index = self.scenes.insert(scene);
 
-            if let Some(transition) = transition {
-                let mut transition_scene =
-                    Box::new(TransitionWrapper::new(transition, current_scene, to_scene));
+        // pop then swap
+        self.final_indices.pop();
+        let top_index = self.top_index_mut();
+        let swapped_index = *top_index;
+        *top_index = to_index;
 
-                transition_scene.replaces = true;
-                transition_scene.resumes = true;
-
-                self.scenes.push(transition_scene);
-            } else {
-                to_scene.resume(game_io);
-                self.scenes.push(to_scene);
-            }
-        } else {
-            panic!("No scene to pop into");
+        if let Some(transition) = transition {
+            self.transitions.push(TransitionTracker {
+                transition,
+                from_index,
+                to_index,
+                delete_indices: vec![swapped_index, from_index],
+            });
         }
     }
 
-    pub(crate) fn draw<'a: 'b, 'b>(
-        &'a mut self,
-        game_io: &'a mut GameIO,
-        render_pass: &'b mut RenderPass,
+    fn pop_scene(&mut self, transition: Option<Box<dyn Transition>>) {
+        if self.final_indices.len() == 1 {
+            log::error!("No scene to pop into");
+            return;
+        }
+
+        // pop
+        let from_index = self.final_indices.pop().unwrap();
+        let to_index = *self.top_index_mut();
+
+        if let Some(transition) = transition {
+            self.transitions.push(TransitionTracker {
+                transition,
+                from_index,
+                to_index,
+                delete_indices: vec![from_index],
+            });
+        }
+    }
+
+    pub(crate) fn draw(
+        &mut self,
+        game_io: &mut GameIO,
+        encoder: &mut CommandEncoder,
+        render_target: &mut RenderTarget,
+        render_target_b: &mut RenderTarget,
     ) {
-        self.active_scene_mut().draw(game_io, render_pass);
-    }
-}
+        let top_index = *self.top_index_mut();
+        let tracker_indices: Vec<_> =
+            TransitionTracker::unwind_indices(top_index, &self.transitions).collect();
 
-struct TransitionWrapper {
-    transition: Box<dyn Transition>,
-    from_scene: Option<Box<dyn Scene>>,
-    to_scene: Option<Box<dyn Scene>>,
-    replaces: bool,
-    resumes: bool,
-    popping: bool,
-    next_scene: NextScene,
-}
+        // draw the top scene
+        let mut render_pass = RenderPass::new(encoder, render_target);
+        self.scenes[top_index].draw(game_io, &mut render_pass);
+        render_pass.flush();
 
-impl TransitionWrapper {
-    fn new(
-        transition: Box<dyn Transition>,
-        from_scene: Box<dyn Scene>,
-        to_scene: Box<dyn Scene>,
-    ) -> Self {
-        Self {
-            transition,
-            from_scene: Some(from_scene),
-            to_scene: Some(to_scene),
-            replaces: false,
-            resumes: false,
-            popping: false,
-            next_scene: NextScene::None,
-        }
-    }
-}
-
-impl Scene for TransitionWrapper {
-    fn next_scene(&mut self) -> &mut NextScene {
-        &mut self.next_scene
-    }
-
-    fn enter(&mut self, game_io: &mut GameIO) {
-        if let Some(scene) = self.to_scene.as_mut() {
-            scene.enter(game_io);
-        }
-
-        if let Some(scene) = self.from_scene.as_mut() {
-            scene.enter(game_io);
-        }
-    }
-
-    fn resume(&mut self, game_io: &mut GameIO) {
-        if self.popping || !self.transition.is_complete() {
+        if tracker_indices.is_empty() {
+            // only needed to draw one scene
             return;
         }
 
-        let resumed_scene = self
-            .to_scene
-            .as_mut()
-            .unwrap_or_else(|| self.from_scene.as_mut().unwrap());
+        let mut model = TextureSourceModel::new(game_io, render_target.texture().clone());
 
-        resumed_scene.resume(game_io);
-    }
+        for tracker_index in tracker_indices {
+            let tracker = &mut self.transitions[tracker_index];
 
-    fn update(&mut self, game_io: &mut GameIO) {
-        if self.next_scene.is_none()
-            && !self.popping
-            && !game_io.is_in_transition()
-            && self.transition.is_complete()
-        {
-            // unwrap as nothing else should be taking this value
-            let mut scene = self
-                .to_scene
-                .take()
-                .unwrap_or_else(|| self.from_scene.take().unwrap());
+            // swap the target
+            std::mem::swap(render_target, render_target_b);
 
-            if self.resumes {
-                // resumes can only happen when replacing,
-                // so we don't need to worry about resuming from_scene
-                scene.resume(game_io);
-            }
+            let mut render_pass = RenderPass::new(encoder, render_target);
 
-            scene.update(game_io);
+            tracker.transition.draw(
+                game_io,
+                &mut render_pass,
+                &mut |game_io, render_pass| {
+                    let scene = &mut self.scenes[tracker.from_index];
+                    scene.draw(game_io, render_pass);
+                },
+                &mut |game_io, render_pass| {
+                    let copy_pipeline = game_io.resource::<CopyPipeline>().unwrap();
+                    let mut queue = RenderQueue::new(game_io, copy_pipeline, []);
+                    queue.draw_model(&model);
+                    render_pass.consume_queue(queue);
+                },
+            );
 
-            if self.replaces || self.from_scene.is_none() {
-                self.next_scene = NextScene::__InternalSwap {
-                    scene,
-                    transition: None,
-                };
-            } else {
-                self.next_scene = NextScene::__InternalPush {
-                    scene,
-                    transition: None,
-                };
-            }
+            render_pass.flush();
 
-            return;
+            // update model texture for the next pass
+            model.set_texture(render_target.texture().clone());
         }
 
-        let started_in_transition = game_io.is_in_transition();
-        game_io.set_transitioning(true);
-
-        if let Some(from_scene) = self.from_scene.as_mut() {
-            from_scene.update(game_io);
-
-            let next_scene = from_scene.next_scene().take();
-
-            if next_scene.is_some() && self.to_scene.is_some() {
-                error!("Closing scene should return None on updates until resume()");
-            } else if self.next_scene.is_none() {
-                self.next_scene = next_scene;
-            }
-        }
-
-        if let Some(to_scene) = self.to_scene.as_mut() {
-            to_scene.update(game_io);
-
-            if !self.popping && self.next_scene.is_none() {
-                self.next_scene = match to_scene.next_scene().take() {
-                    NextScene::Pop { transition } => {
-                        self.popping = false;
-
-                        #[allow(clippy::manual_map)]
-                        if self.replaces {
-                            // removing previous scene anyway
-                            NextScene::Pop { transition }
-                        } else if let Some(scene) = self.from_scene.take() {
-                            // we need to transition to the from_scene
-                            // and activate resume() at the right time
-
-                            let scene = Box::new(TransitionResumer::new(scene));
-                            NextScene::__InternalSwap { scene, transition }
-                        } else {
-                            // must have already sent a NextScene::Swap for previous scene if it's empty
-                            // doesn't matter what we transition to now
-                            NextScene::None
-                        }
-                    }
-                    next_scene => next_scene,
-                };
-
-                self.resumes = self.next_scene.is_some();
-            }
-        }
-
-        game_io.set_transitioning(started_in_transition);
-    }
-
-    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        let started_in_transition = game_io.is_in_transition();
-        game_io.set_transitioning(true);
-
-        let transition = &mut self.transition;
-
-        match (&mut self.from_scene, &mut self.to_scene) {
-            (Some(from_scene), Some(to_scene)) => {
-                transition.draw(game_io, render_pass, from_scene, to_scene)
-            }
-            (Some(from_scene), None) => from_scene.draw(game_io, render_pass),
-            (None, Some(to_scene)) => to_scene.draw(game_io, render_pass),
-            _ => {}
-        }
-
-        game_io.set_transitioning(started_in_transition);
-    }
-}
-
-// resumes scenes stuck in a transition
-struct TransitionResumer {
-    wrapped_scene: Option<Box<dyn Scene>>,
-    next_scene: NextScene,
-    resumed: bool,
-}
-
-impl TransitionResumer {
-    fn new(scene: Box<dyn Scene>) -> Self {
-        Self {
-            wrapped_scene: Some(scene),
-            next_scene: NextScene::None,
-            resumed: false,
-        }
-    }
-}
-
-impl Scene for TransitionResumer {
-    fn next_scene(&mut self) -> &mut NextScene {
-        self.wrapped_scene
-            .as_mut()
-            .map(|scene| scene.next_scene())
-            .unwrap_or(&mut self.next_scene)
-    }
-
-    fn enter(&mut self, game_io: &mut GameIO) {
-        if let Some(scene) = self.wrapped_scene.as_mut() {
-            scene.enter(game_io);
-        }
-    }
-
-    fn resume(&mut self, game_io: &mut GameIO) {
-        if let Some(scene) = self.wrapped_scene.as_mut() {
-            scene.resume(game_io);
-        }
-    }
-
-    fn update(&mut self, game_io: &mut GameIO) {
-        let wrapped_scene = self.wrapped_scene.as_mut().unwrap();
-
-        if !self.resumed && !game_io.is_in_transition() {
-            wrapped_scene.resume(game_io);
-            self.resumed = true;
-        }
-
-        wrapped_scene.update(game_io);
-
-        if !game_io.is_in_transition() {
-            let scene = self.wrapped_scene.take().unwrap();
-
-            self.next_scene = NextScene::__InternalSwap {
-                scene,
-                transition: None,
-            }
-        }
-    }
-
-    fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
-        match self.wrapped_scene.as_mut() {
-            Some(scene) => scene.draw(game_io, render_pass),
-            None => unreachable!(),
-        }
+        // render_target has the final render for the scene manager
     }
 }

@@ -22,6 +22,7 @@ strum = { version = "0.24", features = ["derive"] }
 termcolor = "1"
 arboard = "3"
 futures-lite = "1"
+slotmap = "1"
 
 [features]
 default = ["winit"]
@@ -38,14 +39,14 @@ async-io = { version = "1.7" }
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
-  "bundled"
+  "bundled",
 ], optional = true }
 
 [target.'cfg(target_os = "android")'.dependencies]
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
   "bundled",
-  "static-link"
+  "static-link",
 ], optional = true }
 ndk-sys = "0.4"
 
