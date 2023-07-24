@@ -13,8 +13,8 @@ impl TransitionDirection {
         match self {
             TransitionDirection::Up => Vec2::new(0.0, -1.0),
             TransitionDirection::Down => Vec2::new(0.0, 1.0),
-            TransitionDirection::Left => Vec2::new(1.0, 0.0),
-            TransitionDirection::Right => Vec2::new(-1.0, 0.0),
+            TransitionDirection::Left => Vec2::new(-1.0, 0.0),
+            TransitionDirection::Right => Vec2::new(1.0, 0.0),
         }
     }
 }

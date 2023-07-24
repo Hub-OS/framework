@@ -72,7 +72,7 @@ impl Scene for ExampleScene {
         // handle new scene creation
         if self.depth < 2 && just_pressed_space {
             let direction = match self.depth {
-                0 => TransitionDirection::Left,
+                0 => TransitionDirection::Right,
                 1 => TransitionDirection::Up,
                 _ => unreachable!(),
             };
@@ -87,7 +87,7 @@ impl Scene for ExampleScene {
         if self.depth > 0 && self.next_scene.is_none() && just_pressed_shift {
             let direction = match self.depth {
                 0 => unreachable!(),
-                1 => TransitionDirection::Right,
+                1 => TransitionDirection::Left,
                 _ => TransitionDirection::Down,
             };
 
