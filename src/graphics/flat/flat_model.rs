@@ -107,6 +107,18 @@ impl FlatModel {
         self.scale = scale
     }
 
+    // pub fn bounds(&self) -> Rect {
+    //     let position = self.position - (self.origin - 0.5) * self.scale;
+    //     let size = self.scale;
+
+    //     Rect::new(position.x, position.y, size.x, size.y)
+    // }
+
+    // pub fn set_bounds(&mut self, rect: Rect) {
+    //     self.set_scale(rect.size());
+    //     self.set_position(rect.position() + (self.origin + 0.5) * self.scale);
+    // }
+
     pub fn rotation(&self) -> f32 {
         self.rotation
     }

@@ -107,15 +107,15 @@ impl Sprite {
     }
 
     pub fn bounds(&self) -> Rect {
-        let position = self.position - self.origin;
-        let size = self.frame.size() * self.texture.size().as_vec2() * self.scale;
+        let position = self.position - self.origin * self.scale;
+        let size = self.size();
 
         Rect::new(position.x, position.y, size.x, size.y)
     }
 
     pub fn set_bounds(&mut self, rect: Rect) {
-        self.set_position(rect.position());
         self.set_size(rect.size());
+        self.set_position(rect.position() + self.origin * self.scale);
     }
 
     pub fn frame(&self) -> Rect {
