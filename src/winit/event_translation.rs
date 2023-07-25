@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use winit::event::Event as WinitEvent;
 use winit::event::MouseButton as WinitMouseButton;
 use winit::event::WindowEvent as WinitWindowEvent;
 
@@ -8,7 +9,7 @@ pub(crate) fn translate_winit_event(
 ) -> Option<WindowEvent> {
     match event {
         // todo check window id
-        winit::event::Event::WindowEvent { window_id, event } => {
+        WinitEvent::WindowEvent { window_id, event } => {
             if primary_window_id != window_id {
                 return None;
             }
@@ -71,6 +72,7 @@ pub(crate) fn translate_winit_event(
                 _ => None,
             }
         }
+        WinitEvent::Resumed => Some(WindowEvent::Resumed),
         _ => None,
     }
 }

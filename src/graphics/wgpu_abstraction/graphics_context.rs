@@ -7,6 +7,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 pub struct GraphicsContext {
+    instance: wgpu::Instance,
     surface: wgpu::Surface,
     surface_config: wgpu::SurfaceConfiguration,
     adapter: Arc<wgpu::Adapter>,
@@ -196,6 +197,7 @@ impl GraphicsContext {
         surface.configure(&device, &surface_config);
 
         Ok(GraphicsContext {
+            instance,
             surface,
             surface_config,
             adapter: Arc::new(adapter),
@@ -204,6 +206,13 @@ impl GraphicsContext {
             clear_color: Some(Color::TRANSPARENT),
             disabled_post_processes: Vec::new(),
         })
+    }
+
+    pub(crate) fn rebuild_surface(&mut self, window: &Window) {
+        if let Ok(surface) = unsafe { self.instance.create_surface(window) } {
+            surface.configure(&self.device, &self.surface_config);
+            self.surface = surface;
+        }
     }
 
     pub(crate) fn resized(&mut self, size: UVec2) {

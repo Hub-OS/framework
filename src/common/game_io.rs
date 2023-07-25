@@ -178,6 +178,9 @@ impl GameIO {
 
         for event in events {
             match event {
+                WindowEvent::Resumed => {
+                    self.graphics.rebuild_surface(&self.window);
+                }
                 WindowEvent::CloseRequested => {
                     self.quitting = true;
                 }

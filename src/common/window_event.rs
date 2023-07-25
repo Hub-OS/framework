@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 pub(crate) enum WindowEvent {
+    Resumed,
     CloseRequested,
     Resized(UVec2),
     Moved(IVec2),
