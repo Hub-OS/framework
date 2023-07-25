@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 pub(crate) enum WindowEvent {
+    #[allow(dead_code)] // unused in sdl
     Resumed,
     CloseRequested,
     Resized(UVec2),

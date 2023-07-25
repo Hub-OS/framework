@@ -66,6 +66,10 @@ impl GameRuntime {
         })
     }
 
+    pub fn game_io(&self) -> &GameIO {
+        &self.game_io
+    }
+
     pub fn is_quitting(&self) -> bool {
         self.game_io.is_quitting()
     }

@@ -37,7 +37,9 @@ impl WindowLoop {
                     }
                 }
 
-                if let Some(event) = translate_sdl_event(window_id, sdl_event) {
+                let window = game_runtime.game_io().window();
+
+                if let Some(event) = translate_sdl_event(window, window_id, sdl_event) {
                     // reducing differences with winit
                     let text = match event {
                         WindowEvent::InputEvent(InputEvent::KeyDown(Key::Backspace)) => {

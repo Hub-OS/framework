@@ -66,6 +66,22 @@ impl Window {
         let _ = self.window.set_title(title);
     }
 
+    pub fn normalize_vec2(&self, mut position: Vec2) -> Vec2 {
+        let window_size = self.size().as_vec2();
+        let scale = window_size / self.resolution().as_vec2();
+
+        position.x = position.x / window_size.x * 2.0 - 1.0;
+        position.y = -(position.y / window_size.y * 2.0 - 1.0);
+
+        if scale.x > scale.y {
+            position.x *= scale.x / scale.y;
+        } else {
+            position.y *= scale.y / scale.x;
+        }
+
+        position
+    }
+
     pub(crate) fn build(window_config: WindowConfig) -> anyhow::Result<WindowLoop> {
         let sdl_context = sdl2::init().map_err(|e| anyhow::anyhow!(e))?;
         let event_pump = sdl_context.event_pump().map_err(|e| anyhow::anyhow!(e))?;

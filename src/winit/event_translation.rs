@@ -4,6 +4,7 @@ use winit::event::MouseButton as WinitMouseButton;
 use winit::event::WindowEvent as WinitWindowEvent;
 
 pub(crate) fn translate_winit_event(
+    window: &Window,
     primary_window_id: winit::window::WindowId,
     event: winit::event::Event<()>,
 ) -> Option<WindowEvent> {
@@ -35,13 +36,31 @@ pub(crate) fn translate_winit_event(
                 WinitWindowEvent::DroppedFile(path_buf) => {
                     Some(InputEvent::DroppedFile(path_buf).into())
                 }
-                WinitWindowEvent::CursorMoved { position, .. } => Some(
-                    InputEvent::MouseMoved {
-                        x: position.x as f32,
-                        y: position.y as f32,
-                    }
-                    .into(),
-                ),
+                WinitWindowEvent::Touch(touch) => {
+                    let phase = match touch.phase {
+                        winit::event::TouchPhase::Started => TouchPhase::Start,
+                        winit::event::TouchPhase::Moved => TouchPhase::Moving,
+                        winit::event::TouchPhase::Ended => TouchPhase::End,
+                        winit::event::TouchPhase::Cancelled => TouchPhase::Cancelled,
+                    };
+
+                    let position = Vec2::new(touch.location.x as f32, touch.location.y as f32);
+
+                    let touch = Touch {
+                        id: touch.id,
+                        phase,
+                        position: window.normalize_vec2(position),
+                        pressure: touch.force.map(|f| f.normalized() as f32),
+                    };
+
+                    Some(InputEvent::Touch(touch).into())
+                }
+                WinitWindowEvent::CursorMoved { position, .. } => {
+                    let position = Vec2::new(position.x as f32, position.y as f32);
+                    let normalized = window.normalize_vec2(position);
+
+                    Some(InputEvent::MouseMoved(normalized).into())
+                }
                 WinitWindowEvent::MouseInput { state, button, .. } => {
                     if state == winit::event::ElementState::Pressed {
                         Some(

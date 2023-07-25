@@ -43,7 +43,9 @@ impl super::WinitEventHandler for ActiveHandler {
                 control_flow.set_wait_until(self.game_runtime.target_sleep_instant());
             }
             _ => {
-                if let Some(event) = translate_winit_event(self.window_id, winit_event) {
+                let window = self.game_runtime.game_io().window();
+
+                if let Some(event) = translate_winit_event(window, self.window_id, winit_event) {
                     self.game_runtime.push_event(event)
                 }
             }

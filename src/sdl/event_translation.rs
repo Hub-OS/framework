@@ -5,7 +5,11 @@ use sdl2::controller::Button as SDLButton;
 use sdl2::event::{Event as SDLEvent, WindowEvent as SDLWindowEvent};
 use sdl2::mouse::MouseButton as SDLMouseButton;
 
-pub(crate) fn translate_sdl_event(game_window_id: u32, event: SDLEvent) -> Option<WindowEvent> {
+pub(crate) fn translate_sdl_event(
+    window: &Window,
+    game_window_id: u32,
+    event: SDLEvent,
+) -> Option<WindowEvent> {
     match event {
         SDLEvent::Quit { .. } => Some(WindowEvent::CloseRequested),
         SDLEvent::Window {
@@ -65,17 +69,51 @@ pub(crate) fn translate_sdl_event(game_window_id: u32, event: SDLEvent) -> Optio
                 None
             }
         }
+        SDLEvent::FingerDown {
+            finger_id,
+            x,
+            y,
+            pressure,
+            ..
+        }
+        | SDLEvent::FingerMotion {
+            finger_id,
+            x,
+            y,
+            pressure,
+            ..
+        }
+        | SDLEvent::FingerUp {
+            finger_id,
+            x,
+            y,
+            pressure,
+            ..
+        } => {
+            let phase = match event {
+                SDLEvent::FingerDown { .. } => TouchPhase::Start,
+                SDLEvent::FingerMotion { .. } => TouchPhase::Moving,
+                SDLEvent::FingerUp { .. } => TouchPhase::End,
+                _ => unreachable!(),
+            };
+
+            let touch = Touch {
+                id: finger_id as u64,
+                phase,
+                position: Vec2::new(x * 2.0 - 1.0, -(y * 2.0 - 1.0)),
+                pressure: Some(pressure),
+            };
+
+            Some(InputEvent::Touch(touch).into())
+        }
         SDLEvent::MouseMotion {
             window_id, x, y, ..
         } => {
             if game_window_id == window_id {
-                Some(
-                    InputEvent::MouseMoved {
-                        x: x as f32,
-                        y: y as f32,
-                    }
-                    .into(),
-                )
+                let position = Vec2::new(x as f32, y as f32);
+                let position = window.normalize_vec2(position);
+
+                Some(InputEvent::MouseMoved(position).into())
             } else {
                 None
             }
@@ -158,14 +196,6 @@ pub(crate) fn translate_sdl_event(game_window_id: u32, event: SDLEvent) -> Optio
             }
             .into()
         }),
-        SDLEvent::FingerDown { finger_id, .. } => {
-            println!("{}", finger_id);
-            None
-        }
-        SDLEvent::FingerUp { finger_id, .. } => {
-            println!("{}", finger_id);
-            None
-        }
         _ => None,
     }
 }

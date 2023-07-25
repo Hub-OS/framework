@@ -7,6 +7,8 @@ pub struct InputManager {
     clipboard: Option<ClipboardContext>,
     latest_mouse_button: Option<MouseButton>,
     latest_key: Option<Key>,
+    touches: Vec<Touch>,
+    mouse_position: Vec2,
     previous_mouse_buttons: Vec<MouseButton>,
     pressed_mouse_buttons: Vec<MouseButton>,
     previous_keys: Vec<Key>,
@@ -16,7 +18,6 @@ pub struct InputManager {
     dropping_data: bool,
     dropped_file: Option<PathBuf>,
     dropped_text: Option<String>,
-    mouse_position: Vec2,
     text: String,
     accept_text: bool,
     accept_text_last_frame: bool,
@@ -28,6 +29,7 @@ impl InputManager {
             clipboard: ClipboardContext::new().ok(),
             latest_mouse_button: None,
             latest_key: None,
+            touches: Vec::new(),
             mouse_position: Vec2::new(0.0, 0.0),
             previous_mouse_buttons: Vec::new(),
             pressed_mouse_buttons: Vec::new(),
@@ -70,6 +72,10 @@ impl InputManager {
 
     pub fn text(&self) -> &str {
         &self.text
+    }
+
+    pub fn touches(&self) -> &[Touch] {
+        &self.touches
     }
 
     // Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
@@ -230,6 +236,7 @@ impl InputManager {
         self.dropped_text = None;
         self.accept_text_last_frame = self.accept_text;
         self.text.clear();
+        self.touches.retain(|touch| touch.phase != TouchPhase::End);
 
         for controller in &mut self.controllers {
             controller.flush();
@@ -239,7 +246,15 @@ impl InputManager {
     pub(crate) fn handle_event(&mut self, event: InputEvent) {
         // println!("{:?}", event);
         match event {
-            InputEvent::MouseMoved { x, y } => self.mouse_position = Vec2::new(x, y),
+            InputEvent::Touch(touch) => {
+                let mut touch_iter = self.touches.iter_mut();
+
+                match touch_iter.find(|existing| existing.id == touch.id) {
+                    Some(existing) => *existing = touch,
+                    None => self.touches.push(touch),
+                }
+            }
+            InputEvent::MouseMoved(position) => self.mouse_position = position,
             InputEvent::MouseButtonDown(button) => self.simulate_mouse_press(button),
             InputEvent::MouseButtonUp(button) => self.simulate_mouse_release(button),
             InputEvent::KeyDown(key) => self.simulate_key_press(key),
