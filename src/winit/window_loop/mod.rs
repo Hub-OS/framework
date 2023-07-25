@@ -6,4 +6,4 @@ mod winit_window_loop;
 use active_handler::*;
 use starting_handler::*;
 use winit_event_handler::*;
-pub use winit_window_loop::*;
+pub(crate) use winit_window_loop::*;

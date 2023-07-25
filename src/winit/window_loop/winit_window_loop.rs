@@ -1,21 +1,10 @@
 use super::*;
-use crate::cfg_android;
 use crate::cfg_native;
 use crate::cfg_web;
 use crate::prelude::*;
 use winit::event::Event as WinitEvent;
 use winit::event::StartCause as WinitEventStartCause;
 use winit::event_loop::EventLoop;
-
-cfg_android! {
-    use winit::platform::android::activity::AndroidApp;
-
-    pub type PlatformApp = AndroidApp;
-}
-
-#[cfg(not(target_os = "android"))]
-#[derive(Default)]
-pub struct PlatformApp {}
 
 pub(crate) struct WindowLoop {
     window: Window,
