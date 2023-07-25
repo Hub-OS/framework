@@ -3,7 +3,7 @@ use std::future::Future;
 /// Value exists, but can be invalid.
 pub struct SyncResultAsyncError<T, E, F>
 where
-    F: Future<Output = Option<E>> + Send,
+    F: Future<Output = Option<E>>,
 {
     value: T,
     future_error: F,
@@ -11,7 +11,7 @@ where
 
 impl<T, E, F> SyncResultAsyncError<T, E, F>
 where
-    F: Future<Output = Option<E>> + Send,
+    F: Future<Output = Option<E>>,
 {
     pub fn new(value: T, future_error: F) -> Self {
         Self {

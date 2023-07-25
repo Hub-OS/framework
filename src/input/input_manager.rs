@@ -1,10 +1,10 @@
 use super::*;
 use crate::prelude::*;
-use arboard::Clipboard;
+use copypasta::{ClipboardContext, ClipboardProvider};
 use std::path::PathBuf;
 
 pub struct InputManager {
-    clipboard: Option<Clipboard>,
+    clipboard: Option<ClipboardContext>,
     latest_mouse_button: Option<MouseButton>,
     latest_key: Option<Key>,
     previous_mouse_buttons: Vec<MouseButton>,
@@ -25,7 +25,7 @@ pub struct InputManager {
 impl InputManager {
     pub(crate) fn new() -> Self {
         Self {
-            clipboard: Clipboard::new().ok(),
+            clipboard: ClipboardContext::new().ok(),
             latest_mouse_button: None,
             latest_key: None,
             mouse_position: Vec2::new(0.0, 0.0),
@@ -62,7 +62,7 @@ impl InputManager {
 
     pub fn request_clipboard_text(&mut self) -> String {
         if let Some(clipboard) = &mut self.clipboard {
-            clipboard.get_text().unwrap_or_default()
+            clipboard.get_contents().unwrap_or_default()
         } else {
             String::new()
         }

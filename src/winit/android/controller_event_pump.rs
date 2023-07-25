@@ -1,5 +1,4 @@
-use super::RumblePack;
-use crate::prelude::{AnalogAxis, Button, GameRuntime, InputEvent};
+use crate::prelude::GameRuntime;
 
 pub(crate) struct ControllerEventPump {}
 

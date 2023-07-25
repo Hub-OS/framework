@@ -99,6 +99,11 @@ impl Game {
         self
     }
 
+    pub fn with_platform_app(mut self, platform_app: PlatformApp) -> Self {
+        self.window_config.platform_app = Some(platform_app);
+        self
+    }
+
     pub fn run<SceneConstructor, S>(self, scene_constructor: SceneConstructor) -> anyhow::Result<()>
     where
         SceneConstructor: FnOnce(&mut GameIO) -> S + 'static,

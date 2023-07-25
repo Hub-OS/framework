@@ -35,6 +35,28 @@ impl DefaultLogger {
     }
 
     pub fn init(self) -> Result<(), log::SetLoggerError> {
+        cfg_android!({
+            std::panic::set_hook(Box::new(|panic_info| {
+                use backtrace::Backtrace;
+                let backtrace = Backtrace::new();
+
+                use ndk_sys::android_LogPriority as AndroidLogPriority;
+                use std::ffi::{c_int, CString};
+
+                let tag = CString::new("panic").unwrap_or_default();
+                let msg = CString::new(format!("{panic_info}\nBacktrace: \n{backtrace:?}"))
+                    .unwrap_or_default();
+
+                unsafe {
+                    ndk_sys::__android_log_write(
+                        AndroidLogPriority::ANDROID_LOG_ERROR.0 as c_int,
+                        tag.as_c_str().as_ptr(),
+                        msg.as_c_str().as_ptr(),
+                    );
+                }
+            }));
+        });
+
         // allow everything, we'll filter logs within the logger
         log::set_max_level(log::LevelFilter::Trace);
         log::set_boxed_logger(Box::new(self))

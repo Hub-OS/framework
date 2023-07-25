@@ -13,7 +13,7 @@ group(0) is used for uniforms incrementing from 0
 group(1) is used for Instance BindingResources with binding(id) incrementing from 0
 `[[group(1), binding(0)]]`
 
-# Building for Web
+## Building for Web
 
 These instructions use [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 
@@ -36,7 +36,8 @@ use framework::prelude::wasm_bindgen;
 
 // note async main as blocking within a web browser with freeze the page + event loop
 // using cfg_attr to use this macro only when building for wasm
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
 pub async fn web_main() {
   // normal main
 }
@@ -56,7 +57,7 @@ Include the .js module from the pkg folder in your .html file:
 </script>
 ```
 
-# Building for Android (with Winit)
+## Building for Android (with Winit)
 
 Requires Android SDK, Android NDK, and [cargo-apk](https://crates.io/crates/cargo-apk) installed
 Make sure to `rustup target add [architecture]-linux-android` for your target architecture
@@ -64,9 +65,6 @@ Make sure to `rustup target add [architecture]-linux-android` for your target ar
 In Cargo.toml:
 
 ```toml
-[target.'cfg(target_os = "android")'.dependencies]
-ndk-glue = "0.7" # version depends on winit: https://github.com/rust-windowing/winit#android
-
 # also used in wasm builds
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -75,11 +73,14 @@ crate-type = ["cdylib", "rlib"]
 Add this to lib.rs:
 
 ```rust
-
 // note lack of async
-#[cfg_attr(target_os = "android", ndk_glue::main())]
-pub fn android_main() {
-  // normal main
+#[cfg(target_os = "android")]
+pub fn android_main(app: PlatformApp) {
+    default_logger::init!();
+
+    Game::new("Android", (800, 600))
+      .with_platform_app(app) // pass app
+      .run()
 }
 ```
 

@@ -1,6 +1,8 @@
 use super::WindowLoop;
-use crate::prelude::*;
-use winit::{dpi::PhysicalSize, event_loop::EventLoop, window::WindowBuilder};
+use crate::{cfg_android, prelude::*};
+use winit::dpi::PhysicalSize;
+use winit::event_loop::EventLoop;
+use winit::window::{WindowBuilder, WindowLevel};
 
 pub struct Window {
     window: winit::window::Window,
@@ -64,8 +66,23 @@ impl Window {
         self.window.set_title(title);
     }
 
+    #[allow(unused_variables)]
+    fn create_winit_event_loop(platform_app: Option<PlatformApp>) -> EventLoop<()> {
+        cfg_android! {
+            if let Some(app) = platform_app {
+                use winit::platform::android::EventLoopBuilderExtAndroid;
+                use winit::event_loop::EventLoopBuilder;
+
+                return EventLoopBuilder::new().with_android_app(app).build()
+            }
+        };
+
+        EventLoop::new()
+    }
+
     pub(crate) fn build(window_config: WindowConfig) -> anyhow::Result<WindowLoop> {
-        let event_loop = EventLoop::new();
+        let event_loop = Self::create_winit_event_loop(window_config.platform_app);
+
         let mut winit_window_builder = WindowBuilder::new()
             .with_title(&window_config.title)
             .with_inner_size(PhysicalSize::new(
@@ -75,7 +92,11 @@ impl Window {
             .with_resizable(window_config.resizable)
             .with_decorations(!window_config.borderless)
             .with_transparent(window_config.transparent)
-            .with_always_on_top(window_config.always_on_top);
+            .with_window_level(if window_config.always_on_top {
+                WindowLevel::AlwaysOnTop
+            } else {
+                WindowLevel::Normal
+            });
 
         if window_config.fullscreen {
             use winit::window::Fullscreen;

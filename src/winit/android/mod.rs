@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
 mod controller_event_pump;
 mod rumble_pack;
 

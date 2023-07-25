@@ -1,3 +1,4 @@
+use super::LogRecord;
 use wasm_bindgen::JsValue;
 
 pub struct DefaultLogger {

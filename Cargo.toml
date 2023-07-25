@@ -20,9 +20,10 @@ async-task = "4"
 pollster = "0.3"
 strum = { version = "0.25", features = ["derive"] }
 termcolor = "1"
-arboard = "3"
+copypasta = "0.8"
 futures-lite = "1"
 slotmap = "1"
+backtrace = "0.3.68"
 
 [features]
 default = ["winit"]
@@ -31,18 +32,22 @@ winit = ["dep:winit", "dep:gilrs"]
 
 # native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-winit = { version = "0.27", optional = true }
 gilrs = { version = "0.10", optional = true }
 async-io = { version = "1.7" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
+winit = { version = "0.28", optional = true }
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
   "bundled",
 ], optional = true }
 
+# android
 [target.'cfg(target_os = "android")'.dependencies]
+winit = { version = "0.28", optional = true, features = [
+  "android-native-activity",
+] }
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
   "bundled",
@@ -52,7 +57,7 @@ ndk-sys = "0.4"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-winit = "0.27"
+winit = "0.28"
 console_error_panic_hook = "0.1"
 web-sys = { version = "0.3", features = [
   "console",

@@ -1,4 +1,8 @@
-use gilrs::{ff, GamepadId, Gilrs};
+// web currently doesn't have rumble support
+#![allow(dead_code)]
+#![allow(unused_variables)]
+
+use gilrs::{GamepadId, Gilrs};
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::time::Duration;
@@ -15,33 +19,33 @@ impl RumblePack {
     }
 
     pub fn rumble(&self, weak: f32, strong: f32, duration: Duration) {
-        // https://gitlab.com/gilrs-project/gilrs#supported-features
-        // no wasm support yet, appears to require threads
         crate::cfg_native!({
-            let mut weak_effect = ff::BaseEffect {
-                kind: ff::BaseEffectType::Weak {
+            // https://gitlab.com/gilrs-project/gilrs#supported-features
+            // no wasm support yet, appears to require threads
+            let mut weak_effect = gilrs::ff::BaseEffect {
+                kind: gilrs::ff::BaseEffectType::Weak {
                     magnitude: (weak.clamp(0.0, 1.0) * u16::MAX as f32) as u16,
                 },
                 ..Default::default()
             };
 
-            let mut strong_effect = ff::BaseEffect {
-                kind: ff::BaseEffectType::Strong {
+            let mut strong_effect = gilrs::ff::BaseEffect {
+                kind: gilrs::ff::BaseEffectType::Strong {
                     magnitude: (strong.clamp(0.0, 1.0) * u16::MAX as f32) as u16,
                 },
                 ..Default::default()
             };
 
-            let scheduling = ff::Replay {
-                play_for: ff::Ticks::from_ms(duration.as_millis() as u32),
+            let scheduling = gilrs::ff::Replay {
+                play_for: gilrs::ff::Ticks::from_ms(duration.as_millis() as u32),
                 ..Default::default()
             };
 
             let duration_ms = duration.as_millis() as f32;
 
-            let envelope = ff::Envelope {
-                attack_length: ff::Ticks::from_ms((duration_ms * 0.25) as u32),
-                fade_length: ff::Ticks::from_ms((duration_ms * 0.075) as u32),
+            let envelope = gilrs::ff::Envelope {
+                attack_length: gilrs::ff::Ticks::from_ms((duration_ms * 0.25) as u32),
+                fade_length: gilrs::ff::Ticks::from_ms((duration_ms * 0.075) as u32),
                 attack_level: 0.5,
                 fade_level: -0.5,
             };
@@ -51,7 +55,7 @@ impl RumblePack {
             weak_effect.envelope = envelope;
             strong_effect.envelope = envelope;
 
-            let effect_result = ff::EffectBuilder::new()
+            let effect_result = gilrs::ff::EffectBuilder::new()
                 .add_effect(weak_effect)
                 .add_effect(strong_effect)
                 .gamepads(&[self.gamepad_id])

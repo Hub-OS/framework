@@ -145,7 +145,10 @@ impl GraphicsContext {
         let instance = {
             // https://github.com/gfx-rs/wgpu/issues/2384
             crate::cfg_android! {
-                wgpu::Instance::new(wgpu::Backends::GL)
+                wgpu::Instance::new(wgpu::InstanceDescriptor {
+                    backends: wgpu::Backends::GL,
+                    dx12_shader_compiler: wgpu::Dx12Compiler::default(),
+                })
             }
             crate::cfg_desktop_and_web! {
                 wgpu::Instance::default()
@@ -173,7 +176,7 @@ impl GraphicsContext {
                             wgpu::Limits::downlevel_webgl2_defaults()
                         }
                         crate::cfg_android! {
-                            wgpu::Limits::downlevel_webgl2_defaults()
+                            wgpu::Limits::default()
                         }
                         crate::cfg_desktop! {
                             wgpu::Limits::default()

@@ -2,6 +2,7 @@ use crate::prelude::*;
 use std::path::PathBuf;
 
 #[derive(Debug)]
+#[allow(dead_code)] // not every event is supported on every platform
 pub(crate) enum InputEvent {
     Text(String),
     DropStart,

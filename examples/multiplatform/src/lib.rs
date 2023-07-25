@@ -2,21 +2,27 @@ mod main_scene;
 use main_scene::MainScene;
 
 use framework::logging::*;
-use framework::prelude::Game;
+use framework::prelude::{Game, PlatformApp};
 
-pub fn shared_main() -> anyhow::Result<()> {
+pub fn shared_main(platform_app: PlatformApp) -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Sprites", (800, 600), |_| ());
-
-    game.run(|game_io| MainScene::new(game_io))
+    Game::new("Multiplatform", (800, 600))
+        .with_platform_app(platform_app)
+        .run(MainScene::new)
 }
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-#[cfg_attr(target_os = "android", ndk_glue::main(backtrace = "on"))]
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(start)]
 pub fn sync_main() {
-    shared_main().unwrap();
+    shared_main(PlatformApp::default()).unwrap();
+}
+
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub fn android_main(app: PlatformApp) {
+    shared_main(app).unwrap();
 }

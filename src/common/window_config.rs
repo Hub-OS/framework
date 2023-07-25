@@ -1,3 +1,5 @@
+use super::PlatformApp;
+
 #[derive(Default)]
 pub(crate) struct WindowConfig {
     pub title: String,
@@ -10,4 +12,6 @@ pub(crate) struct WindowConfig {
     pub always_on_top: bool,
     #[allow(dead_code)] // not available with sdl
     pub transparent: bool,
+    #[allow(dead_code)] // only used for android, ignored on other platforms
+    pub platform_app: Option<PlatformApp>,
 }
