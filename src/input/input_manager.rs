@@ -227,7 +227,7 @@ impl InputManager {
     }
 
     pub(crate) fn flush(&mut self) {
-        self.previous_mouse_buttons = self.previous_mouse_buttons.clone();
+        self.previous_mouse_buttons = self.pressed_mouse_buttons.clone();
         self.repeated_keys.clear();
         self.previous_keys = self.pressed_keys.clone();
         self.latest_mouse_button = None;
