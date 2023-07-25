@@ -8,7 +8,8 @@ pub(crate) struct GameRuntime {
     scene_manager: SceneManager,
     frame_end: Instant,
     game_io: GameIO,
-    overlays: Vec<Box<dyn SceneOverlay>>,
+    render_overlays: Vec<Box<dyn GameOverlay>>,
+    window_overlays: Vec<Box<dyn GameOverlay>>,
     post_processes: Vec<(TypeId, Box<dyn PostProcess>)>,
     post_model: TextureSourceModel,
     render_sprite: Sprite,
@@ -33,11 +34,17 @@ impl GameRuntime {
 
         let initial_scene = (loop_params.scene_constructor)(&mut game_io);
 
-        let overlays = loop_params
-            .overlay_constructors
-            .into_iter()
-            .map(|constructor| constructor(&mut game_io))
-            .collect();
+        let mut render_overlays = Vec::new();
+        let mut window_overlays = Vec::new();
+
+        for (target, constructor) in loop_params.overlay_constructors {
+            let overlay = constructor(&mut game_io);
+
+            match target {
+                GameOverlayTarget::Render => render_overlays.push(overlay),
+                GameOverlayTarget::Window => window_overlays.push(overlay),
+            }
+        }
 
         let post_processes = loop_params
             .post_process_constructors
@@ -56,7 +63,8 @@ impl GameRuntime {
             scene_manager: SceneManager::new(initial_scene),
             frame_end: Instant::now(),
             game_io,
-            overlays,
+            render_overlays,
+            window_overlays,
             post_processes,
             post_model,
             render_sprite,
@@ -120,7 +128,7 @@ impl GameRuntime {
 
         self.scene_manager.update(game_io);
 
-        for overlay in &mut self.overlays {
+        for overlay in &mut self.render_overlays {
             overlay.update(game_io);
         }
 
@@ -130,6 +138,10 @@ impl GameRuntime {
             }
 
             post_process.update(game_io);
+        }
+
+        for overlay in &mut self.window_overlays {
+            overlay.update(game_io);
         }
 
         // kick off new tasks
@@ -161,16 +173,19 @@ impl GameRuntime {
             &mut self.render_target_b,
         );
 
-        // draw overlays, set clear color to None to recycle previous render
-        self.render_target.set_clear_color(None);
-        let mut render_pass = RenderPass::new(&mut encoder, &self.render_target);
+        // draw overlays
+        if !self.render_overlays.is_empty() {
+            // set clear color to None to recycle previous render
+            self.render_target.set_clear_color(None);
+            let mut render_pass = RenderPass::new(&mut encoder, &self.render_target);
 
-        for overlay in &mut self.overlays {
-            overlay.draw(game_io, &mut render_pass);
+            for overlay in &mut self.render_overlays {
+                overlay.draw(game_io, &mut render_pass);
+            }
+
+            render_pass.flush();
+            self.render_target.set_clear_color(clear_color);
         }
-
-        render_pass.flush();
-        self.render_target.set_clear_color(clear_color);
 
         // post processing
         for (id, post_process) in &mut self.post_processes {
@@ -227,9 +242,14 @@ impl GameRuntime {
             sprite_queue.draw_sprite(&self.render_sprite);
 
             render_pass.consume_queue(sprite_queue);
+
+            for overlay in &mut self.window_overlays {
+                overlay.draw(game_io, &mut render_pass);
+            }
+
             render_pass.flush();
 
-            let queue = graphics.queue();
+            let queue = game_io.graphics().queue();
             queue.submit([encoder.finish()]);
             frame.present();
         }

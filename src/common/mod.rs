@@ -1,12 +1,12 @@
 mod default_resources;
 mod game;
 mod game_io;
+mod game_overlay;
 mod game_runtime;
 mod next_scene;
 mod ortho_camera;
 mod scene;
 mod scene_manager;
-mod scene_overlay;
 mod transition;
 mod window_config;
 mod window_event;
@@ -18,10 +18,10 @@ pub(crate) use window_event::*;
 
 pub use game::*;
 pub use game_io::*;
+pub use game_overlay::*;
 pub use next_scene::*;
 pub use ortho_camera::*;
 pub use scene::*;
-pub use scene_overlay::*;
 pub use transition::*;
 
 #[cfg(feature = "sdl")]

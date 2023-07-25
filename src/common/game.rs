@@ -2,14 +2,14 @@ use crate::prelude::*;
 use std::any::TypeId;
 
 type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
-type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn SceneOverlay>>;
+type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn GameOverlay>>;
 type PostProcessConstructor = Box<dyn FnOnce(&mut GameIO) -> (TypeId, Box<dyn PostProcess>)>;
 type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 
 pub struct Game {
     window_config: WindowConfig,
     target_fps: u16,
-    overlay_constructors: Vec<OverlayConstructor>,
+    overlay_constructors: Vec<(GameOverlayTarget, OverlayConstructor)>,
     setup_callbacks: Vec<SetupCallback>,
     post_process_constructors: Vec<PostProcessConstructor>,
 }
@@ -72,15 +72,20 @@ impl Game {
         self
     }
 
-    pub fn with_overlay<OverlayConstructor, O>(mut self, constructor: OverlayConstructor) -> Self
+    pub fn with_overlay<OverlayConstructor, O>(
+        mut self,
+        overlay_target: GameOverlayTarget,
+        constructor: OverlayConstructor,
+    ) -> Self
     where
         OverlayConstructor: FnOnce(&mut GameIO) -> O + 'static,
-        O: SceneOverlay + 'static,
+        O: GameOverlay + 'static,
     {
         let constructor =
-            |game_io: &mut GameIO| -> Box<dyn SceneOverlay> { Box::new(constructor(game_io)) };
+            |game_io: &mut GameIO| -> Box<dyn GameOverlay> { Box::new(constructor(game_io)) };
 
-        self.overlay_constructors.push(Box::new(constructor));
+        self.overlay_constructors
+            .push((overlay_target, Box::new(constructor)));
         self
     }
 
@@ -129,7 +134,7 @@ impl Game {
 pub(crate) struct WindowLoopParams {
     pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
-    pub overlay_constructors: Vec<OverlayConstructor>,
+    pub overlay_constructors: Vec<(GameOverlayTarget, OverlayConstructor)>,
     pub setup_callbacks: Vec<SetupCallback>,
     pub post_process_constructors: Vec<PostProcessConstructor>,
 }

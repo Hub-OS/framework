@@ -1,6 +1,11 @@
 use crate::prelude::*;
 
-pub trait SceneOverlay {
+pub enum GameOverlayTarget {
+    Render,
+    Window,
+}
+
+pub trait GameOverlay {
     /// Called every tick, put game logic here
     fn update(&mut self, game_io: &mut GameIO);
 
