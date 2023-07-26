@@ -68,6 +68,11 @@ In Cargo.toml:
 # also used in wasm builds
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[package.metadata.android.sdk]
+target_sdk_version = 30
+min_sdk_version = 30
+max_sdk_version = 30
 ```
 
 Add this to lib.rs:

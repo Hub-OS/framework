@@ -1,5 +1,5 @@
 use super::WindowLoop;
-use crate::{cfg_android, prelude::*};
+use crate::{cfg_android, cfg_desktop_and_web, prelude::*};
 use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoop;
 use winit::window::{WindowBuilder, WindowLevel};
@@ -10,6 +10,8 @@ pub struct Window {
     size: UVec2,
     resolution: UVec2,
     locked_resolution: bool,
+    #[allow(dead_code)]
+    platform_app: Option<PlatformApp>,
 }
 
 impl Window {
@@ -38,6 +40,18 @@ impl Window {
         };
 
         self.window.set_fullscreen(mode);
+
+        cfg_android!({
+            use crate::winit::platform_app::android_platform;
+
+            if let Some(app) = &self.platform_app {
+                if fullscreen {
+                    android_platform::hide_system_bars(app)
+                } else {
+                    android_platform::show_system_bars(app)
+                }
+            }
+        });
     }
 
     pub fn size(&self) -> UVec2 {
@@ -97,7 +111,7 @@ impl Window {
     }
 
     pub(crate) fn build(window_config: WindowConfig) -> anyhow::Result<WindowLoop> {
-        let event_loop = Self::create_winit_event_loop(window_config.platform_app);
+        let event_loop = Self::create_winit_event_loop(window_config.platform_app.clone());
 
         let mut winit_window_builder = WindowBuilder::new()
             .with_title(&window_config.title)
@@ -118,6 +132,14 @@ impl Window {
             use winit::window::Fullscreen;
             winit_window_builder =
                 winit_window_builder.with_fullscreen(Some(Fullscreen::Borderless(None)));
+
+            cfg_android!({
+                use crate::winit::platform_app::android_platform;
+
+                if let Some(app) = &window_config.platform_app {
+                    android_platform::hide_system_bars(app);
+                }
+            });
         }
 
         let winit_window = winit_window_builder.build(&event_loop)?;
@@ -153,6 +175,7 @@ impl Window {
                 .unwrap_or(window_config.size)
                 .into(),
             locked_resolution: window_config.resolution.is_some(),
+            platform_app: window_config.platform_app,
         };
 
         let window_loop = WindowLoop::new(window, event_loop);
@@ -177,7 +200,19 @@ impl Window {
     }
 
     pub(crate) fn set_text_input(&mut self, accept: bool) {
-        self.window.set_ime_allowed(accept);
+        cfg_android!({
+            use crate::winit::platform_app::android_platform;
+
+            if accept {
+                if let Some(app) = &self.platform_app {
+                    android_platform::show_ime(app);
+                }
+            }
+        });
+
+        cfg_desktop_and_web!({
+            self.window.set_ime_allowed(accept);
+        })
     }
 }
 

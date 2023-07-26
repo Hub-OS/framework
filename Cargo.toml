@@ -54,6 +54,7 @@ sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "static-link",
 ], optional = true }
 ndk-sys = "0.4"
+jni = "0.21"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
