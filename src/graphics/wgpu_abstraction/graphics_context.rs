@@ -143,19 +143,7 @@ impl GraphicsContext {
         width: u32,
         height: u32,
     ) -> anyhow::Result<GraphicsContext> {
-        let instance = {
-            // https://github.com/gfx-rs/wgpu/issues/2384
-            crate::cfg_android! {
-                wgpu::Instance::new(wgpu::InstanceDescriptor {
-                    backends: wgpu::Backends::GL,
-                    dx12_shader_compiler: wgpu::Dx12Compiler::default(),
-                })
-            }
-            crate::cfg_desktop_and_web! {
-                wgpu::Instance::default()
-            }
-        };
-
+        let instance = wgpu::Instance::default();
         let surface = unsafe { instance.create_surface(window).unwrap() };
 
         let adapter_opt = instance
@@ -176,10 +164,7 @@ impl GraphicsContext {
                         crate::cfg_web! {
                             wgpu::Limits::downlevel_webgl2_defaults()
                         }
-                        crate::cfg_android! {
-                            wgpu::Limits::default()
-                        }
-                        crate::cfg_desktop! {
+                        crate::cfg_native! {
                             wgpu::Limits::default()
                         }
                     },
