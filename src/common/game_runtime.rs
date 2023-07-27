@@ -142,16 +142,23 @@ impl GameRuntime {
         game_io.handle_tasks();
         game_io.handle_events(events);
 
+        // pre_updates
         for service in &mut self.services {
             service.pre_update(game_io);
+        }
+
+        for overlay in &mut self.window_overlays {
+            overlay.pre_update(game_io);
         }
 
         for overlay in &mut self.render_overlays {
             overlay.pre_update(game_io);
         }
 
+        // scene update
         self.scene_manager.update(game_io);
 
+        // post_updates
         for overlay in &mut self.render_overlays {
             overlay.post_update(game_io);
         }
