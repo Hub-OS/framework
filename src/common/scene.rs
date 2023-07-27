@@ -10,6 +10,7 @@ pub trait Scene {
     /// Called every tick, put game logic here
     fn update(&mut self, game_io: &mut GameIO);
 
-    /// Called to perform rendering. Not guaranteed to be called after every update
+    /// Called to perform rendering. Not guaranteed to be called after every update.
+    /// Can be called multiple times in a single tick from transitions.
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass);
 }
