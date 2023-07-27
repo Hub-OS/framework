@@ -23,7 +23,7 @@ impl WindowLoop {
         let window_id = self.window.id();
         let mut game_runtime = GameRuntime::new(self.window, loop_params).await?;
 
-        while !game_runtime.is_quitting() {
+        while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {
                 if let sdl2::event::Event::JoyDeviceAdded { which, .. } = sdl_event {
                     if let Ok(controller) = self.game_controller_subsystem.open(which) {

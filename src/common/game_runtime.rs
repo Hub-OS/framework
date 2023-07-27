@@ -94,8 +94,8 @@ impl GameRuntime {
         self.game_io.set_suspended(suspended);
     }
 
-    pub fn is_quitting(&self) -> bool {
-        self.game_io.is_quitting()
+    pub fn quitting(&self) -> bool {
+        self.game_io.quitting()
     }
 
     cfg_sdl! {

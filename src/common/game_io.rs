@@ -155,7 +155,7 @@ impl GameIO {
     }
 
     // true for one frame before the thread sleeps on android
-    pub fn is_suspended(&self) -> bool {
+    pub fn suspended(&self) -> bool {
         self.suspended
     }
 
@@ -163,7 +163,7 @@ impl GameIO {
         self.suspended = suspended
     }
 
-    pub fn is_quitting(&self) -> bool {
+    pub fn quitting(&self) -> bool {
         self.quitting
     }
 

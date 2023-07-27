@@ -30,7 +30,7 @@ impl super::WinitEventHandler for ActiveHandler {
         winit_event: WinitEvent<'_, ()>,
         control_flow: &mut ControlFlow,
     ) -> Option<Box<dyn super::WinitEventHandler>> {
-        if self.game_runtime.is_quitting() {
+        if self.game_runtime.quitting() {
             control_flow.set_exit();
             return None;
         }
@@ -43,7 +43,7 @@ impl super::WinitEventHandler for ActiveHandler {
                 self.controller_event_pump.pump(&mut self.game_runtime);
                 self.game_runtime.tick();
 
-                if self.game_runtime.game_io().is_suspended() {
+                if self.game_runtime.game_io().suspended() {
                     control_flow.set_wait();
                 } else {
                     control_flow.set_wait_until(self.game_runtime.target_sleep_instant());
