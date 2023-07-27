@@ -42,13 +42,13 @@ impl Window {
         self.window.set_fullscreen(mode);
 
         cfg_android!({
-            use crate::winit::platform_app::android_platform;
+            use crate::winit::android;
 
             if let Some(app) = &self.platform_app {
                 if fullscreen {
-                    android_platform::hide_system_bars(app)
+                    android::hide_system_bars(app)
                 } else {
-                    android_platform::show_system_bars(app)
+                    android::show_system_bars(app)
                 }
             }
         });
@@ -134,10 +134,10 @@ impl Window {
                 winit_window_builder.with_fullscreen(Some(Fullscreen::Borderless(None)));
 
             cfg_android!({
-                use crate::winit::platform_app::android_platform;
+                use crate::winit::android;
 
                 if let Some(app) = &window_config.platform_app {
-                    android_platform::hide_system_bars(app);
+                    android::hide_system_bars(app);
                 }
             });
         }
@@ -175,7 +175,7 @@ impl Window {
                 .unwrap_or(window_config.size)
                 .into(),
             locked_resolution: window_config.resolution.is_some(),
-            platform_app: window_config.platform_app,
+            platform_app: window_config.platform_app.clone(),
         };
 
         let window_loop = WindowLoop::new(window, event_loop);
@@ -201,11 +201,11 @@ impl Window {
 
     pub(crate) fn set_text_input(&mut self, accept: bool) {
         cfg_android!({
-            use crate::winit::platform_app::android_platform;
+            use crate::winit::android;
 
             if accept {
                 if let Some(app) = &self.platform_app {
-                    android_platform::show_ime(app);
+                    android::show_ime(app);
                 }
             }
         });
