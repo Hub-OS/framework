@@ -78,6 +78,10 @@ impl GameRuntime {
         &self.game_io
     }
 
+    pub fn set_suspended(&mut self, suspended: bool) {
+        self.game_io.set_suspended(suspended);
+    }
+
     pub fn is_quitting(&self) -> bool {
         self.game_io.is_quitting()
     }

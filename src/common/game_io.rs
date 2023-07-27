@@ -20,6 +20,7 @@ pub struct GameIO {
     lost_duration: Duration,
     buffer_aquire_duration: Duration,
     transitioning: bool,
+    suspended: bool,
     quitting: bool,
 }
 
@@ -41,6 +42,7 @@ impl GameIO {
             lost_duration: Duration::ZERO,
             buffer_aquire_duration: Duration::ZERO,
             transitioning: false,
+            suspended: false,
             quitting: false,
         }
     }
@@ -150,6 +152,15 @@ impl GameIO {
 
     pub(crate) fn set_transitioning(&mut self, transitioning: bool) {
         self.transitioning = transitioning;
+    }
+
+    // true for one frame before the thread sleeps on android
+    pub fn is_suspended(&self) -> bool {
+        self.suspended
+    }
+
+    pub fn set_suspended(&mut self, suspended: bool) {
+        self.suspended = suspended
     }
 
     pub fn is_quitting(&self) -> bool {

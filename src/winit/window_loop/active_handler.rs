@@ -37,18 +37,32 @@ impl super::WinitEventHandler for ActiveHandler {
 
         match winit_event {
             WinitEvent::NewEvents(WinitEventStartCause::Init)
-            | WinitEvent::NewEvents(WinitEventStartCause::ResumeTimeReached { .. }) => {
+            | WinitEvent::NewEvents(
+                WinitEventStartCause::Poll | WinitEventStartCause::ResumeTimeReached { .. },
+            ) => {
                 self.controller_event_pump.pump(&mut self.game_runtime);
                 self.game_runtime.tick();
-                control_flow.set_wait_until(self.game_runtime.target_sleep_instant());
-            }
-            _ => {
-                let window = self.game_runtime.game_io().window();
 
-                if let Some(event) = translate_winit_event(window, self.window_id, winit_event) {
-                    self.game_runtime.push_event(event)
+                if self.game_runtime.game_io().is_suspended() {
+                    control_flow.set_wait();
+                } else {
+                    control_flow.set_wait_until(self.game_runtime.target_sleep_instant());
                 }
             }
+            WinitEvent::Suspended => {
+                self.game_runtime.set_suspended(true);
+            }
+            WinitEvent::Resumed => {
+                control_flow.set_poll();
+                self.game_runtime.set_suspended(false);
+            }
+            _ => {}
+        }
+
+        let window = self.game_runtime.game_io().window();
+
+        if let Some(event) = translate_winit_event(window, self.window_id, winit_event) {
+            self.game_runtime.push_event(event)
         }
 
         None
