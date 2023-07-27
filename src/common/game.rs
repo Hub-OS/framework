@@ -2,6 +2,7 @@ use crate::prelude::*;
 use std::any::TypeId;
 
 type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
+type ServiceConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn GameService>>;
 type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn GameOverlay>>;
 type PostProcessConstructor = Box<dyn FnOnce(&mut GameIO) -> (TypeId, Box<dyn PostProcess>)>;
 type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
@@ -9,6 +10,7 @@ type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 pub struct Game {
     window_config: WindowConfig,
     target_fps: u16,
+    pub service_constructors: Vec<ServiceConstructor>,
     overlay_constructors: Vec<(GameOverlayTarget, OverlayConstructor)>,
     setup_callbacks: Vec<SetupCallback>,
     post_process_constructors: Vec<PostProcessConstructor>,
@@ -23,6 +25,7 @@ impl Game {
                 size,
                 ..Default::default()
             },
+            service_constructors: Vec::new(),
             overlay_constructors: Vec::new(),
             setup_callbacks: Vec::new(),
             post_process_constructors: Vec::new(),
@@ -69,6 +72,18 @@ impl Game {
         SetupCallback: FnOnce(&mut GameIO) + 'static,
     {
         self.setup_callbacks.push(Box::new(setup_callback));
+        self
+    }
+
+    pub fn with_service<ServiceConstructor, S>(mut self, constructor: ServiceConstructor) -> Self
+    where
+        ServiceConstructor: FnOnce(&mut GameIO) -> S + 'static,
+        S: GameService + 'static,
+    {
+        let constructor =
+            |game_io: &mut GameIO| -> Box<dyn GameService> { Box::new(constructor(game_io)) };
+
+        self.service_constructors.push(Box::new(constructor));
         self
     }
 
@@ -122,6 +137,7 @@ impl Game {
         let params = WindowLoopParams {
             scene_constructor: Box::new(scene_constructor),
             target_fps: self.target_fps,
+            service_constructors: self.service_constructors,
             overlay_constructors: self.overlay_constructors,
             setup_callbacks: self.setup_callbacks,
             post_process_constructors: self.post_process_constructors,
@@ -134,6 +150,7 @@ impl Game {
 pub(crate) struct WindowLoopParams {
     pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
+    pub service_constructors: Vec<ServiceConstructor>,
     pub overlay_constructors: Vec<(GameOverlayTarget, OverlayConstructor)>,
     pub setup_callbacks: Vec<SetupCallback>,
     pub post_process_constructors: Vec<PostProcessConstructor>,

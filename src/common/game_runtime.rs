@@ -8,6 +8,7 @@ pub(crate) struct GameRuntime {
     scene_manager: SceneManager,
     frame_end: Instant,
     game_io: GameIO,
+    services: Vec<Box<dyn GameService>>,
     render_overlays: Vec<Box<dyn GameOverlay>>,
     window_overlays: Vec<Box<dyn GameOverlay>>,
     post_processes: Vec<(TypeId, Box<dyn PostProcess>)>,
@@ -32,8 +33,17 @@ impl GameRuntime {
             callback(&mut game_io);
         }
 
+        // services
+        let mut services = Vec::new();
+
+        for constructor in loop_params.service_constructors {
+            services.push(constructor(&mut game_io));
+        }
+
+        // initial scene
         let initial_scene = (loop_params.scene_constructor)(&mut game_io);
 
+        // overlays
         let mut render_overlays = Vec::new();
         let mut window_overlays = Vec::new();
 
@@ -46,6 +56,7 @@ impl GameRuntime {
             }
         }
 
+        // post processes
         let post_processes = loop_params
             .post_process_constructors
             .into_iter()
@@ -63,6 +74,7 @@ impl GameRuntime {
             scene_manager: SceneManager::new(initial_scene),
             frame_end: Instant::now(),
             game_io,
+            services,
             render_overlays,
             window_overlays,
             post_processes,
@@ -130,10 +142,18 @@ impl GameRuntime {
         game_io.handle_tasks();
         game_io.handle_events(events);
 
+        for service in &mut self.services {
+            service.pre_update(game_io);
+        }
+
+        for overlay in &mut self.render_overlays {
+            overlay.pre_update(game_io);
+        }
+
         self.scene_manager.update(game_io);
 
         for overlay in &mut self.render_overlays {
-            overlay.update(game_io);
+            overlay.post_update(game_io);
         }
 
         for (id, post_process) in &mut self.post_processes {
@@ -145,7 +165,11 @@ impl GameRuntime {
         }
 
         for overlay in &mut self.window_overlays {
-            overlay.update(game_io);
+            overlay.post_update(game_io);
+        }
+
+        for service in &mut self.services {
+            service.post_update(game_io);
         }
 
         // kick off new tasks
