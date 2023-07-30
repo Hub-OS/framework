@@ -81,7 +81,7 @@ impl SceneManager {
         self.final_indices.last_mut().unwrap()
     }
 
-    fn cleanup_transitions(&mut self) {
+    fn cleanup_transitions(&mut self, game_io: &mut GameIO) {
         let mut pending_removal = Vec::new();
 
         for (index, tracker) in self.transitions.iter().enumerate() {
@@ -123,16 +123,18 @@ impl SceneManager {
         for transition_index in pending_removal.into_iter().rev() {
             let tracker = self.transitions.remove(transition_index);
 
+            self.scenes[tracker.from_index].exit(game_io);
+
             // delete dead scenes
             for scene_index in tracker.delete_indices {
-                // todo: call scene.exit(game_io)?
-                self.scenes.remove(scene_index);
+                let mut scene = self.scenes.remove(scene_index).unwrap();
+                scene.destroy(game_io);
             }
         }
     }
 
     pub(crate) fn update(&mut self, game_io: &mut GameIO) {
-        self.cleanup_transitions();
+        self.cleanup_transitions(game_io);
 
         let top_index = *self.top_index_mut();
 
@@ -164,41 +166,33 @@ impl SceneManager {
 
         match next_scene {
             NextScene::None => false,
-            NextScene::Push {
-                mut scene,
-                transition,
-            } => {
-                scene.enter(game_io);
-                self.push_scene(scene, transition);
+            NextScene::Push { scene, transition } => {
+                self.push_scene(game_io, scene, transition);
                 true
             }
-            NextScene::Swap {
-                mut scene,
-                transition,
-            } => {
-                scene.enter(game_io);
-                self.swap_scene(scene, transition);
+            NextScene::Swap { scene, transition } => {
+                self.swap_scene(game_io, scene, transition);
                 true
             }
-            NextScene::PopSwap {
-                mut scene,
-                transition,
-            } => {
-                scene.enter(game_io);
-                self.pop_swap_scene(scene, transition);
+            NextScene::PopSwap { scene, transition } => {
+                self.pop_swap_scene(game_io, scene, transition);
                 true
             }
             NextScene::Pop { transition } => {
-                self.pop_scene(transition);
-
-                let top_index = *self.top_index_mut();
-                self.scenes[top_index].enter(game_io);
+                self.pop_scene(game_io, transition);
                 true
             }
         }
     }
 
-    fn push_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
+    fn push_scene(
+        &mut self,
+        game_io: &mut GameIO,
+        mut scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
+    ) {
+        scene.enter(game_io);
+
         let top_index = self.top_index_mut();
 
         let from_index = *top_index;
@@ -214,10 +208,19 @@ impl SceneManager {
                 to_index,
                 delete_indices: Vec::new(),
             });
+        } else {
+            self.scenes[from_index].exit(game_io);
         }
     }
 
-    fn swap_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
+    fn swap_scene(
+        &mut self,
+        game_io: &mut GameIO,
+        mut scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
+    ) {
+        scene.enter(game_io);
+
         let to_index = self.scenes.insert(scene);
 
         let top_index = self.top_index_mut();
@@ -233,14 +236,26 @@ impl SceneManager {
                 to_index,
                 delete_indices: vec![from_index],
             });
+        } else {
+            // delete the from scene immediately
+            let mut from_scene = self.scenes.remove(from_index).unwrap();
+            from_scene.exit(game_io);
+            from_scene.destroy(game_io);
         }
     }
 
-    fn pop_swap_scene(&mut self, scene: Box<dyn Scene>, transition: Option<Box<dyn Transition>>) {
+    fn pop_swap_scene(
+        &mut self,
+        game_io: &mut GameIO,
+        mut scene: Box<dyn Scene>,
+        transition: Option<Box<dyn Transition>>,
+    ) {
         if self.final_indices.len() == 1 {
             log::error!("No scene to pop into");
             return;
         }
+
+        scene.enter(game_io);
 
         let from_index = *self.top_index_mut();
         let to_index = self.scenes.insert(scene);
@@ -258,10 +273,19 @@ impl SceneManager {
                 to_index,
                 delete_indices: vec![swapped_index, from_index],
             });
+        } else {
+            // delete the previous scenes immediately
+            let mut from_scene = self.scenes.remove(from_index).unwrap();
+            from_scene.exit(game_io);
+            from_scene.destroy(game_io);
+
+            let mut swapped_scene = self.scenes.remove(swapped_index).unwrap();
+            swapped_scene.exit(game_io);
+            swapped_scene.destroy(game_io);
         }
     }
 
-    fn pop_scene(&mut self, transition: Option<Box<dyn Transition>>) {
+    fn pop_scene(&mut self, game_io: &mut GameIO, transition: Option<Box<dyn Transition>>) {
         if self.final_indices.len() == 1 {
             log::error!("No scene to pop into");
             return;
@@ -271,6 +295,8 @@ impl SceneManager {
         let from_index = self.final_indices.pop().unwrap();
         let to_index = *self.top_index_mut();
 
+        self.scenes[to_index].enter(game_io);
+
         if let Some(transition) = transition {
             self.transitions.push(TransitionTracker {
                 transition,
@@ -278,6 +304,11 @@ impl SceneManager {
                 to_index,
                 delete_indices: vec![from_index],
             });
+        } else {
+            // delete the from scene immediately
+            let mut from_scene = self.scenes.remove(from_index).unwrap();
+            from_scene.exit(game_io);
+            from_scene.destroy(game_io);
         }
     }
 

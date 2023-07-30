@@ -7,7 +7,13 @@ pub trait Scene {
     /// Called when this scene is processed as the NextScene
     fn enter(&mut self, _game_io: &mut GameIO) {}
 
-    /// Called every tick, put game logic here
+    /// Called when the scene is no longer active, signaling updates will stop
+    fn exit(&mut self, _game_io: &mut GameIO) {}
+
+    /// Called before the scene is dropped
+    fn destroy(&mut self, _game_io: &mut GameIO) {}
+
+    /// Called every tick while the scene is active, put game logic here
     fn update(&mut self, game_io: &mut GameIO);
 
     /// Called to perform rendering. Not guaranteed to be called after every update.
