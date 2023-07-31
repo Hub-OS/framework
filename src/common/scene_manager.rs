@@ -134,28 +134,32 @@ impl SceneManager {
     }
 
     pub(crate) fn update(&mut self, game_io: &mut GameIO) {
-        self.cleanup_transitions(game_io);
-
         let top_index = *self.top_index_mut();
 
         // update scenes visible from transitions
         let visible_transition_iter = TransitionTracker::unwind_iter(top_index, &self.transitions);
 
-        // reset transitioning state
-        game_io.set_transitioning(false);
-
         for tracker in visible_transition_iter {
-            // update transitioning state
-            game_io.set_transitioning(true);
-
-            // update scene
             self.scenes[tracker.from_index].update(game_io);
         }
 
         // update top scene
         self.scenes[top_index].update(game_io);
 
+        // handle scene change requests
         while self.handle_scene_request(game_io) {}
+
+        // clean up transitions
+        self.cleanup_transitions(game_io);
+
+        // see if we're in a transition
+        let top_index = *self.top_index_mut();
+        let mut transition_iter = self.transitions.iter();
+
+        let in_transition = transition_iter
+            .any(|tracker| tracker.from_index == top_index || tracker.to_index == top_index);
+
+        game_io.set_transitioning(in_transition);
     }
 
     fn handle_scene_request(&mut self, game_io: &mut GameIO) -> bool {
