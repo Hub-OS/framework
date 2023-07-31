@@ -71,7 +71,7 @@ impl GameRuntime {
 
         Ok(Self {
             event_buffer: Vec::new(),
-            scene_manager: SceneManager::new(initial_scene),
+            scene_manager: SceneManager::new(&mut game_io, initial_scene),
             frame_end: Instant::now(),
             game_io,
             services,

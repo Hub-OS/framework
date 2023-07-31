@@ -66,7 +66,9 @@ pub(crate) struct SceneManager {
 }
 
 impl SceneManager {
-    pub(crate) fn new(initial_scene: Box<dyn Scene>) -> Self {
+    pub(crate) fn new(game_io: &mut GameIO, mut initial_scene: Box<dyn Scene>) -> Self {
+        initial_scene.enter(game_io);
+
         let mut scenes = SceneArena::new();
         let top_index = scenes.insert(initial_scene);
 
