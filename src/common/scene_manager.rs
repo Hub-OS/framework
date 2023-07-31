@@ -134,6 +134,11 @@ impl SceneManager {
     }
 
     pub(crate) fn update(&mut self, game_io: &mut GameIO) {
+        // continuous updates
+        for (_, scene) in &mut self.scenes {
+            scene.continuous_update(game_io);
+        }
+
         let top_index = *self.top_index_mut();
 
         // update scenes visible from transitions

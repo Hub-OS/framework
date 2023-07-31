@@ -13,6 +13,9 @@ pub trait Scene {
     /// Called before the scene is dropped
     fn destroy(&mut self, _game_io: &mut GameIO) {}
 
+    /// Called every tick even when the scene is inactive
+    fn continuous_update(&mut self, _game_io: &mut GameIO) {}
+
     /// Called every tick while the scene is active, put game logic here
     fn update(&mut self, game_io: &mut GameIO);
 
