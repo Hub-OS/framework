@@ -20,7 +20,7 @@ pub struct InputManager {
     dropped_text: Option<String>,
     text: String,
     accept_text: bool,
-    accept_text_last_frame: bool,
+    requires_ime_update: bool,
 }
 
 impl InputManager {
@@ -42,12 +42,12 @@ impl InputManager {
             dropped_text: None,
             text: String::new(),
             accept_text: false,
-            accept_text_last_frame: false,
+            requires_ime_update: false,
         }
     }
 
-    pub(crate) fn accepting_text_last_frame(&self) -> bool {
-        self.accept_text_last_frame
+    pub(crate) fn requires_ime_update(&self) -> bool {
+        self.requires_ime_update
     }
 
     pub fn accepting_text(&self) -> bool {
@@ -56,10 +56,12 @@ impl InputManager {
 
     pub fn start_text_input(&mut self) {
         self.accept_text = true;
+        self.requires_ime_update = true;
     }
 
     pub fn end_text_input(&mut self) {
         self.accept_text = false;
+        self.requires_ime_update = true;
     }
 
     pub fn request_clipboard_text(&mut self) -> String {
@@ -234,7 +236,7 @@ impl InputManager {
         self.latest_key = None;
         self.dropped_file = None;
         self.dropped_text = None;
-        self.accept_text_last_frame = self.accept_text;
+        self.requires_ime_update = false;
         self.text.clear();
         self.touches.retain(|touch| touch.phase != TouchPhase::End);
 

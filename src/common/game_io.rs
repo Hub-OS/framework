@@ -180,7 +180,7 @@ impl GameIO {
     }
 
     pub(super) fn handle_events(&mut self, events: Vec<WindowEvent>) {
-        if self.input_manager.accepting_text() != self.input_manager.accepting_text_last_frame() {
+        if self.input_manager.requires_ime_update() {
             self.window
                 .set_text_input(self.input_manager.accepting_text());
         }
