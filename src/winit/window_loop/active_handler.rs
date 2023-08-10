@@ -46,7 +46,7 @@ impl super::WinitEventHandler for ActiveHandler {
                 if self.game_runtime.game_io().suspended() {
                     control_flow.set_wait();
                 } else {
-                    control_flow.set_wait_until(self.game_runtime.target_sleep_instant());
+                    control_flow.set_wait_until(self.game_runtime.target_wake_instant());
                 }
             }
             WinitEvent::Suspended => {

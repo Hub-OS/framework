@@ -111,7 +111,7 @@ impl GameRuntime {
     }
 
     cfg_winit! {
-        pub fn target_sleep_instant(&self) -> Instant {
+        pub fn target_wake_instant(&self) -> Instant {
             self.frame_end + self.game_io.attempted_sleep_duration()
         }
     }
