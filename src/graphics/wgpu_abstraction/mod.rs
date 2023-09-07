@@ -35,4 +35,4 @@ pub use struct_resource::*;
 pub use texture::*;
 pub use texture_sampler::*;
 pub use vertex::*;
-pub use wgpu::{include_wgsl, VertexFormat};
+pub use wgpu::{include_wgsl, TextureUsages, VertexFormat};

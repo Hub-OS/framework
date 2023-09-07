@@ -4,13 +4,28 @@ use std::sync::Arc;
 pub struct RenderTarget {
     clear_color: Option<Color>,
     texture: Arc<Texture>,
+    usage: TextureUsages,
 }
 
 impl RenderTarget {
+    // todo: Swap when const_trait_impl is stable
+    /// wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC  | wgpu::TextureUsages::RENDER_ATTACHMENT
+    const DEFAULT_USAGE: TextureUsages =
+        TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
+
     pub fn new(game_io: &GameIO, size: UVec2) -> Self {
         Self {
-            texture: RenderTarget::create_texture(game_io, size),
+            texture: RenderTarget::create_texture(game_io, size, Self::DEFAULT_USAGE),
             clear_color: Some(Color::TRANSPARENT),
+            usage: Self::DEFAULT_USAGE,
+        }
+    }
+
+    pub fn new_with_usage(game_io: &GameIO, size: UVec2, usage: TextureUsages) -> Self {
+        Self {
+            texture: RenderTarget::create_texture(game_io, size, usage),
+            clear_color: Some(Color::TRANSPARENT),
+            usage,
         }
     }
 
@@ -18,6 +33,7 @@ impl RenderTarget {
         Self {
             texture: Arc::new(Texture { view, size }),
             clear_color: Some(Color::TRANSPARENT),
+            usage: Self::DEFAULT_USAGE,
         }
     }
 
@@ -34,7 +50,7 @@ impl RenderTarget {
             return;
         }
 
-        self.texture = RenderTarget::create_texture(game_io, size);
+        self.texture = RenderTarget::create_texture(game_io, size, self.usage);
     }
 
     pub fn clear_color(&self) -> Option<Color> {
@@ -63,7 +79,7 @@ impl RenderTarget {
         None
     }
 
-    fn create_texture(game_io: &GameIO, size: UVec2) -> Arc<Texture> {
+    fn create_texture(game_io: &GameIO, size: UVec2, usage: TextureUsages) -> Arc<Texture> {
         let graphics = game_io.graphics();
         let device = graphics.device();
         let format = graphics.surface_config().format;
@@ -78,9 +94,7 @@ impl RenderTarget {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format,
-            usage: wgpu::TextureUsages::TEXTURE_BINDING
-                | wgpu::TextureUsages::COPY_SRC
-                | wgpu::TextureUsages::RENDER_ATTACHMENT,
+            usage,
             label: None,
             view_formats: &[],
         };
