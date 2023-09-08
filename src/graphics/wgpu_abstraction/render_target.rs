@@ -31,7 +31,11 @@ impl RenderTarget {
 
     pub(crate) fn from_view(view: wgpu::TextureView, size: UVec2) -> Self {
         Self {
-            texture: Arc::new(Texture { view, size }),
+            texture: Arc::new(Texture {
+                texture: None,
+                view,
+                size,
+            }),
             clear_color: Some(Color::TRANSPARENT),
             usage: Self::DEFAULT_USAGE,
         }
@@ -103,8 +107,92 @@ impl RenderTarget {
         let texture_view = texture.create_view(&Default::default());
 
         Arc::new(Texture {
+            texture: Some(texture),
             view: texture_view,
             size,
         })
+    }
+
+    pub fn read_rgba_bytes(&self, game_io: &GameIO) -> impl std::future::Future<Output = Vec<u8>> {
+        let graphics = game_io.graphics();
+        let device = graphics.device();
+        let queue = graphics.queue();
+
+        let mut encoder =
+            device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        // create buffer
+        let output_buffer_size =
+            (4 * self.texture.width() * self.texture.height()) as wgpu::BufferAddress;
+
+        let output_buffer_desc = wgpu::BufferDescriptor {
+            size: output_buffer_size,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            label: None,
+            mapped_at_creation: false,
+        };
+        let output_buffer = device.create_buffer(&output_buffer_desc);
+
+        // copy render target data to buffer
+        encoder.copy_texture_to_buffer(
+            wgpu::ImageCopyTexture {
+                aspect: wgpu::TextureAspect::All,
+                // expecting texture to be None only from internal API usage
+                // this function should never be called by internal API
+                texture: &self.texture.texture.as_ref().unwrap(),
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+            },
+            wgpu::ImageCopyBuffer {
+                buffer: &output_buffer,
+                layout: wgpu::ImageDataLayout {
+                    offset: 0,
+                    bytes_per_row: Some(4 * self.texture.width()),
+                    rows_per_image: Some(self.texture.height()),
+                },
+            },
+            wgpu::Extent3d {
+                width: self.texture.width(),
+                height: self.texture.height(),
+                depth_or_array_layers: 1,
+            },
+        );
+
+        // submit to gpu
+        queue.submit(Some(encoder.finish()));
+
+        // maping buffer + polling
+
+        let buffer_slice = output_buffer.slice(..);
+
+        // NOTE: We have to create the mapping THEN device.poll() before await
+        // the future. Otherwise the application will freeze.
+        let (tx, rx) = std::sync::mpsc::channel();
+        buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
+            tx.send(result).unwrap();
+        });
+        device.poll(wgpu::Maintain::Wait);
+
+        // convert rx to future
+        let rx_future = std::future::poll_fn(move |_| {
+            use core::task::Poll;
+
+            match rx.try_recv() {
+                Ok(value) => Poll::Ready(value),
+                Err(_) => Poll::Pending,
+            }
+        });
+
+        async move {
+            rx_future.await.unwrap();
+
+            let data = {
+                let buffer_slice = output_buffer.slice(..);
+                buffer_slice.get_mapped_range().to_vec()
+            };
+
+            output_buffer.unmap();
+            data
+        }
     }
 }

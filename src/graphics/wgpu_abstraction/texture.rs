@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 pub struct Texture {
     pub(crate) size: UVec2,
+    pub(crate) texture: Option<wgpu::Texture>,
     pub(crate) view: wgpu::TextureView,
 }
 
@@ -53,6 +54,7 @@ impl Texture {
 
         Ok(Arc::new(Self {
             size: size.into(),
+            texture: Some(texture),
             view,
         }))
     }
