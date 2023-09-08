@@ -10,7 +10,7 @@ pub struct RenderTarget {
 impl RenderTarget {
     // todo: Swap when const_trait_impl is stable
     /// wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC  | wgpu::TextureUsages::RENDER_ATTACHMENT
-    const DEFAULT_USAGE: TextureUsages =
+    pub const DEFAULT_USAGE: TextureUsages =
         TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
 
     pub fn new(game_io: &GameIO, size: UVec2) -> Self {
