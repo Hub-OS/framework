@@ -196,7 +196,10 @@ impl RenderTarget {
                 let buffer_view = buffer_slice.get_mapped_range();
 
                 // move bytes to vec and remove padding
-                let data = Vec::with_capacity((final_bytes_per_row * height) as usize);
+                let bytes_per_row = bytes_per_row as usize;
+                let final_bytes_per_row = final_bytes_per_row as usize;
+                let height = height as usize;
+                let mut data = Vec::with_capacity(final_bytes_per_row * height);
 
                 data.extend(
                     buffer_view
