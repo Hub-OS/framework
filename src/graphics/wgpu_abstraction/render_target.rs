@@ -122,8 +122,13 @@ impl RenderTarget {
             device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
         // create buffer
-        let output_buffer_size =
-            (4 * self.texture.width() * self.texture.height()) as wgpu::BufferAddress;
+        let width = self.texture.width();
+        let height = self.texture.height();
+
+        let final_bytes_per_row = 4 * width;
+        let bytes_per_row =
+            final_bytes_per_row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
+        let output_buffer_size = (bytes_per_row * height) as wgpu::BufferAddress;
 
         let output_buffer_desc = wgpu::BufferDescriptor {
             size: output_buffer_size,
@@ -147,8 +152,8 @@ impl RenderTarget {
                 buffer: &output_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: Some(4 * self.texture.width()),
-                    rows_per_image: Some(self.texture.height()),
+                    bytes_per_row: Some(bytes_per_row),
+                    rows_per_image: Some(height),
                 },
             },
             wgpu::Extent3d {
@@ -188,7 +193,18 @@ impl RenderTarget {
 
             let data = {
                 let buffer_slice = output_buffer.slice(..);
-                buffer_slice.get_mapped_range().to_vec()
+                let buffer_view = buffer_slice.get_mapped_range();
+
+                // move bytes to vec and remove padding
+                let data = Vec::with_capacity((final_bytes_per_row * height) as usize);
+
+                data.extend(
+                    buffer_view
+                        .chunks(bytes_per_row)
+                        .flat_map(|chunk| chunk.into_iter().take(final_bytes_per_row)),
+                );
+
+                data
             };
 
             output_buffer.unmap();
