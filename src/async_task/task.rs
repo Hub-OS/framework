@@ -19,7 +19,7 @@ impl<T> AsyncTask<T> {
     /// Cancels the task and returns the result if it's already finished
     pub fn join(self) -> Option<T> {
         if self.is_finished() {
-            Some(pollster::block_on(self.task.cancel()).unwrap())
+            Some(crate::async_task::block_on(self.task.cancel()).unwrap())
         } else {
             None
         }

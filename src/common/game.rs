@@ -143,7 +143,7 @@ impl Game {
             post_process_constructors: self.post_process_constructors,
         };
 
-        pollster::block_on(window_loop.run(params))
+        crate::async_task::block_on(window_loop.run(params))
     }
 }
 

@@ -71,7 +71,7 @@ impl WinitEventHandler for StartingHandler {
 
                 if task_completed {
                     let task = self.task.take().unwrap();
-                    let task_value = pollster::block_on(task.cancel()).unwrap();
+                    let task_value = crate::async_task::block_on(task.cancel()).unwrap();
 
                     match task_value {
                         Ok(new_handler) => {

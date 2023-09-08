@@ -17,7 +17,6 @@ anyhow = "1"
 instant = "0.1"
 async-executor = "1"
 async-task = "4"
-pollster = "0.3"
 strum = { version = "0.25", features = ["derive"] }
 termcolor = "1"
 copypasta = "0.8"
@@ -75,6 +74,5 @@ gilrs = "0.10"
 
 # dependencies for examples
 [dev-dependencies]
-pollster = "0.3"
 rand = "0.8"
 simple-easing = "1.0"
