@@ -8,10 +8,6 @@ pub struct AsyncTask<T> {
 }
 
 impl<T> AsyncTask<T> {
-    pub fn new(task: async_task::Task<T>) -> Self {
-        Self { task }
-    }
-
     pub fn is_finished(&self) -> bool {
         self.task.is_finished()
     }
@@ -37,5 +33,11 @@ impl<T> Future for AsyncTask<T> {
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         use futures_lite::future::FutureExt;
         self.task.poll(cx)
+    }
+}
+
+impl<T> From<async_task::Task<T>> for AsyncTask<T> {
+    fn from(task: async_task::Task<T>) -> Self {
+        Self { task }
     }
 }

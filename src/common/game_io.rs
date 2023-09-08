@@ -143,7 +143,7 @@ impl GameIO {
         future: impl Future<Output = T> + 'static,
     ) -> AsyncTask<T> {
         let task = self.async_executor.spawn(future);
-        AsyncTask::new(task)
+        AsyncTask::from(task)
     }
 
     pub fn is_in_transition(&self) -> bool {
