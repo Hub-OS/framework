@@ -126,8 +126,12 @@ impl RenderTarget {
         let height = self.texture.height();
 
         let final_bytes_per_row = 4 * width;
-        let bytes_per_row =
-            final_bytes_per_row.next_multiple_of(wgpu::COPY_BYTES_PER_ROW_ALIGNMENT);
+        let alignment_remainder = final_bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
+        let bytes_per_row = if alignment_remainder > 0 {
+            final_bytes_per_row + (wgpu::COPY_BYTES_PER_ROW_ALIGNMENT - alignment_remainder)
+        } else {
+            final_bytes_per_row
+        };
         let output_buffer_size = (bytes_per_row * height) as wgpu::BufferAddress;
 
         let output_buffer_desc = wgpu::BufferDescriptor {
@@ -144,7 +148,7 @@ impl RenderTarget {
                 aspect: wgpu::TextureAspect::All,
                 // expecting texture to be None only from internal API usage
                 // this function should never be called by internal API
-                texture: &self.texture.texture.as_ref().unwrap(),
+                texture: self.texture.texture.as_ref().unwrap(),
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
@@ -204,7 +208,7 @@ impl RenderTarget {
                 data.extend(
                     buffer_view
                         .chunks(bytes_per_row)
-                        .flat_map(|chunk| chunk.into_iter().take(final_bytes_per_row)),
+                        .flat_map(|chunk| chunk.iter().take(final_bytes_per_row)),
                 );
 
                 data
