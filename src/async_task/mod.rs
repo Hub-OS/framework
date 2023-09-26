@@ -1,6 +1,8 @@
+mod promise;
 mod sync_result_async_error;
 mod task;
 
+pub(crate) use promise::*;
 pub use sync_result_async_error::SyncResultAsyncError;
 pub use task::*;
 

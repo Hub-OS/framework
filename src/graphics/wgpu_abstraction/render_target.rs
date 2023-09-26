@@ -1,3 +1,4 @@
+use crate::async_task::promise_future;
 use crate::prelude::*;
 use std::sync::Arc;
 
@@ -176,24 +177,16 @@ impl RenderTarget {
 
         // NOTE: We have to create the mapping THEN device.poll() before await
         // the future. Otherwise the application will freeze.
-        let (tx, rx) = std::sync::mpsc::channel();
+
+        let (resolve_future, promised_future) = promise_future();
+
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-            tx.send(result).unwrap();
+            resolve_future(result);
         });
         device.poll(wgpu::Maintain::Wait);
 
-        // convert rx to future
-        let rx_future = std::future::poll_fn(move |_| {
-            use core::task::Poll;
-
-            match rx.try_recv() {
-                Ok(value) => Poll::Ready(value),
-                Err(_) => Poll::Pending,
-            }
-        });
-
         async move {
-            rx_future.await.unwrap();
+            promised_future.await.unwrap();
 
             let data = {
                 let buffer_slice = output_buffer.slice(..);
