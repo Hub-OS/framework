@@ -20,7 +20,6 @@ async-task = "4"
 strum = { version = "0.25", features = ["derive"] }
 termcolor = "1"
 copypasta = "0.8"
-futures-lite = "1"
 slotmap = "1"
 backtrace = "0.3.68"
 

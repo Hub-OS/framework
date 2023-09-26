@@ -17,4 +17,4 @@ crate::cfg_web! {
   pub use web::*;
 }
 
-pub use futures_lite::future::block_on;
+pub use async_io::block_on;

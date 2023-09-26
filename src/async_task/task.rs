@@ -31,8 +31,7 @@ impl<T> Future for AsyncTask<T> {
     type Output = T;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        use futures_lite::future::FutureExt;
-        self.task.poll(cx)
+        Future::poll(Pin::new(&mut self.task), cx)
     }
 }
 
