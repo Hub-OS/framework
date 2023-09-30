@@ -11,7 +11,7 @@ log = { version = "0.4", features = ["std"] }
 wgpu = { version = "0.17", features = ["webgl"] }
 bytemuck = { version = "1", features = ["derive"] }
 glam = { version = "0.24", features = ["bytemuck"] }
-image = "0.24"
+image = { version = "0.24", default-features = false }
 raw-window-handle = "0.5"
 anyhow = "1"
 instant = "0.1"
@@ -24,7 +24,26 @@ slotmap = "1"
 backtrace = "0.3.68"
 
 [features]
-default = ["winit"]
+default = ["winit", "default_image_formats"]
+default_image_formats = ["image/png"]
+all_image_formats = [
+  "default_image_formats",
+  "image/gif",
+  "image/jpeg",
+  "image/ico",
+  "image/pnm",
+  "image/tga",
+  "image/tiff",
+  "image/webp",
+  "image/bmp",
+  "image/hdr",
+  "image/dxt",
+  "image/dds",
+  "image/farbfeld",
+  "image/jpeg_rayon",
+  "image/openexr",
+  "image/qoi"
+]
 sdl = ["dep:sdl2"]
 winit = ["dep:winit", "dep:gilrs"]
 
