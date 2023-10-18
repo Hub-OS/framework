@@ -1,3 +1,5 @@
+use crate::cfg_android;
+use crate::cfg_desktop_and_web;
 use crate::prelude::*;
 use winit::event::Event as WinitEvent;
 use winit::event::MouseButton as WinitMouseButton;
@@ -7,34 +9,26 @@ pub(crate) fn translate_winit_event(
     window: &Window,
     primary_window_id: winit::window::WindowId,
     event: winit::event::Event<()>,
-) -> Option<WindowEvent> {
+) -> Vec<WindowEvent> {
     match event {
         // todo check window id
         WinitEvent::WindowEvent { window_id, event } => {
             if primary_window_id != window_id {
-                return None;
+                return Vec::new();
             }
 
             match event {
-                WinitWindowEvent::CloseRequested => Some(WindowEvent::CloseRequested),
+                WinitWindowEvent::CloseRequested => vec![WindowEvent::CloseRequested],
                 WinitWindowEvent::Resized(winit::dpi::PhysicalSize { width, height }) => {
-                    Some(WindowEvent::Resized(UVec2::new(width, height)))
+                    vec![WindowEvent::Resized(UVec2::new(width, height))]
                 }
                 WinitWindowEvent::Moved(position) => {
-                    Some(WindowEvent::Moved(IVec2::new(position.x, position.y)))
+                    vec![WindowEvent::Moved(IVec2::new(position.x, position.y))]
                 }
-                WinitWindowEvent::ReceivedCharacter(c) => {
-                    let translated_char = match c {
-                        '\r' => Some('\n'),
-                        _ => Some(c),
-                    };
-
-                    translated_char.map(|c| InputEvent::Text(c.to_string()).into())
-                }
-                WinitWindowEvent::HoveredFile(_) => Some(InputEvent::DropStart.into()),
-                WinitWindowEvent::HoveredFileCancelled => Some(InputEvent::DropCancelled.into()),
+                WinitWindowEvent::HoveredFile(_) => vec![InputEvent::DropStart.into()],
+                WinitWindowEvent::HoveredFileCancelled => vec![InputEvent::DropCancelled.into()],
                 WinitWindowEvent::DroppedFile(path_buf) => {
-                    Some(InputEvent::DroppedFile(path_buf).into())
+                    vec![InputEvent::DroppedFile(path_buf).into()]
                 }
                 WinitWindowEvent::Touch(touch) => {
                     let phase = match touch.phase {
@@ -53,46 +47,72 @@ pub(crate) fn translate_winit_event(
                         pressure: touch.force.map(|f| f.normalized() as f32),
                     };
 
-                    Some(InputEvent::Touch(touch).into())
+                    vec![InputEvent::Touch(touch).into()]
                 }
                 WinitWindowEvent::CursorMoved { position, .. } => {
                     let position = Vec2::new(position.x as f32, position.y as f32);
                     let normalized = window.normalize_vec2(position);
 
-                    Some(InputEvent::MouseMoved(normalized).into())
+                    vec![InputEvent::MouseMoved(normalized).into()]
                 }
                 WinitWindowEvent::MouseInput { state, button, .. } => {
-                    if state == winit::event::ElementState::Pressed {
-                        Some(
-                            InputEvent::MouseButtonDown(translate_winit_mouse_button(button)?)
-                                .into(),
-                        )
+                    if let Some(button) = translate_winit_mouse_button(button) {
+                        if state == winit::event::ElementState::Pressed {
+                            vec![InputEvent::MouseButtonDown(button).into()]
+                        } else {
+                            vec![InputEvent::MouseButtonUp(button).into()]
+                        }
                     } else {
-                        Some(
-                            InputEvent::MouseButtonUp(translate_winit_mouse_button(button)?).into(),
-                        )
+                        Vec::new()
                     }
                 }
+                #[allow(unused_variables)]
                 WinitWindowEvent::KeyboardInput {
-                    input:
-                        winit::event::KeyboardInput {
+                    event:
+                        winit::event::KeyEvent {
                             state,
-                            virtual_keycode: Some(key),
+                            physical_key,
+                            logical_key,
+                            text,
                             ..
                         },
                     ..
-                } => super::translate_winit_key(key).map(|key| {
-                    if state == winit::event::ElementState::Pressed {
-                        InputEvent::KeyDown(key).into()
-                    } else {
-                        InputEvent::KeyUp(key).into()
+                } => {
+                    // multiple events
+                    let mut events = Vec::new();
+
+                    // key event
+                    if let Some(key) = super::translate_winit_key(physical_key) {
+                        if state == winit::event::ElementState::Pressed {
+                            events.push(InputEvent::KeyDown(key).into());
+                        } else {
+                            events.push(InputEvent::KeyUp(key).into());
+                        }
                     }
-                }),
-                _ => None,
+
+                    // text event
+                    let text = {
+                        cfg_desktop_and_web! { text.as_ref().map(|smol_string| smol_string.as_str()) }
+                        cfg_android! { logical_key.to_text() }
+                    };
+
+                    if let Some(text) = text {
+                        let text = if text == "\r" {
+                            String::from("\n")
+                        } else {
+                            text.to_string()
+                        };
+
+                        events.push(InputEvent::Text(text).into());
+                    };
+
+                    events
+                }
+                _ => Vec::new(),
             }
         }
-        WinitEvent::Resumed => Some(WindowEvent::Resumed),
-        _ => None,
+        WinitEvent::Resumed => vec![WindowEvent::Resumed],
+        _ => Vec::new(),
     }
 }
 

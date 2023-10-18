@@ -97,21 +97,21 @@ impl Window {
     }
 
     #[allow(unused_variables)]
-    fn create_winit_event_loop(platform_app: Option<PlatformApp>) -> EventLoop<()> {
+    fn create_winit_event_loop(platform_app: Option<PlatformApp>) -> anyhow::Result<EventLoop<()>> {
         cfg_android! {
             if let Some(app) = platform_app {
                 use winit::platform::android::EventLoopBuilderExtAndroid;
                 use winit::event_loop::EventLoopBuilder;
 
-                return EventLoopBuilder::new().with_android_app(app).build()
+                return Ok(EventLoopBuilder::new().with_android_app(app).build()?)
             }
         };
 
-        EventLoop::new()
+        Ok(EventLoop::new()?)
     }
 
     pub(crate) fn build(window_config: WindowConfig) -> anyhow::Result<WindowLoop> {
-        let event_loop = Self::create_winit_event_loop(window_config.platform_app.clone());
+        let event_loop = Self::create_winit_event_loop(window_config.platform_app.clone())?;
 
         let mut winit_window_builder = WindowBuilder::new()
             .with_title(&window_config.title)

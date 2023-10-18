@@ -54,7 +54,9 @@ async-io = { version = "1.7" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-winit = { version = "0.28", optional = true }
+winit = { git = "https://github.com/rust-windowing/winit.git", optional = true, features = [
+  "rwh_05"
+] }
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
   "bundled",
@@ -62,8 +64,9 @@ sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
 
 # android
 [target.'cfg(target_os = "android")'.dependencies]
-winit = { version = "0.28", optional = true, features = [
+winit = { git = "https://github.com/rust-windowing/winit.git", optional = true, features = [
   "android-native-activity",
+  "rwh_05"
 ] }
 sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
   "raw-window-handle",
@@ -75,7 +78,9 @@ jni = "0.21"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-winit = "0.28"
+winit = { git = "https://github.com/rust-windowing/winit.git", features = [
+  "rwh_05"
+] }
 console_error_panic_hook = "0.1"
 web-sys = { version = "0.3", features = [
   "console",

@@ -3,7 +3,7 @@ use crate::cfg_android;
 use crate::logging::*;
 use crate::prelude::*;
 use winit::event::Event as WinitEvent;
-use winit::event_loop::ControlFlow;
+use winit::event_loop::EventLoopWindowTarget;
 
 struct StartingHandlerInitParams {
     window: Window,
@@ -50,8 +50,8 @@ impl StartingHandler {
 impl WinitEventHandler for StartingHandler {
     fn handle_event(
         &mut self,
-        winit_event: WinitEvent<'_, ()>,
-        control_flow: &mut ControlFlow,
+        winit_event: WinitEvent<()>,
+        event_loop_target: &EventLoopWindowTarget<()>,
     ) -> Option<Box<dyn WinitEventHandler>> {
         match winit_event {
             WinitEvent::Resumed => {
@@ -61,9 +61,9 @@ impl WinitEventHandler for StartingHandler {
                 event: winit::event::WindowEvent::CloseRequested,
                 ..
             } => {
-                *control_flow = ControlFlow::Exit;
+                event_loop_target.exit();
             }
-            WinitEvent::MainEventsCleared => {
+            WinitEvent::AboutToWait => {
                 while self.async_executor.try_tick() {}
 
                 let task_ref = self.task.as_ref();
@@ -79,7 +79,7 @@ impl WinitEventHandler for StartingHandler {
                         }
                         Err(e) => {
                             error!("{}", e);
-                            *control_flow = ControlFlow::Exit;
+                            event_loop_target.exit();
                         }
                     }
                 }
