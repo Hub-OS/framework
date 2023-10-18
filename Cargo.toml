@@ -4,98 +4,43 @@ version = "0.1.0"
 edition = "2021"
 license = "Zlib"
 
+[workspace]
+members = [
+  "crates/cfg_macros",
+  "crates/framework_core",
+  "crates/input",
+  "crates/logging",
+  "crates/math",
+  "crates/sdl2_game_loop",
+  "crates/wasm_forward",
+  "crates/winit_game_loop",
+  "examples/multiplatform"
+]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
-log = { version = "0.4", features = ["std"] }
-# using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "0.17", features = ["webgl"] }
-bytemuck = { version = "1", features = ["derive"] }
-glam = { version = "0.24", features = ["bytemuck"] }
-image = { version = "0.24", default-features = false }
-raw-window-handle = "0.5"
-anyhow = "1"
-instant = "0.1"
-async-executor = "1"
-async-task = "4"
-strum = { version = "0.25", features = ["derive"] }
-termcolor = "1"
-copypasta = "0.10"
-slotmap = "1"
-backtrace = "0.3.68"
-
-[features]
-default = ["winit", "default_image_formats"]
-default_image_formats = ["image/png"]
-all_image_formats = [
-  "default_image_formats",
-  "image/gif",
-  "image/jpeg",
-  "image/ico",
-  "image/pnm",
-  "image/tga",
-  "image/tiff",
-  "image/webp",
-  "image/bmp",
-  "image/hdr",
-  "image/dxt",
-  "image/dds",
-  "image/farbfeld",
-  "image/jpeg_rayon",
-  "image/openexr",
-  "image/qoi"
-]
-sdl = ["dep:sdl2"]
-winit = ["dep:winit", "dep:gilrs"]
-
-# native dependencies
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-gilrs = { version = "0.10", optional = true }
-async-io = { version = "2" }
-
-# desktop
-[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-winit = { git = "https://github.com/rust-windowing/winit.git", optional = true, features = [
-  "rwh_05"
-] }
-sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
-  "raw-window-handle",
-  "bundled",
-], optional = true }
-
-# android
-[target.'cfg(target_os = "android")'.dependencies]
-winit = { git = "https://github.com/rust-windowing/winit.git", optional = true, features = [
-  "android-native-activity",
-  "rwh_05"
-] }
-sdl2 = { git = "https://github.com/Rust-SDL2/rust-sdl2.git", features = [
-  "raw-window-handle",
-  "bundled",
-  "static-link",
-], optional = true }
-ndk-sys = "0.4"
-jni = "0.21"
+cfg_macros = { path = "crates/cfg_macros" }
+framework_core = { path = "crates/framework_core" }
+input = { path = "crates/input" }
+logging = { path = "crates/logging" }
+math = { path = "crates/math" }
+winit_game_loop = { path = "crates/winit_game_loop", optional = true }
+sdl2_game_loop = { path = "crates/sdl2_game_loop", optional = true }
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-winit = { git = "https://github.com/rust-windowing/winit.git", features = [
-  "rwh_05"
-] }
-console_error_panic_hook = "0.1"
-web-sys = { version = "0.3", features = [
-  "console",
-  "Window",
-  "Document",
-  "Element",
-  "HtmlCanvasElement",
-  "CssStyleDeclaration",
-] }
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-js-sys = "0.3"
-gilrs = "0.10"
+wasm_forward = { path = "crates/wasm_forward" }
+
+[features]
+default = ["winit", "default_image_formats"]
+default_image_formats = ["framework_core/default_image_formats"]
+all_image_formats = ["framework_core/all_image_formats"]
+sdl2 = ["dep:sdl2_game_loop"]
+winit = ["dep:winit_game_loop"]
 
 # dependencies for examples
 [dev-dependencies]
 rand = "0.8"
 simple-easing = "1.0"
+anyhow = "1"
+bytemuck = "1"

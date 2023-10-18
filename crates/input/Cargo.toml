@@ -1,0 +1,9 @@
+[package]
+name = "input"
+version = "0.1.0"
+edition = "2021"
+license = "Zlib"
+
+[dependencies]
+math = { path = "../math" }
+strum = { version = "0.25", features = ["derive"] }

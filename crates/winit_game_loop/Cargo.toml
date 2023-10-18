@@ -1,0 +1,37 @@
+[package]
+name = "winit_game_loop"
+version = "0.1.0"
+edition = "2021"
+license = "Zlib"
+
+[dependencies]
+cfg_macros = { path = "../cfg_macros" }
+logging = { path = "../logging" }
+input = { path = "../input" }
+math = { path = "../math" }
+framework_core = { path = "../framework_core" }
+anyhow = "1"
+async-executor = "1"
+async-task = "4"
+gilrs = { version = "0.10" }
+
+# desktop
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
+winit = { git = "https://github.com/rust-windowing/winit.git", features = [
+  "rwh_05"
+] }
+
+# android
+[target.'cfg(target_os = "android")'.dependencies]
+winit = { git = "https://github.com/rust-windowing/winit.git", features = [
+  "android-native-activity",
+  "rwh_05"
+] }
+jni = "0.21"
+
+# web dependencies
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+winit = { git = "https://github.com/rust-windowing/winit.git", features = [
+  "rwh_05"
+] }
+wasm_forward = { path = "../wasm_forward" }

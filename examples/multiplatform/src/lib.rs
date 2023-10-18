@@ -2,27 +2,24 @@ mod main_scene;
 use main_scene::MainScene;
 
 use framework::logging::*;
-use framework::prelude::{Game, PlatformApp};
+use framework::prelude::*;
 
-pub fn shared_main(platform_app: PlatformApp) -> anyhow::Result<()> {
+pub fn shared_main(platform_app: WinitPlatformApp) -> anyhow::Result<()> {
     default_logger::init!();
 
-    Game::new("Multiplatform", (800, 600))
+    Game::<WinitGameLoop>::new("Multiplatform", (800, 600))
         .with_platform_app(platform_app)
         .run(MainScene::new)
 }
 
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
-#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn sync_main() {
-    shared_main(PlatformApp::default()).unwrap();
+    shared_main(WinitPlatformApp::default()).unwrap();
 }
 
 #[cfg(target_os = "android")]
 #[no_mangle]
-pub fn android_main(app: PlatformApp) {
+pub fn android_main(app: WinitPlatformApp) {
     shared_main(app).unwrap();
 }

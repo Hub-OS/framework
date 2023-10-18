@@ -1,0 +1,10 @@
+[package]
+name = "math"
+version = "0.1.0"
+edition = "2021"
+license = "Zlib"
+
+[dependencies]
+bytemuck = { version = "1", features = ["derive"] }
+glam = { version = "0.24", features = ["bytemuck"] }
+web-time = "0.2"

@@ -5,7 +5,7 @@ use rand::prelude::*;
 fn main() -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Sprites", (800, 600));
+    let game = Game::<WinitGameLoop>::new("Sprites", (800, 600));
 
     game.run(MainScene::new)
 }

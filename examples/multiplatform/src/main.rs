@@ -1,5 +1,6 @@
-use framework::prelude::PlatformApp;
-
+#[cfg(not(target_os = "android"))]
 fn main() -> anyhow::Result<()> {
-    multiplatform::shared_main(PlatformApp::default())
+    use framework::prelude::WinitPlatformApp;
+
+    multiplatform::shared_main(WinitPlatformApp::default())
 }

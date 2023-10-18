@@ -7,7 +7,7 @@ use triangle::{Triangle, TriangleInstanceData, TriangleVertex};
 fn main() -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Triangle Example", (800, 600));
+    let game = Game::<WinitGameLoop>::new("Triangle Example", (800, 600));
 
     game.run(MainScene::new)
 }

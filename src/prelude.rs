@@ -1,10 +1,18 @@
-pub use crate::async_task::{sleep as async_sleep, AsyncTask, SyncResultAsyncError};
-pub use crate::common::*;
-pub use crate::graphics::*;
-pub use crate::input::*;
-pub use crate::math::*;
-pub use crate::util::*;
+use cfg_macros::cfg_web;
 
-crate::cfg_web! {
-  pub use wasm_bindgen::prelude::wasm_bindgen;
+pub use crate::graphics::*;
+pub use framework_core::async_task::{sleep as async_sleep, AsyncTask, SyncResultAsyncError};
+pub use framework_core::common::*;
+pub use framework_core::graphics::*;
+pub use input::*;
+pub use math::*;
+
+cfg_web! {
+  pub use wasm_forward::wasm_bindgen::prelude::wasm_bindgen;
 }
+
+#[cfg(feature = "sdl2")]
+pub use sdl2_game_loop::*;
+
+#[cfg(feature = "winit")]
+pub use winit_game_loop::*;

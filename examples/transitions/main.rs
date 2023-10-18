@@ -7,7 +7,7 @@ use push_transition::*;
 fn main() -> anyhow::Result<()> {
     default_logger::init!();
 
-    let game = Game::new("Transitions", (800, 600));
+    let game = Game::<WinitGameLoop>::new("Transitions", (800, 600));
 
     game.run(|game_io| ExampleScene::new(game_io, 0))
 }
