@@ -19,7 +19,7 @@ async-executor = "1"
 async-task = "4"
 strum = { version = "0.25", features = ["derive"] }
 termcolor = "1"
-copypasta = "0.8"
+copypasta = "0.10"
 slotmap = "1"
 backtrace = "0.3.68"
 
@@ -50,7 +50,7 @@ winit = ["dep:winit", "dep:gilrs"]
 # native dependencies
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 gilrs = { version = "0.10", optional = true }
-async-io = { version = "1.7" }
+async-io = { version = "2" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
