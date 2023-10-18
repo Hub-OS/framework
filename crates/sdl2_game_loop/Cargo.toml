@@ -5,8 +5,6 @@ edition = "2021"
 license = "Zlib"
 
 [dependencies]
-# cfg_macros = { path = "../cfg_macros" }
-# logging = { path = "../logging" }
 input = { path = "../input" }
 math = { path = "../math" }
 framework_core = { path = "../framework_core" }
