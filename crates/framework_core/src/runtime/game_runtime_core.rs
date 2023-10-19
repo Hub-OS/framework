@@ -123,7 +123,7 @@ impl GameRuntimeCore {
     pub async fn sleep(&self) {
         use crate::async_task::sleep;
 
-        let sleep_duration = self.game_io.attempted_sleep_duration();
+        let sleep_duration = self.game_io.target_sleep_duration();
 
         if !sleep_duration.is_zero() {
             sleep(sleep_duration).await;
@@ -131,7 +131,7 @@ impl GameRuntimeCore {
     }
 
     pub fn target_wake_instant(&self) -> Instant {
-        self.frame_end + self.game_io.attempted_sleep_duration()
+        self.frame_end + self.game_io.target_sleep_duration()
     }
 
     pub fn push_event(&mut self, event: GameWindowEvent) {
@@ -139,7 +139,7 @@ impl GameRuntimeCore {
     }
 
     pub fn tick(&mut self) {
-        if self.frame_end.elapsed() < self.game_io.attempted_sleep_duration() {
+        if self.frame_end.elapsed() < self.game_io.target_sleep_duration() {
             // running too fast skip tick (this issue should only occur on web)
             return;
         }
@@ -149,7 +149,7 @@ impl GameRuntimeCore {
         game_io.set_frame_start_instant(start_instant);
 
         // update the previous timing with new info before updates start
-        let lost_duration = start_instant - self.frame_end - game_io.attempted_sleep_duration();
+        let lost_duration = start_instant - self.frame_end - game_io.target_sleep_duration();
         game_io.set_lost_duration(lost_duration);
 
         // queue a new task

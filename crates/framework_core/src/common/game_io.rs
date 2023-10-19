@@ -155,13 +155,13 @@ impl GameIO {
         self.lost_duration
     }
 
-    /// Time spent sleeping after the last frame, includes attempted_sleep_duration and lost_duration
+    /// Time spent sleeping after the last frame, includes target_sleep_duration and lost_duration
     pub fn sleep_duration(&self) -> Duration {
         self.sleep_duration + self.lost_duration
     }
 
     /// The duration the game tried to sleep for last frame
-    pub fn attempted_sleep_duration(&self) -> Duration {
+    pub fn target_sleep_duration(&self) -> Duration {
         self.sleep_duration
     }
 
