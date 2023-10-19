@@ -16,7 +16,10 @@ pub struct HeadlessGameWindow {
 impl HeadlessGameWindow {
     pub(crate) async fn from_config(window_config: GameWindowConfig<()>) -> anyhow::Result<Self> {
         let graphics = GraphicsContext::new(wgpu::Instance::default(), None).await?;
-        let render_target = RenderTarget::new(&graphics, window_config.size);
+
+        let size = window_config.size;
+        let resolution = window_config.resolution.unwrap_or(size);
+        let render_target = RenderTarget::new(&graphics, resolution);
 
         Ok(Self {
             graphics,
@@ -24,7 +27,7 @@ impl HeadlessGameWindow {
             size: window_config.size,
             position: IVec2::new(0, 0),
             locked_resolution: window_config.resolution.is_some(),
-            resolution: window_config.resolution.unwrap_or(window_config.size),
+            resolution,
             clear_color: None,
         })
     }
@@ -59,7 +62,7 @@ impl GameWindowLifecycle for HeadlessGameWindow {
         }
 
         if let Some(render_target) = &mut self.render_target {
-            render_target.resize(&self.graphics, size);
+            render_target.resize(&self.graphics, self.resolution);
         }
     }
 
