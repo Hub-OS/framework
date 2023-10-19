@@ -209,7 +209,7 @@ impl InputManager {
         self.dropped_text.clone()
     }
 
-    fn simulate_key_press(&mut self, key: Key) {
+    pub fn simulate_key_press(&mut self, key: Key) {
         if !self.pressed_keys.contains(&key) {
             self.latest_key = Some(key);
             self.pressed_keys.push(key);
@@ -218,23 +218,27 @@ impl InputManager {
         }
     }
 
-    fn simulate_key_release(&mut self, key: Key) {
+    pub fn simulate_key_release(&mut self, key: Key) {
         if let Some(index) = self.pressed_keys.iter().position(|v| *v == key) {
             self.pressed_keys.swap_remove(index);
         }
     }
 
-    fn simulate_mouse_press(&mut self, button: MouseButton) {
+    pub fn simulate_mouse_press(&mut self, button: MouseButton) {
         if !self.pressed_mouse_buttons.contains(&button) {
             self.latest_mouse_button = Some(button);
             self.pressed_mouse_buttons.push(button);
         }
     }
 
-    fn simulate_mouse_release(&mut self, button: MouseButton) {
+    pub fn simulate_mouse_release(&mut self, button: MouseButton) {
         if let Some(index) = self.pressed_mouse_buttons.iter().position(|v| *v == button) {
             self.pressed_mouse_buttons.swap_remove(index);
         }
+    }
+
+    pub fn simulate_mouse_move(&mut self, position: Vec2) {
+        self.mouse_position = position;
     }
 
     pub(crate) fn flush(&mut self) {

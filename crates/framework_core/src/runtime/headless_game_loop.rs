@@ -2,7 +2,7 @@ use super::HeadlessGameWindow;
 use crate::runtime::{GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowLoop};
 use std::future::Future;
 
-/// A game loop without window and input
+/// A game loop without a window
 pub struct HeadlessGameLoop {
     window: HeadlessGameWindow,
 }
