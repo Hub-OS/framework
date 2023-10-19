@@ -1,4 +1,4 @@
-use crate::common::GameIO;
+use super::HasGraphicsContext;
 use std::sync::Arc;
 use wgpu::util::DeviceExt;
 
@@ -9,8 +9,12 @@ pub struct Mesh<Vertex: super::Vertex> {
 }
 
 impl<Vertex: super::Vertex> Mesh<Vertex> {
-    pub fn new(game_io: &GameIO, vertices: &[Vertex], indices: &[u32]) -> Arc<Self> {
-        let device = game_io.graphics().device();
+    pub fn new(
+        graphics: &impl HasGraphicsContext,
+        vertices: &[Vertex],
+        indices: &[u32],
+    ) -> Arc<Self> {
+        let device = graphics.graphics().device();
 
         let buffers = Arc::new((
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

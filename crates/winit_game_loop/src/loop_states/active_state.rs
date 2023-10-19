@@ -17,7 +17,7 @@ impl ActiveState {
         window_id: WindowId,
         loop_params: GameRuntimeCoreParams,
     ) -> anyhow::Result<Self> {
-        let mut game_runtime = GameRuntimeCore::new(window, loop_params).await?;
+        let mut game_runtime = GameRuntimeCore::new(Box::new(window), loop_params).await?;
         let controller_event_pump = ControllerEventPump::new(&mut game_runtime)?;
 
         Ok(Self {

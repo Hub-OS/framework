@@ -23,7 +23,7 @@ impl<'a> RenderPipelineBuilder<'a> {
             instance_bind_group_layout_entries: Vec::new(),
             vertex_shader: None,
             fragment_shader: None,
-            target_format: game_io.graphics().surface_config().format,
+            target_format: game_io.window().graphics().default_texture_format(),
             blend: Some(wgpu::BlendState::ALPHA_BLENDING),
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,

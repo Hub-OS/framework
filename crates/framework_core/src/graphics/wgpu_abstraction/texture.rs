@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 use math::*;
 use std::sync::Arc;
@@ -10,13 +9,16 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn load_from_memory(game_io: &GameIO, bytes: &[u8]) -> anyhow::Result<Arc<Self>> {
+    pub fn load_from_memory(
+        graphics: &impl HasGraphicsContext,
+        bytes: &[u8],
+    ) -> anyhow::Result<Arc<Self>> {
         let image = image::load_from_memory(bytes)?;
         let rgba_image = image.to_rgba8();
         let size = rgba_image.dimensions();
         let (width, height) = size;
 
-        let graphics = game_io.graphics();
+        let graphics = graphics.graphics();
         let device = graphics.device();
         let queue = graphics.queue();
 

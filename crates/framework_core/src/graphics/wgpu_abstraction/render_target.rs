@@ -1,5 +1,4 @@
 use crate::async_task::promise_future;
-use crate::common::GameIO;
 use crate::graphics::*;
 use math::*;
 use std::sync::Arc;
@@ -16,23 +15,27 @@ impl RenderTarget {
     pub const DEFAULT_USAGE: TextureUsages =
         TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
 
-    pub fn new(game_io: &GameIO, size: UVec2) -> Self {
+    pub fn new(graphics: &impl HasGraphicsContext, size: UVec2) -> Self {
         Self {
-            texture: RenderTarget::create_texture(game_io, size, Self::DEFAULT_USAGE),
+            texture: RenderTarget::create_texture(graphics, size, Self::DEFAULT_USAGE),
             clear_color: Some(Color::TRANSPARENT),
             usage: Self::DEFAULT_USAGE,
         }
     }
 
-    pub fn new_with_usage(game_io: &GameIO, size: UVec2, usage: TextureUsages) -> Self {
+    pub fn new_with_usage(
+        graphics: &impl HasGraphicsContext,
+        size: UVec2,
+        usage: TextureUsages,
+    ) -> Self {
         Self {
-            texture: RenderTarget::create_texture(game_io, size, usage),
+            texture: RenderTarget::create_texture(graphics, size, usage),
             clear_color: Some(Color::TRANSPARENT),
             usage,
         }
     }
 
-    pub(crate) fn from_view(view: wgpu::TextureView, size: UVec2) -> Self {
+    pub fn from_view(view: wgpu::TextureView, size: UVec2) -> Self {
         Self {
             texture: Arc::new(Texture {
                 texture: None,
@@ -52,12 +55,12 @@ impl RenderTarget {
         self.texture.size
     }
 
-    pub fn resize(&mut self, game_io: &GameIO, size: UVec2) {
+    pub fn resize(&mut self, graphics: &impl HasGraphicsContext, size: UVec2) {
         if self.texture.size == size {
             return;
         }
 
-        self.texture = RenderTarget::create_texture(game_io, size, self.usage);
+        self.texture = RenderTarget::create_texture(graphics, size, self.usage);
     }
 
     pub fn clear_color(&self) -> Option<Color> {
@@ -86,10 +89,14 @@ impl RenderTarget {
         None
     }
 
-    fn create_texture(game_io: &GameIO, size: UVec2, usage: TextureUsages) -> Arc<Texture> {
-        let graphics = game_io.graphics();
+    fn create_texture(
+        graphics: &impl HasGraphicsContext,
+        size: UVec2,
+        usage: TextureUsages,
+    ) -> Arc<Texture> {
+        let graphics = graphics.graphics();
         let device = graphics.device();
-        let format = graphics.surface_config().format;
+        let format = graphics.default_texture_format();
 
         let texture_desc = wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
@@ -116,8 +123,11 @@ impl RenderTarget {
         })
     }
 
-    pub fn read_rgba_bytes(&self, game_io: &GameIO) -> impl std::future::Future<Output = Vec<u8>> {
-        let graphics = game_io.graphics();
+    pub fn read_rgba_bytes(
+        &self,
+        graphics: &impl HasGraphicsContext,
+    ) -> impl std::future::Future<Output = Vec<u8>> {
+        let graphics = graphics.graphics();
         let device = graphics.device();
         let queue = graphics.queue();
 

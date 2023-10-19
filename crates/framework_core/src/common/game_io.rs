@@ -1,5 +1,4 @@
 use crate::async_task::*;
-use crate::common::*;
 use crate::graphics::*;
 use crate::runtime::*;
 use math::Instant;
@@ -9,9 +8,9 @@ use std::future::Future;
 use std::time::Duration;
 
 pub struct GameIO {
-    window: Box<dyn GameWindow>,
-    graphics: GraphicsContext,
+    window: Box<dyn GameWindowLifecycle>,
     resources: HashMap<TypeId, Box<dyn Any>>,
+    disabled_post_processes: Vec<TypeId>,
     async_executor: async_executor::LocalExecutor<'static>,
     input_manager: InputManager,
     target_fps: u16,
@@ -28,12 +27,18 @@ pub struct GameIO {
     quitting: bool,
 }
 
+impl HasGraphicsContext for GameIO {
+    fn graphics(&self) -> &GraphicsContext {
+        self.window.graphics()
+    }
+}
+
 impl GameIO {
-    pub(crate) fn new(window: Box<dyn GameWindow>, graphics: GraphicsContext) -> Self {
+    pub(crate) fn new(window: Box<dyn GameWindowLifecycle>) -> Self {
         Self {
             window,
-            graphics,
             resources: HashMap::new(),
+            disabled_post_processes: Vec::new(),
             async_executor: async_executor::LocalExecutor::new(),
             input_manager: InputManager::default(),
             target_fps: 60,
@@ -51,20 +56,12 @@ impl GameIO {
         }
     }
 
-    pub fn window(&self) -> &dyn GameWindow {
+    pub fn window(&self) -> &dyn GameWindowLifecycle {
         &*self.window
     }
 
-    pub fn window_mut(&mut self) -> &mut dyn GameWindow {
+    pub fn window_mut(&mut self) -> &mut dyn GameWindowLifecycle {
         &mut *self.window
-    }
-
-    pub fn graphics(&self) -> &GraphicsContext {
-        &self.graphics
-    }
-
-    pub fn graphics_mut(&mut self) -> &mut GraphicsContext {
-        &mut self.graphics
     }
 
     pub fn input(&self) -> &InputManager {
@@ -87,6 +84,32 @@ impl GameIO {
 
     pub fn set_resource<R: Any>(&mut self, r: R) {
         self.resources.insert(r.type_id(), Box::new(r));
+    }
+
+    pub fn set_post_process_enabled<P: PostProcess + 'static>(&mut self, enabled: bool) {
+        let id = TypeId::of::<P>();
+
+        if let Some(index) = self
+            .disabled_post_processes
+            .iter()
+            .position(|stored| *stored == id)
+        {
+            if enabled {
+                self.disabled_post_processes.swap_remove(index);
+            }
+        } else if !enabled {
+            self.disabled_post_processes.push(id);
+        }
+    }
+
+    pub fn is_post_process_enabled<P: PostProcess + 'static>(&self) -> bool {
+        let id = TypeId::of::<P>();
+
+        !self.disabled_post_processes.contains(&id)
+    }
+
+    pub(crate) fn internal_is_post_process_enabled(&self, id: TypeId) -> bool {
+        !self.disabled_post_processes.contains(&id)
     }
 
     pub fn target_fps(&self) -> u16 {
@@ -194,17 +217,16 @@ impl GameIO {
         for event in events {
             match event {
                 GameWindowEvent::Resumed => {
-                    self.graphics.rebuild_surface(&*self.window);
+                    self.window.rebuild_surface();
                 }
                 GameWindowEvent::CloseRequested => {
                     self.quitting = true;
                 }
                 GameWindowEvent::Moved(position) => {
-                    self.window.set_moved(position);
+                    self.window.moved(position);
                 }
                 GameWindowEvent::Resized(size) => {
-                    self.window.set_resized(size);
-                    self.graphics.resized(size);
+                    self.window.resized(size);
                 }
                 GameWindowEvent::InputEvent(input_event) => {
                     self.input_manager.handle_event(input_event);

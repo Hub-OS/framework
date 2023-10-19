@@ -51,7 +51,7 @@ impl<Loop: GameWindowLoop> Game<Loop> {
     }
 
     pub fn with_locked_resolution(mut self, resolution: Option<(u32, u32)>) -> Self {
-        self.window_config.resolution = resolution;
+        self.window_config.resolution = resolution.map(|resolution| resolution.into());
         self
     }
 
@@ -122,8 +122,6 @@ impl<Loop: GameWindowLoop> Game<Loop> {
         SceneConstructor: FnOnce(&mut GameIO) -> S + 'static,
         S: Scene + 'static,
     {
-        let window_loop = Loop::build(self.window_config)?;
-
         let scene_constructor =
             |game_io: &mut GameIO| -> Box<dyn Scene> { Box::new(scene_constructor(game_io)) };
 
@@ -136,7 +134,7 @@ impl<Loop: GameWindowLoop> Game<Loop> {
             post_process_constructors: self.post_process_constructors,
         };
 
-        let pinned_future = Pin::from(window_loop.run(params));
+        let pinned_future = Pin::from(Loop::run(self.window_config, params));
 
         crate::async_task::block_on(pinned_future)
     }

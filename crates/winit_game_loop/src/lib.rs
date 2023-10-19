@@ -7,9 +7,9 @@ mod winit_platform_app;
 
 use cfg_macros::*;
 use key_translation::*;
+use winit_game_window::*;
 
 pub use winit_game_loop::*;
-pub use winit_game_window::*;
 pub use winit_platform_app::*;
 
 use crate::{cfg_android, cfg_desktop_and_web};

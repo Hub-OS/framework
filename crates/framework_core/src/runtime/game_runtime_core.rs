@@ -37,13 +37,12 @@ pub struct GameRuntimeCore {
 
 impl GameRuntimeCore {
     pub async fn new(
-        window: impl GameWindow + 'static,
+        window: Box<dyn GameWindowLifecycle>,
         params: GameRuntimeCoreParams,
     ) -> anyhow::Result<Self> {
         let window_size = window.size();
-        let graphics = GraphicsContext::new(&window, window_size.x, window_size.y).await?;
 
-        let mut game_io = GameIO::new(Box::from(window), graphics);
+        let mut game_io = GameIO::new(window);
         game_io.set_target_fps(params.target_fps);
 
         crate::common::default_resources::inject(&mut game_io);
@@ -183,7 +182,7 @@ impl GameRuntimeCore {
         }
 
         for (id, post_process) in &mut self.post_processes {
-            if !game_io.graphics().internal_is_post_process_enabled(*id) {
+            if !game_io.internal_is_post_process_enabled(*id) {
                 continue;
             }
 
@@ -204,6 +203,7 @@ impl GameRuntimeCore {
         let update_instant = Instant::now();
 
         // draw
+        let window = game_io.window();
         let graphics = game_io.graphics();
         let device = graphics.device();
 
@@ -211,11 +211,12 @@ impl GameRuntimeCore {
             label: Some("window_command_encoder"),
         });
 
-        let resolution = game_io.window().resolution();
+        let resolution = window.resolution();
+        let clear_color = window.clear_color();
+
         self.render_target.resize(game_io, resolution);
         self.render_target_b.resize(game_io, resolution);
 
-        let clear_color = graphics.clear_color();
         self.render_target.set_clear_color(clear_color);
         self.render_target_b.set_clear_color(clear_color);
 
@@ -243,7 +244,7 @@ impl GameRuntimeCore {
 
         // post processing
         for (id, post_process) in &mut self.post_processes {
-            if !game_io.graphics().internal_is_post_process_enabled(*id) {
+            if !game_io.internal_is_post_process_enabled(*id) {
                 continue;
             }
 
@@ -259,12 +260,11 @@ impl GameRuntimeCore {
         }
 
         // update camera
-        let graphics = game_io.graphics();
         let window = game_io.window();
 
         if window.has_locked_resolution() {
             self.camera.resize(window.resolution().as_vec2());
-            self.camera.scale_to(graphics.surface_size().as_vec2());
+            self.camera.scale_to(window.size().as_vec2());
         } else {
             self.camera.resize(window.resolution().as_vec2());
         }
@@ -272,18 +272,12 @@ impl GameRuntimeCore {
         // render to window
         let buffer_aquire_start = Instant::now();
         let mut buffer_aquire_end = buffer_aquire_start;
+        let window = game_io.window_mut();
 
-        if let Ok(frame) = graphics.surface().get_current_texture() {
+        if let Some(target) = window.acquire_render_target() {
             buffer_aquire_end = Instant::now();
 
-            let texture = &frame.texture;
-            let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-            let texture_size = graphics.surface_size();
-
-            let mut window_target = RenderTarget::from_view(view, texture_size);
-            window_target.set_clear_color(graphics.clear_color());
-
-            let mut render_pass = RenderPass::new(&mut encoder, &window_target);
+            let mut render_pass = RenderPass::new(&mut encoder, &target);
 
             // render as a sprite
             self.render_sprite
@@ -305,7 +299,8 @@ impl GameRuntimeCore {
 
             let queue = game_io.graphics().queue();
             queue.submit([encoder.finish()]);
-            frame.present();
+
+            game_io.window_mut().present_frame(target);
         }
 
         let end_instant = Instant::now();

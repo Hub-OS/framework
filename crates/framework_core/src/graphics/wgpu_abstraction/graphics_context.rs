@@ -1,97 +1,57 @@
 use crate::async_task::SyncResultAsyncError;
-use crate::common::GameWindow;
 use crate::graphics::*;
 use cfg_macros::*;
-use math::*;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
-use std::any::TypeId;
 use std::borrow::Cow;
 use std::future::Future;
 use std::path::Path;
 use std::sync::Arc;
 
-pub struct GraphicsContext {
+pub trait HasGraphicsContext {
+    fn graphics(&self) -> &GraphicsContext;
+}
+
+struct GraphicsContextInternal {
     instance: wgpu::Instance,
-    surface: wgpu::Surface,
-    surface_config: wgpu::SurfaceConfiguration,
-    adapter: Arc<wgpu::Adapter>,
-    device: Arc<wgpu::Device>,
-    queue: Arc<wgpu::Queue>,
-    clear_color: Option<Color>,
-    disabled_post_processes: Vec<TypeId>,
+    adapter: wgpu::Adapter,
+    device: wgpu::Device,
+    queue: wgpu::Queue,
+}
+
+#[derive(Clone)]
+pub struct GraphicsContext {
+    internal: Arc<GraphicsContextInternal>,
+    texture_format: wgpu::TextureFormat,
+}
+
+impl HasGraphicsContext for GraphicsContext {
+    fn graphics(&self) -> &GraphicsContext {
+        self
+    }
 }
 
 impl GraphicsContext {
-    pub fn surface(&self) -> &wgpu::Surface {
-        &self.surface
+    pub fn wgpu_instance(&self) -> &wgpu::Instance {
+        &self.internal.instance
     }
 
-    pub fn surface_config(&self) -> &wgpu::SurfaceConfiguration {
-        &self.surface_config
+    pub fn adapter(&self) -> &wgpu::Adapter {
+        &self.internal.adapter
     }
 
-    pub fn surface_size(&self) -> UVec2 {
-        UVec2::new(self.surface_config.width, self.surface_config.height)
+    pub fn device(&self) -> &wgpu::Device {
+        &self.internal.device
     }
 
-    pub fn adapter(&self) -> &Arc<wgpu::Adapter> {
-        &self.adapter
+    pub fn queue(&self) -> &wgpu::Queue {
+        &self.internal.queue
     }
 
-    pub fn device(&self) -> &Arc<wgpu::Device> {
-        &self.device
+    pub fn default_texture_format(&self) -> wgpu::TextureFormat {
+        self.texture_format
     }
 
-    pub fn queue(&self) -> &Arc<wgpu::Queue> {
-        &self.queue
-    }
-
-    pub fn clear_color(&self) -> Option<Color> {
-        self.clear_color
-    }
-
-    pub fn set_clear_color(&mut self, color: Option<Color>) {
-        self.clear_color = color
-    }
-
-    pub fn set_post_process_enabled<P: PostProcess + 'static>(&mut self, enabled: bool) {
-        let id = TypeId::of::<P>();
-
-        if let Some(index) = self
-            .disabled_post_processes
-            .iter()
-            .position(|stored| *stored == id)
-        {
-            if enabled {
-                self.disabled_post_processes.remove(index);
-            }
-        } else if !enabled {
-            self.disabled_post_processes.push(id);
-        }
-    }
-
-    pub fn is_post_process_enabled<P: PostProcess + 'static>(&self) -> bool {
-        let id = TypeId::of::<P>();
-
-        !self.disabled_post_processes.contains(&id)
-    }
-
-    pub(crate) fn internal_is_post_process_enabled(&self, id: TypeId) -> bool {
-        !self.disabled_post_processes.contains(&id)
-    }
-
-    pub fn set_vsync_enabled(&mut self, enabled: bool) {
-        self.surface_config.present_mode = if enabled {
-            wgpu::PresentMode::AutoVsync
-        } else {
-            wgpu::PresentMode::AutoNoVsync
-        };
-
-        self.surface.configure(&self.device, &self.surface_config);
-    }
-
-    pub fn vsync_enabled(&self) -> bool {
-        self.surface_config.present_mode == wgpu::PresentMode::AutoVsync
+    pub fn set_default_texture_format(&mut self, format: wgpu::TextureFormat) {
+        self.texture_format = format;
     }
 
     pub fn load_wgsl<P: AsRef<Path> + ?Sized>(
@@ -135,25 +95,23 @@ impl GraphicsContext {
         wgpu::Error,
         impl Future<Output = Option<wgpu::Error>>,
     > {
-        self.device.push_error_scope(wgpu::ErrorFilter::Validation);
-        let shader = self.device.create_shader_module(descriptor);
-        let error = self.device.pop_error_scope();
+        let device = self.device();
+
+        device.push_error_scope(wgpu::ErrorFilter::Validation);
+        let shader = device.create_shader_module(descriptor);
+        let error = device.pop_error_scope();
 
         SyncResultAsyncError::new(shader, error)
     }
 
-    pub(crate) async fn new<Window: HasRawWindowHandle + HasRawDisplayHandle>(
-        window: &Window,
-        width: u32,
-        height: u32,
+    pub async fn new(
+        instance: wgpu::Instance,
+        surface: Option<&wgpu::Surface>,
     ) -> anyhow::Result<GraphicsContext> {
-        let instance = wgpu::Instance::default();
-        let surface = unsafe { instance.create_surface(window).unwrap() };
-
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: Some(&surface),
+                compatible_surface: surface,
                 force_fallback_adapter: false,
             })
             .await;
@@ -178,38 +136,14 @@ impl GraphicsContext {
             )
             .await?;
 
-        let mut surface_config = surface
-            .get_default_config(&adapter, width, height)
-            .expect("Surface unsupported by adapter");
-        surface_config.present_mode = wgpu::PresentMode::AutoVsync;
-
-        surface.configure(&device, &surface_config);
-
         Ok(GraphicsContext {
-            instance,
-            surface,
-            surface_config,
-            adapter: Arc::new(adapter),
-            device: Arc::new(device),
-            queue: Arc::new(queue),
-            clear_color: Some(Color::TRANSPARENT),
-            disabled_post_processes: Vec::new(),
+            internal: Arc::new(GraphicsContextInternal {
+                instance,
+                adapter,
+                device,
+                queue,
+            }),
+            texture_format: wgpu::TextureFormat::Rgba8UnormSrgb,
         })
-    }
-
-    pub(crate) fn rebuild_surface(&mut self, window: &dyn GameWindow) {
-        let handle = window.raw_window_and_display_handle();
-
-        if let Ok(surface) = unsafe { self.instance.create_surface(&handle) } {
-            surface.configure(&self.device, &self.surface_config);
-            self.surface = surface;
-        }
-    }
-
-    pub(crate) fn resized(&mut self, size: UVec2) {
-        self.surface_config.width = size.x;
-        self.surface_config.height = size.y;
-
-        self.surface.configure(&self.device, &self.surface_config);
     }
 }

@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 
 pub struct StructResource<T> {
@@ -7,14 +6,18 @@ pub struct StructResource<T> {
 }
 
 impl<T: bytemuck::Pod> StructResource<T> {
-    pub fn new(game_io: &GameIO, data: T) -> Self {
+    pub fn new(graphics: &impl HasGraphicsContext, data: T) -> Self {
         Self {
             data,
-            buffer_resource: BufferResource::new(game_io, bytemuck::bytes_of(&data)),
+            buffer_resource: BufferResource::new(graphics, bytemuck::bytes_of(&data)),
         }
     }
 
-    pub fn new_with_layout(game_io: &GameIO, data: T, layout: &[VertexFormat]) -> Self {
+    pub fn new_with_layout(
+        graphics: &impl HasGraphicsContext,
+        data: T,
+        layout: &[VertexFormat],
+    ) -> Self {
         let mut slice = bytemuck::bytes_of(&data);
         let mut bytes = Vec::with_capacity(slice.len());
 
@@ -29,7 +32,7 @@ impl<T: bytemuck::Pod> StructResource<T> {
 
         Self {
             data,
-            buffer_resource: BufferResource::new(game_io, &bytes),
+            buffer_resource: BufferResource::new(graphics, &bytes),
         }
     }
 

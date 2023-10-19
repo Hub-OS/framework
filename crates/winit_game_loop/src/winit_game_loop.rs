@@ -17,14 +17,28 @@ pub struct WinitGameLoop {
 impl GameWindowLoop for WinitGameLoop {
     type PlatformApp = crate::WinitPlatformApp;
 
-    fn build(window_config: GameWindowConfig<Self::PlatformApp>) -> anyhow::Result<Self> {
+    fn run(
+        window_config: GameWindowConfig<Self::PlatformApp>,
+        runtime_params: GameRuntimeCoreParams,
+    ) -> Box<dyn Future<Output = anyhow::Result<()>>> {
+        Box::new(async move {
+            let game_loop = Self::build(window_config).await?;
+            game_loop.run(runtime_params).await
+        })
+    }
+}
+
+impl WinitGameLoop {
+    async fn build(
+        window_config: GameWindowConfig<crate::WinitPlatformApp>,
+    ) -> anyhow::Result<Self> {
         let event_loop = create_winit_event_loop(window_config.platform_app.clone())?;
 
         let mut winit_window_builder = WindowBuilder::new()
             .with_title(&window_config.title)
             .with_inner_size(PhysicalSize::new(
-                window_config.size.0,
-                window_config.size.1,
+                window_config.size.x,
+                window_config.size.y,
             ))
             .with_resizable(window_config.resizable)
             .with_decorations(!window_config.borderless)
@@ -68,30 +82,28 @@ impl GameWindowLoop for WinitGameLoop {
                 .expect("Couldn't append canvas to document body.");
         });
 
-        let window = WinitGameWindow::from_window_and_config(winit_window, window_config);
+        let window = WinitGameWindow::from_window_and_config(winit_window, window_config).await?;
 
         let window_loop = Self { window, event_loop };
 
         Ok(window_loop)
     }
 
-    fn run(self, params: GameRuntimeCoreParams) -> Box<dyn Future<Output = anyhow::Result<()>>> {
-        Box::new(async {
-            let mut state: Box<dyn LoopState> = Box::new(StartingState::new(self.window, params));
+    async fn run(self, params: GameRuntimeCoreParams) -> anyhow::Result<()> {
+        let mut state: Box<dyn LoopState> = Box::new(StartingState::new(self.window, params));
 
-            self.event_loop.run(move |winit_event, event_loop_target| {
-                if let Some(new_state) = state.handle_event(winit_event, event_loop_target) {
-                    state = new_state;
+        self.event_loop.run(move |winit_event, event_loop_target| {
+            if let Some(new_state) = state.handle_event(winit_event, event_loop_target) {
+                state = new_state;
 
-                    state.handle_event(
-                        WinitEvent::NewEvents(WinitEventStartCause::Init),
-                        event_loop_target,
-                    );
-                }
-            })?;
+                state.handle_event(
+                    WinitEvent::NewEvents(WinitEventStartCause::Init),
+                    event_loop_target,
+                );
+            }
+        })?;
 
-            Ok(())
-        })
+        Ok(())
     }
 }
 

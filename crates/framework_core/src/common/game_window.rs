@@ -1,33 +1,7 @@
+use crate::graphics::Color;
 use math::*;
-use raw_window_handle::{
-    HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle,
-};
 
-pub struct RawWindowAndDisplayHandle {
-    pub window_handle: RawWindowHandle,
-    pub display_handle: RawDisplayHandle,
-}
-
-unsafe impl HasRawDisplayHandle for RawWindowAndDisplayHandle {
-    fn raw_display_handle(&self) -> RawDisplayHandle {
-        self.display_handle
-    }
-}
-
-unsafe impl HasRawWindowHandle for RawWindowAndDisplayHandle {
-    fn raw_window_handle(&self) -> RawWindowHandle {
-        self.window_handle
-    }
-}
-
-pub trait GameWindow: HasRawDisplayHandle + HasRawWindowHandle {
-    fn raw_window_and_display_handle(&self) -> RawWindowAndDisplayHandle {
-        RawWindowAndDisplayHandle {
-            window_handle: self.raw_window_handle(),
-            display_handle: self.raw_display_handle(),
-        }
-    }
-
+pub trait GameWindow {
     fn position(&self) -> IVec2;
 
     fn set_position(&mut self, position: IVec2);
@@ -48,6 +22,14 @@ pub trait GameWindow: HasRawDisplayHandle + HasRawWindowHandle {
 
     fn set_title(&mut self, title: &str);
 
+    fn clear_color(&self) -> Option<Color>;
+
+    fn set_clear_color(&mut self, color: Option<Color>);
+
+    fn vsync_enabled(&self) -> bool;
+
+    fn set_vsync_enabled(&mut self, enabled: bool);
+
     fn normalize_vec2(&self, mut position: Vec2) -> Vec2 {
         let window_size = self.size().as_vec2();
         let scale = window_size / self.resolution().as_vec2();
@@ -63,13 +45,4 @@ pub trait GameWindow: HasRawDisplayHandle + HasRawWindowHandle {
 
         position
     }
-
-    /// Called by GameIO to update tracked position
-    fn set_moved(&mut self, position: IVec2);
-
-    /// Called by GameIO to update tracked size
-    fn set_resized(&mut self, size: UVec2);
-
-    /// Called by GameIO to notify the window to display a virtual keyboard
-    fn set_accepting_text_input(&mut self, accept: bool);
 }

@@ -4,6 +4,7 @@ use crate::WinitGameWindow;
 use framework_core::runtime::GameRuntimeCoreParams;
 use logging::error;
 use winit::event::Event as WinitEvent;
+use winit::event_loop::ControlFlow;
 use winit::event_loop::EventLoopWindowTarget;
 
 struct StartingStateInitParams {
@@ -59,7 +60,8 @@ impl LoopState for StartingState {
     ) -> Option<Box<dyn LoopState>> {
         match winit_event {
             WinitEvent::Resumed => {
-                cfg_android!(self.start_active_state_task())
+                cfg_android!(self.start_active_state_task());
+                event_loop_target.set_control_flow(ControlFlow::Poll);
             }
             WinitEvent::WindowEvent {
                 event: winit::event::WindowEvent::CloseRequested,

@@ -1,6 +1,7 @@
 pub use cfg_macros;
 pub use framework_core::common;
 pub use framework_core::graphics;
+pub use framework_core::runtime;
 pub use input;
 pub use logging;
 pub use math;

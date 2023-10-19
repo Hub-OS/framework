@@ -1,6 +1,5 @@
 use super::translate_sdl_key;
-use framework_core::common::GameWindow;
-use framework_core::runtime::{GameWindowEvent, InputEvent};
+use framework_core::runtime::{GameWindowEvent, GameWindowLifecycle, InputEvent};
 use input::*;
 use math::*;
 use sdl2::controller::Axis as SDLAxis;
@@ -9,7 +8,7 @@ use sdl2::event::{Event as SDLEvent, WindowEvent as SDLWindowEvent};
 use sdl2::mouse::MouseButton as SDLMouseButton;
 
 pub(crate) fn translate_sdl_event(
-    window: &dyn GameWindow,
+    window: &dyn GameWindowLifecycle,
     game_window_id: u32,
     event: SDLEvent,
 ) -> Option<GameWindowEvent> {

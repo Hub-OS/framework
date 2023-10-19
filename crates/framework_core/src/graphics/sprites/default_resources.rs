@@ -47,11 +47,11 @@ impl DefaultSpriteMesh {
         }
     }
 
-    fn create_mesh(game_io: &GameIO, invert_y: bool) -> Arc<Mesh<SpriteVertex>> {
+    fn create_mesh(graphics: &impl HasGraphicsContext, invert_y: bool) -> Arc<Mesh<SpriteVertex>> {
         let (y1, y2) = if invert_y { (0.0, 1.0) } else { (1.0, 0.0) };
 
         Mesh::new(
-            game_io,
+            graphics,
             &[
                 SpriteVertex {
                     vertex: [0.0, 0.0],

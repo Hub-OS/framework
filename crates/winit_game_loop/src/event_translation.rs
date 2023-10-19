@@ -1,6 +1,5 @@
 use cfg_macros::*;
-use framework_core::common::GameWindow;
-use framework_core::runtime::{GameWindowEvent, InputEvent};
+use framework_core::runtime::{GameWindowEvent, GameWindowLifecycle, InputEvent};
 use input::*;
 use math::*;
 use winit::event::Event as WinitEvent;
@@ -10,7 +9,7 @@ use winit::event::WindowEvent as WinitWindowEvent;
 // todo: winit needs support for DroppedText: https://github.com/rust-windowing/winit/issues/720
 
 pub(crate) fn translate_winit_event(
-    window: &dyn GameWindow,
+    window: &dyn GameWindowLifecycle,
     primary_window_id: winit::window::WindowId,
     event: winit::event::Event<()>,
 ) -> Vec<GameWindowEvent> {

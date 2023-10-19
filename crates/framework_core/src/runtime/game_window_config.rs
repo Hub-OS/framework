@@ -1,7 +1,9 @@
+use math::UVec2;
+
 pub struct GameWindowConfig<PlatformApp> {
     pub title: String,
-    pub size: (u32, u32),
-    pub resolution: Option<(u32, u32)>,
+    pub size: UVec2,
+    pub resolution: Option<UVec2>,
     pub borderless: bool,
     pub fullscreen: bool,
     pub resizable: bool,
@@ -14,7 +16,7 @@ impl<T> GameWindowConfig<T> {
     pub(crate) fn new(title: &str, size: (u32, u32)) -> Self {
         Self {
             title: title.into(),
-            size,
+            size: size.into(),
             resolution: None,
             borderless: false,
             fullscreen: false,

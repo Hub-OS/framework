@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 use math::*;
 use std::sync::Arc;
@@ -32,7 +31,7 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
     RenderQueue<'a, Vertex, InstanceData>
 {
     pub fn new<'b, RenderPipeline, I>(
-        game_io: &'a GameIO,
+        graphics: &'a impl HasGraphicsContext,
         render_pipeline: &'a RenderPipeline,
         uniform_resources: I,
     ) -> Self
@@ -44,7 +43,7 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
         let wgpu_render_pipeline = render_pipeline.render_pipeline.clone();
 
         let mut render_queue = Self {
-            graphics: game_io.graphics(),
+            graphics: graphics.graphics(),
             uniform_bind_group_layout: &render_pipeline.uniform_bind_group_layout,
             instance_bind_group_layout: &render_pipeline.instance_bind_group_layout,
             latest_mesh: None,

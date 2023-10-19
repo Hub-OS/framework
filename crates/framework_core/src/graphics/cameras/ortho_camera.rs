@@ -1,5 +1,6 @@
-use crate::common::{GameIO, GameWindow};
+use crate::common::GameWindow;
 use crate::graphics::*;
+use crate::runtime::GameWindowLifecycle;
 use math::*;
 use std::cell::RefCell;
 
@@ -66,7 +67,7 @@ pub struct OrthoCamera {
 }
 
 impl OrthoCamera {
-    pub fn new(game_io: &GameIO, view_size: Vec2) -> OrthoCamera {
+    pub fn new(graphics: &impl HasGraphicsContext, view_size: Vec2) -> OrthoCamera {
         let state = CameraState {
             translation: Vec3::ZERO,
             invert_y: 1.0,
@@ -78,7 +79,7 @@ impl OrthoCamera {
         };
 
         let buffer_resource =
-            BufferResource::new(game_io, bytemuck::cast_slice(&[state.create_matrix()]));
+            BufferResource::new(graphics, bytemuck::cast_slice(&[state.create_matrix()]));
 
         OrthoCamera {
             state,
@@ -156,7 +157,7 @@ impl OrthoCamera {
         self.state.height = size.y;
     }
 
-    pub fn scale_to_window(&mut self, window: &dyn GameWindow) {
+    pub fn scale_to_window(&mut self, window: &dyn GameWindowLifecycle) {
         let res = window.resolution();
 
         self.state.width = res.x as f32;

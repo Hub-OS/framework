@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 use std::sync::Arc;
 
@@ -18,7 +17,7 @@ pub struct TextureSampler {
 
 impl TextureSampler {
     pub fn new(
-        game_io: &GameIO,
+        graphics: &impl HasGraphicsContext,
         sampling_filter: SamplingFilter,
         edge_sampling: EdgeSampling,
     ) -> Arc<Self> {
@@ -32,7 +31,7 @@ impl TextureSampler {
             SamplingFilter::Nearest => wgpu::FilterMode::Nearest,
         };
 
-        let device = game_io.graphics().device();
+        let device = graphics.graphics().device();
 
         Arc::new(Self {
             sampler: device.create_sampler(&wgpu::SamplerDescriptor {
