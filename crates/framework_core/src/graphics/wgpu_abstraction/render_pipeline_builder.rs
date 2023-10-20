@@ -8,8 +8,7 @@ pub struct RenderPipelineBuilder<'a> {
     instance_bind_group_layout_entries: Vec<wgpu::BindGroupLayoutEntry>,
     vertex_shader: Option<(&'a wgpu::ShaderModule, String)>,
     fragment_shader: Option<(&'a wgpu::ShaderModule, String)>,
-    target_format: wgpu::TextureFormat,
-    blend: Option<wgpu::BlendState>,
+    color_states: Vec<Option<wgpu::ColorTargetState>>,
     primitive: wgpu::PrimitiveState,
     depth_stencil: Option<wgpu::DepthStencilState>,
     multisample: wgpu::MultisampleState,
@@ -23,8 +22,11 @@ impl<'a> RenderPipelineBuilder<'a> {
             instance_bind_group_layout_entries: Vec::new(),
             vertex_shader: None,
             fragment_shader: None,
-            target_format: game_io.window().graphics().default_texture_format(),
-            blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+            color_states: vec![Some(wgpu::ColorTargetState {
+                format: game_io.graphics().default_texture_format(),
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
@@ -66,23 +68,23 @@ impl<'a> RenderPipelineBuilder<'a> {
         self
     }
 
-    pub fn with_target_format(mut self, format: wgpu::TextureFormat) -> Self {
-        self.target_format = format;
+    pub fn with_color_target(mut self, state: wgpu::ColorTargetState) -> Self {
+        self.color_states[0] = Some(state);
         self
     }
 
-    pub fn with_blend(mut self, blend: wgpu::BlendState) -> Self {
-        self.blend = Some(blend);
+    pub fn with_additional_color_target(mut self, state: wgpu::ColorTargetState) -> Self {
+        self.color_states.push(Some(state));
+        self
+    }
+
+    pub fn with_depth_target(mut self, depth_stencil: wgpu::DepthStencilState) -> Self {
+        self.depth_stencil = Some(depth_stencil);
         self
     }
 
     pub fn with_primitive(mut self, primitive: wgpu::PrimitiveState) -> Self {
         self.primitive = primitive;
-        self
-    }
-
-    pub fn with_depth_stencil(mut self, depth_stencil: wgpu::DepthStencilState) -> Self {
-        self.depth_stencil = Some(depth_stencil);
         self
     }
 
@@ -142,11 +144,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 entry_point: vertex_entry.as_str(),
             },
             fragment: Some(wgpu::FragmentState {
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: self.target_format,
-                    blend: self.blend,
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
+                targets: self.color_states.as_slice(),
                 module: fragment_shader,
                 entry_point: fragment_entry.as_str(),
             }),

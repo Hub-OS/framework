@@ -5,24 +5,34 @@ use math::*;
 pub struct RenderPass<'a> {
     encoder: &'a mut wgpu::CommandEncoder,
     label: Option<&'static str>,
-    color_attachments: Vec<Option<wgpu::RenderPassColorAttachment<'a>>>,
-    depth_attachment: Option<wgpu::RenderPassDepthStencilAttachment<'a>>,
+    color_targets: Vec<&'a RenderTarget>,
+    depth_target: Option<&'a RenderTarget>,
     queues: Vec<Vec<RenderOperation>>,
     texture_size: UVec2,
     clear_color: Option<Color>,
 }
 
 impl<'a> RenderPass<'a> {
-    pub fn new(encoder: &'a mut wgpu::CommandEncoder, render_target: &'a RenderTarget) -> Self {
+    pub fn new(encoder: &'a mut wgpu::CommandEncoder, color_target: &'a RenderTarget) -> Self {
         Self {
             encoder,
             label: None,
-            color_attachments: vec![Some(render_target.color_attachment())],
-            depth_attachment: render_target.depth_attachment(),
+            color_targets: vec![color_target],
+            depth_target: None,
             queues: Vec::new(),
-            texture_size: render_target.size(),
-            clear_color: render_target.clear_color(),
+            texture_size: color_target.size(),
+            clear_color: color_target.clear_color(),
         }
+    }
+
+    pub fn with_additional_color_target(mut self, color_target: &'a RenderTarget) -> Self {
+        self.color_targets.push(color_target);
+        self
+    }
+
+    pub fn with_depth_target(mut self, depth_target: &'a RenderTarget) -> Self {
+        self.depth_target = Some(depth_target);
+        self
     }
 
     pub fn target_size(&self) -> UVec2 {
@@ -33,15 +43,15 @@ impl<'a> RenderPass<'a> {
         self.clear_color
     }
 
-    pub fn create_subpass<'b>(&'b mut self, render_target: &'b RenderTarget) -> RenderPass<'b> {
+    pub fn create_subpass<'b>(&'b mut self, color_target: &'b RenderTarget) -> RenderPass<'b> {
         RenderPass {
             encoder: self.encoder,
             label: Some("render_target_pass"),
-            color_attachments: vec![Some(render_target.color_attachment())],
-            depth_attachment: render_target.depth_attachment(),
+            color_targets: vec![color_target],
+            depth_target: None,
             queues: Vec::new(),
-            texture_size: render_target.size(),
-            clear_color: render_target.clear_color(),
+            texture_size: color_target.size(),
+            clear_color: color_target.clear_color(),
         }
     }
 
@@ -54,10 +64,18 @@ impl<'a> RenderPass<'a> {
     }
 
     pub fn flush(self) {
+        let color_attachments: Vec<_> = self
+            .color_targets
+            .iter()
+            .map(|target| Some(target.color_attachment()))
+            .collect();
+
+        let depth_stencil_attachment = self.depth_target.map(|target| target.depth_attachment());
+
         let descriptor = wgpu::RenderPassDescriptor {
             label: self.label,
-            color_attachments: &self.color_attachments,
-            depth_stencil_attachment: self.depth_attachment,
+            color_attachments: &color_attachments,
+            depth_stencil_attachment,
         };
 
         let encoder = self.encoder;

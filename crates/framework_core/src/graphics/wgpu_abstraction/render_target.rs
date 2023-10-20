@@ -67,6 +67,7 @@ impl RenderTarget {
         self.clear_color
     }
 
+    /// If the render target acts as a depth buffer, only the color.a value will be used
     pub fn set_clear_color(&mut self, color: Option<Color>) {
         self.clear_color = color;
     }
@@ -85,8 +86,18 @@ impl RenderTarget {
         }
     }
 
-    pub(crate) fn depth_attachment(&self) -> Option<wgpu::RenderPassDepthStencilAttachment> {
-        None
+    pub(crate) fn depth_attachment(&self) -> wgpu::RenderPassDepthStencilAttachment {
+        wgpu::RenderPassDepthStencilAttachment {
+            view: &self.texture.view,
+            depth_ops: Some(wgpu::Operations {
+                load: match self.clear_color {
+                    Some(color) => wgpu::LoadOp::Clear(color.a),
+                    None => wgpu::LoadOp::Load,
+                },
+                store: true,
+            }),
+            stencil_ops: None,
+        }
     }
 
     fn create_texture(
