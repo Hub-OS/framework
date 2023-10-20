@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 use math::*;
 
@@ -9,16 +8,16 @@ pub struct PostPipeline {
 
 impl PostPipeline {
     pub fn new(
-        game_io: &GameIO,
+        graphics: &impl HasGraphicsContext,
         fragment_shader: &wgpu::ShaderModule,
         fragment_entry: &str,
         uniform_bind_group: &[BindGroupLayoutEntry],
     ) -> Self {
-        let device = game_io.graphics().device();
+        let device = graphics.graphics().device();
 
         let shader = device.create_shader_module(include_wgsl!("../copy/copy_shader.wgsl"));
 
-        let render_pipeline = RenderPipelineBuilder::new(game_io)
+        let render_pipeline = RenderPipelineBuilder::new(graphics)
             .with_uniform_bind_group(uniform_bind_group)
             .with_instance_bind_group(&[
                 BindGroupLayoutEntry {

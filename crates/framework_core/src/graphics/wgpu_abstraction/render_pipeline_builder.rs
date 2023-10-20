@@ -1,9 +1,8 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 use math::*;
 
 pub struct RenderPipelineBuilder<'a> {
-    game_io: &'a GameIO,
+    graphics: &'a GraphicsContext,
     uniform_bind_group_layout_entries: Vec<wgpu::BindGroupLayoutEntry>,
     instance_bind_group_layout_entries: Vec<wgpu::BindGroupLayoutEntry>,
     vertex_shader: Option<(&'a wgpu::ShaderModule, String)>,
@@ -15,15 +14,17 @@ pub struct RenderPipelineBuilder<'a> {
 }
 
 impl<'a> RenderPipelineBuilder<'a> {
-    pub fn new(game_io: &'a GameIO) -> Self {
+    pub fn new(graphics: &'a impl HasGraphicsContext) -> Self {
+        let graphics = graphics.graphics();
+
         Self {
-            game_io,
+            graphics,
             uniform_bind_group_layout_entries: Vec::new(),
             instance_bind_group_layout_entries: Vec::new(),
             vertex_shader: None,
             fragment_shader: None,
             color_states: vec![Some(wgpu::ColorTargetState {
-                format: game_io.graphics().default_texture_format(),
+                format: graphics.default_texture_format(),
                 blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
@@ -100,7 +101,7 @@ impl<'a> RenderPipelineBuilder<'a> {
         Vertex: super::Vertex,
         InstanceData: super::InstanceData,
     {
-        let device = self.game_io.graphics().device();
+        let device = self.graphics.device();
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
