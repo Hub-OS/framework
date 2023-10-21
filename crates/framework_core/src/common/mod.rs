@@ -1,5 +1,6 @@
 pub(crate) mod default_resources;
 mod game;
+mod game_input_manager;
 mod game_io;
 mod game_overlay;
 mod game_service;
@@ -10,6 +11,7 @@ mod scene_manager;
 mod scene_transition;
 
 pub use game::*;
+pub use game_input_manager::*;
 pub use game_io::*;
 pub use game_overlay::*;
 pub use game_service::*;

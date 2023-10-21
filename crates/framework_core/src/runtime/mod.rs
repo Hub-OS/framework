@@ -6,7 +6,6 @@ mod game_window_loop;
 mod headless_game_loop;
 mod headless_game_window;
 mod input_event;
-mod input_manager;
 
 use headless_game_window::*;
 
@@ -17,4 +16,3 @@ pub use game_window_lifecycle::*;
 pub use game_window_loop::*;
 pub use headless_game_loop::*;
 pub use input_event::*;
-pub use input_manager::*;

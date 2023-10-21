@@ -1,3 +1,4 @@
+use super::GameInputManager;
 use crate::async_task::*;
 use crate::graphics::*;
 use crate::runtime::*;
@@ -12,7 +13,7 @@ pub struct GameIO {
     resources: HashMap<TypeId, Box<dyn Any>>,
     disabled_post_processes: Vec<TypeId>,
     async_executor: async_executor::LocalExecutor<'static>,
-    input_manager: InputManager,
+    input_manager: GameInputManager,
     target_fps: u16,
     game_start_instant: Instant,
     frame_start_instant: Instant,
@@ -40,7 +41,7 @@ impl GameIO {
             resources: HashMap::new(),
             disabled_post_processes: Vec::new(),
             async_executor: async_executor::LocalExecutor::new(),
-            input_manager: InputManager::default(),
+            input_manager: GameInputManager::default(),
             target_fps: 60,
             game_start_instant: Instant::now(),
             frame_start_instant: Instant::now(),
@@ -64,11 +65,11 @@ impl GameIO {
         &mut *self.window
     }
 
-    pub fn input(&self) -> &InputManager {
+    pub fn input(&self) -> &GameInputManager {
         &self.input_manager
     }
 
-    pub fn input_mut(&mut self) -> &mut InputManager {
+    pub fn input_mut(&mut self) -> &mut GameInputManager {
         &mut self.input_manager
     }
 

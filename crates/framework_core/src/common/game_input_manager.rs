@@ -1,10 +1,10 @@
-use super::*;
+use crate::runtime::*;
 use copypasta::{ClipboardContext, ClipboardProvider};
 use input::*;
 use math::*;
 use std::path::PathBuf;
 
-pub struct InputManager {
+pub struct GameInputManager {
     clipboard: Option<ClipboardContext>,
     latest_mouse_button: Option<MouseButton>,
     latest_key: Option<Key>,
@@ -25,7 +25,7 @@ pub struct InputManager {
     requires_ime_update: bool,
 }
 
-impl Default for InputManager {
+impl Default for GameInputManager {
     fn default() -> Self {
         Self {
             clipboard: ClipboardContext::new().ok(),
@@ -50,7 +50,7 @@ impl Default for InputManager {
     }
 }
 
-impl InputManager {
+impl GameInputManager {
     pub fn requires_ime_update(&self) -> bool {
         self.requires_ime_update
     }
