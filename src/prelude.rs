@@ -1,4 +1,4 @@
-use cfg_macros::cfg_web;
+use cfg_macros::*;
 
 pub use crate::graphics::*;
 pub use framework_core::async_task::{sleep as async_sleep, AsyncTask, SyncResultAsyncError};
