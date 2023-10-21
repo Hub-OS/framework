@@ -24,7 +24,7 @@ macro_rules! init {
 #[macro_export]
 macro_rules! init_with_listener {
     ($listener:expr) => {{
-        use $crate::logging::{default_logger::DefaultLogger, LogLevelFilter};
+        use $crate::{default_logger::DefaultLogger, LogLevelFilter};
 
         DefaultLogger::new()
             .with_global_level_filter(LogLevelFilter::Warn)
