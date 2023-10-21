@@ -20,10 +20,6 @@ These instructions use [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 In Cargo.toml:
 
 ```toml
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-
 # also used in android builds
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -32,9 +28,9 @@ crate-type = ["cdylib", "rlib"]
 Create a function in lib.rs and decorate it with the `#[wasm_bindgen(start)]` macro to mark it as an entry:
 
 ```rust
-use framework::prelude::wasm_bindgen;
+use framework::prelude::*;
 
-// note async main as blocking within a web browser with freeze the page + event loop
+// note: async main, as blocking within a web browser will freeze the page + event loop
 // using cfg_attr to use this macro only when building for wasm
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]

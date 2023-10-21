@@ -10,10 +10,6 @@ rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
 log = "0.4"
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-
 # necessary for android + wasm builds
 [lib]
 crate-type = ["cdylib", "rlib"]

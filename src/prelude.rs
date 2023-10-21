@@ -9,6 +9,7 @@ pub use math::*;
 
 cfg_web! {
   pub use wasm_forward::wasm_bindgen::prelude::wasm_bindgen;
+  pub use wasm_forward::wasm_bindgen;
 }
 
 #[cfg(feature = "sdl2")]
