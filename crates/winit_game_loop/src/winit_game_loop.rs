@@ -1,6 +1,5 @@
 use super::*;
-use crate::loop_states::{LoopState, StartingState};
-use crate::WinitGameWindow;
+use crate::loop_states::{LoopState, StartingState, StartingStateParams};
 use cfg_macros::*;
 use framework_core::runtime::{GameRuntimeCoreParams, GameWindowConfig, GameWindowLoop};
 use std::future::Future;
@@ -10,7 +9,8 @@ use winit::event_loop::EventLoop;
 use winit::window::{WindowBuilder, WindowLevel};
 
 pub struct WinitGameLoop {
-    window: WinitGameWindow,
+    winit_window: winit::window::Window,
+    window_config: GameWindowConfig<super::WinitPlatformApp>,
     event_loop: EventLoop<()>,
 }
 
@@ -82,15 +82,23 @@ impl WinitGameLoop {
                 .expect("Couldn't append canvas to document body.");
         });
 
-        let window = WinitGameWindow::from_window_and_config(winit_window, window_config).await?;
-
-        let window_loop = Self { window, event_loop };
+        let window_loop = Self {
+            winit_window,
+            window_config,
+            event_loop,
+        };
 
         Ok(window_loop)
     }
 
     async fn run(self, params: GameRuntimeCoreParams) -> anyhow::Result<()> {
-        let mut state: Box<dyn LoopState> = Box::new(StartingState::new(self.window, params));
+        let state_params = StartingStateParams {
+            winit_window: self.winit_window,
+            window_config: self.window_config,
+            runtime_params: params,
+        };
+
+        let mut state: Box<dyn LoopState> = Box::new(StartingState::new(state_params));
 
         self.event_loop.run(move |winit_event, event_loop_target| {
             if let Some(new_state) = state.handle_event(winit_event, event_loop_target) {

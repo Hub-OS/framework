@@ -5,6 +5,7 @@ use math::*;
 use winit::event::Event as WinitEvent;
 use winit::event::MouseButton as WinitMouseButton;
 use winit::event::WindowEvent as WinitWindowEvent;
+use winit::keyboard::PhysicalKey;
 
 // todo: winit needs support for DroppedText: https://github.com/rust-windowing/winit/issues/720
 
@@ -85,7 +86,13 @@ pub(crate) fn translate_winit_event(
                     let mut events = Vec::new();
 
                     // key event
-                    if let Some(key) = super::translate_winit_key(physical_key) {
+                    let key_code = if let PhysicalKey::Code(key_code) = physical_key {
+                        Some(key_code)
+                    } else {
+                        None
+                    };
+
+                    if let Some(key) = key_code.and_then(super::translate_winit_key) {
                         if state == winit::event::ElementState::Pressed {
                             events.push(InputEvent::KeyDown(key).into());
                         } else {

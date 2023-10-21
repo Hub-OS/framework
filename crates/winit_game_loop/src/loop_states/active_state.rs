@@ -5,6 +5,8 @@ use winit::event::{Event as WinitEvent, StartCause as WinitEventStartCause};
 use winit::event_loop::{ControlFlow, EventLoopWindowTarget};
 use winit::window::WindowId;
 
+use super::StartingStateParams;
+
 pub struct ActiveState {
     window_id: WindowId,
     game_runtime: GameRuntimeCore,
@@ -12,12 +14,15 @@ pub struct ActiveState {
 }
 
 impl ActiveState {
-    pub async fn new(
-        window: WinitGameWindow,
-        window_id: WindowId,
-        loop_params: GameRuntimeCoreParams,
-    ) -> anyhow::Result<Self> {
-        let mut game_runtime = GameRuntimeCore::new(Box::new(window), loop_params).await?;
+    pub async fn new(params: StartingStateParams) -> anyhow::Result<Self> {
+        let window_id = params.winit_window.id();
+        let window =
+            WinitGameWindow::from_window_and_config(params.winit_window, params.window_config)
+                .await?;
+
+        let mut game_runtime =
+            GameRuntimeCore::new(Box::new(window), params.runtime_params).await?;
+
         let controller_event_pump = ControllerEventPump::new(&mut game_runtime)?;
 
         Ok(Self {

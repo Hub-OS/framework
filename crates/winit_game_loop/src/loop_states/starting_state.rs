@@ -1,32 +1,30 @@
 use super::*;
 use crate::cfg_android;
-use crate::WinitGameWindow;
 use framework_core::runtime::GameRuntimeCoreParams;
+use framework_core::runtime::GameWindowConfig;
 use logging::error;
 use winit::event::Event as WinitEvent;
 use winit::event_loop::ControlFlow;
 use winit::event_loop::EventLoopWindowTarget;
 
-struct StartingStateInitParams {
-    window: WinitGameWindow,
-    runtime_params: GameRuntimeCoreParams,
+pub struct StartingStateParams {
+    pub winit_window: winit::window::Window,
+    pub window_config: GameWindowConfig<crate::WinitPlatformApp>,
+    pub runtime_params: GameRuntimeCoreParams,
 }
 
 pub struct StartingState {
     async_executor: async_executor::LocalExecutor<'static>,
-    starting_state_init_params: Option<StartingStateInitParams>,
+    starting_state_init_params: Option<StartingStateParams>,
     task: Option<async_executor::Task<anyhow::Result<ActiveState>>>,
 }
 
 impl StartingState {
-    pub fn new(window: WinitGameWindow, runtime_params: GameRuntimeCoreParams) -> Self {
+    pub fn new(params: StartingStateParams) -> Self {
         #[allow(unused_mut)]
         let mut starting_state = Self {
             async_executor: async_executor::LocalExecutor::new(),
-            starting_state_init_params: Some(StartingStateInitParams {
-                window,
-                runtime_params,
-            }),
+            starting_state_init_params: Some(params),
             task: None,
         };
 
@@ -41,13 +39,7 @@ impl StartingState {
 impl StartingState {
     fn start_active_state_task(&mut self) {
         if let Some(params) = self.starting_state_init_params.take() {
-            let window_id = params.window.id();
-
-            self.task = Some(self.async_executor.spawn(ActiveState::new(
-                params.window,
-                window_id,
-                params.runtime_params,
-            )));
+            self.task = Some(self.async_executor.spawn(ActiveState::new(params)));
         }
     }
 }

@@ -62,10 +62,6 @@ impl WinitGameWindow {
             platform_app: window_config.platform_app.clone(),
         })
     }
-
-    pub(crate) fn id(&self) -> winit::window::WindowId {
-        self.window.id()
-    }
 }
 
 impl HasGraphicsContext for WinitGameWindow {
