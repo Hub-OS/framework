@@ -20,7 +20,6 @@ These instructions use [wasm-pack](https://rustwasm.github.io/wasm-pack/)
 In Cargo.toml:
 
 ```toml
-# also used in android builds
 [lib]
 crate-type = ["cdylib", "rlib"]
 ```
@@ -61,10 +60,6 @@ Make sure to `rustup target add [architecture]-linux-android` for your target ar
 In Cargo.toml:
 
 ```toml
-# also used in wasm builds
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [package.metadata.android.sdk]
 target_sdk_version = 30
 min_sdk_version = 30

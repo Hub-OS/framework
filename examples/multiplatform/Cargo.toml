@@ -10,6 +10,6 @@ rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
 log = "0.4"
 
-# necessary for android + wasm builds
+# necessary for wasm builds
 [lib]
 crate-type = ["cdylib", "rlib"]
