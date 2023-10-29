@@ -30,6 +30,8 @@ pub trait GameWindow {
 
     fn set_vsync_enabled(&mut self, enabled: bool);
 
+    /// Normalizes from a position on the window, with (0.0, 0.0) as the top left and the window size as the bottom right,
+    /// to a position on the render, with (-1.0, -1.0) as the top left of the render and (1.0, 1.0) as the bottom right.
     fn normalize_vec2(&self, mut position: Vec2) -> Vec2 {
         let window_size = self.size().as_vec2();
         let scale = window_size / self.resolution().as_vec2();
@@ -44,5 +46,32 @@ pub trait GameWindow {
         }
 
         position
+    }
+
+    fn render_offset(&self) -> Vec2 {
+        let window_size = self.size().as_vec2();
+        let window_resolution = self.resolution().as_vec2();
+        let scale = window_size / window_resolution;
+        let mut scaled_resolution = window_resolution;
+
+        if scale.x > scale.y {
+            scaled_resolution *= scale.y;
+            Vec2::new((window_size.x - scaled_resolution.x) * 0.5, 0.0)
+        } else {
+            scaled_resolution *= scale.x;
+            Vec2::new(0.0, (window_size.y - scaled_resolution.y) * 0.5)
+        }
+    }
+
+    fn render_scale(&self) -> f32 {
+        let window_size = self.size().as_vec2();
+        let window_resolution = self.resolution().as_vec2();
+        let scale = window_size / window_resolution;
+
+        if scale.x > scale.y {
+            scale.y
+        } else {
+            scale.x
+        }
     }
 }
