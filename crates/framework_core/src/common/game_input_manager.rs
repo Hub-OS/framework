@@ -251,7 +251,14 @@ impl GameInputManager {
         self.dropped_text = None;
         self.requires_ime_update = false;
         self.text.clear();
-        self.touches.retain(|touch| touch.phase != TouchPhase::End);
+        self.touches.retain_mut(|touch| {
+            if touch.phase == TouchPhase::Start {
+                // change phase as it's not our first frame with this touch
+                touch.phase = TouchPhase::Moving;
+            }
+
+            touch.phase != TouchPhase::End
+        });
 
         for controller in &mut self.controllers {
             controller.flush();
@@ -261,11 +268,18 @@ impl GameInputManager {
     pub fn handle_event(&mut self, event: InputEvent) {
         // println!("{:?}", event);
         match event {
-            InputEvent::Touch(touch) => {
+            InputEvent::Touch(mut touch) => {
                 let mut touch_iter = self.touches.iter_mut();
 
                 match touch_iter.find(|existing| existing.id == touch.id) {
-                    Some(existing) => *existing = touch,
+                    Some(existing) => {
+                        if existing.phase == TouchPhase::Start && touch.phase != TouchPhase::End {
+                            // retain TouchPhase::Start
+                            touch.phase = existing.phase;
+                        }
+
+                        *existing = touch
+                    }
                     None => self.touches.push(touch),
                 }
             }
