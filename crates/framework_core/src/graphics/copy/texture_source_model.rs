@@ -22,6 +22,10 @@ impl DefaultTextureSourceMesh {
             ),
         }
     }
+
+    pub fn as_mesh(&self) -> &Arc<Mesh<Vec2>> {
+        &self.mesh
+    }
 }
 
 pub struct TextureSourceModel {
