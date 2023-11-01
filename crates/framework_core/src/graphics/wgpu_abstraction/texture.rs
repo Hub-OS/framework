@@ -13,6 +13,14 @@ impl Texture {
         graphics: &impl HasGraphicsContext,
         bytes: &[u8],
     ) -> anyhow::Result<Arc<Self>> {
+        Self::load_from_memory_with_format(graphics, bytes, wgpu::TextureFormat::Rgba8UnormSrgb)
+    }
+
+    pub fn load_from_memory_with_format(
+        graphics: &impl HasGraphicsContext,
+        bytes: &[u8],
+        format: wgpu::TextureFormat,
+    ) -> anyhow::Result<Arc<Self>> {
         let image = image::load_from_memory(bytes)?;
         let rgba_image = image.to_rgba8();
         let size = rgba_image.dimensions();
@@ -34,7 +42,7 @@ impl Texture {
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            format,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
