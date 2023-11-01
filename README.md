@@ -66,6 +66,13 @@ min_sdk_version = 30
 max_sdk_version = 30
 ```
 
+In Cargo.toml:
+
+```toml
+[lib]
+crate-type = ["cdylib"]
+```
+
 Add this to lib.rs:
 
 ```rust
