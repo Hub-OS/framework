@@ -7,6 +7,7 @@ pub struct RenderTarget {
     clear_color: Option<Color>,
     texture: Arc<Texture>,
     usage: wgpu::TextureUsages,
+    format: wgpu::TextureFormat,
 }
 
 impl RenderTarget {
@@ -16,11 +17,7 @@ impl RenderTarget {
         wgpu::TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
 
     pub fn new(graphics: &impl HasGraphicsContext, size: UVec2) -> Self {
-        Self {
-            texture: RenderTarget::create_texture(graphics, size, Self::DEFAULT_USAGE),
-            clear_color: Some(Color::TRANSPARENT),
-            usage: Self::DEFAULT_USAGE,
-        }
+        Self::new_with_usage(graphics, size, Self::DEFAULT_USAGE)
     }
 
     pub fn new_with_usage(
@@ -28,10 +25,29 @@ impl RenderTarget {
         size: UVec2,
         usage: wgpu::TextureUsages,
     ) -> Self {
+        let graphics = graphics.graphics();
+        let format = graphics.default_texture_format();
+
         Self {
-            texture: RenderTarget::create_texture(graphics, size, usage),
+            texture: RenderTarget::create_texture(graphics, size, usage, format),
             clear_color: Some(Color::TRANSPARENT),
             usage,
+            format,
+        }
+    }
+
+    pub fn new_with_format(
+        graphics: &impl HasGraphicsContext,
+        size: UVec2,
+        format: wgpu::TextureFormat,
+    ) -> Self {
+        let usage = Self::DEFAULT_USAGE;
+
+        Self {
+            texture: RenderTarget::create_texture(graphics, size, usage, format),
+            clear_color: Some(Color::TRANSPARENT),
+            usage,
+            format,
         }
     }
 
@@ -44,6 +60,7 @@ impl RenderTarget {
             }),
             clear_color: Some(Color::TRANSPARENT),
             usage: Self::DEFAULT_USAGE,
+            format: Texture::DEFAULT_FORMAT,
         }
     }
 
@@ -60,7 +77,7 @@ impl RenderTarget {
             return;
         }
 
-        self.texture = RenderTarget::create_texture(graphics, size, self.usage);
+        self.texture = RenderTarget::create_texture(graphics, size, self.usage, self.format);
     }
 
     pub fn clear_color(&self) -> Option<Color> {
@@ -104,10 +121,10 @@ impl RenderTarget {
         graphics: &impl HasGraphicsContext,
         size: UVec2,
         usage: wgpu::TextureUsages,
+        format: wgpu::TextureFormat,
     ) -> Arc<Texture> {
         let graphics = graphics.graphics();
         let device = graphics.device();
-        let format = graphics.default_texture_format();
 
         let texture_desc = wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
