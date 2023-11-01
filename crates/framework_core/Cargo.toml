@@ -11,14 +11,14 @@ input = { path = "../input" }
 logging = { path = "../logging" }
 async-executor = "1"
 async-task = "4.0.0"
-futures-lite = "1"
+futures-lite = "2"
 anyhow = "1"
 bytemuck = { version = "1", features = ["derive"] }
 copypasta = "0.10"
 image = { version = "0.24", default-features = false }
 raw-window-handle = "0.5"
 # using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "0.17", features = ["webgl"] }
+wgpu = { version = "0.18", features = ["webgl"] }
 slotmap = "1"
 
 # native dependencies

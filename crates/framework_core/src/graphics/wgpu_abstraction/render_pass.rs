@@ -76,6 +76,8 @@ impl<'a> RenderPass<'a> {
             label: self.label,
             color_attachments: &color_attachments,
             depth_stencil_attachment,
+            occlusion_query_set: None,
+            timestamp_writes: None,
         };
 
         let encoder = self.encoder;

@@ -81,7 +81,7 @@ impl RenderTarget {
                     Some(color) => wgpu::LoadOp::Clear(color.into()),
                     None => wgpu::LoadOp::Load,
                 },
-                store: true,
+                store: wgpu::StoreOp::Store,
             },
         }
     }
@@ -94,7 +94,7 @@ impl RenderTarget {
                     Some(color) => wgpu::LoadOp::Clear(color.a),
                     None => wgpu::LoadOp::Load,
                 },
-                store: true,
+                store: wgpu::StoreOp::Store,
             }),
             stencil_ops: None,
         }
