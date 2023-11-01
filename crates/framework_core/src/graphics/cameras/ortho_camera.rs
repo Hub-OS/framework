@@ -1,4 +1,3 @@
-use crate::common::GameWindow;
 use crate::graphics::*;
 use crate::runtime::GameWindowLifecycle;
 use math::*;
@@ -135,7 +134,7 @@ impl OrthoCamera {
         self.state.requested_height = size.y;
     }
 
-    pub fn resize_to_window(&mut self, window: &dyn GameWindow) {
+    pub fn resize_to_window(&mut self, window: &dyn GameWindowLifecycle) {
         let resolution = window.resolution();
 
         self.state.width = resolution.x as f32;
