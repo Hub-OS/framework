@@ -3,14 +3,12 @@ use crate::graphics::*;
 use math::*;
 use std::sync::Arc;
 
-pub struct TextureSourceModel {
+pub struct DefaultTextureSourceMesh {
     mesh: Arc<Mesh<Vec2>>,
-    texture: Arc<Texture>,
-    sampler: Arc<TextureSampler>,
 }
 
-impl TextureSourceModel {
-    pub fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
+impl DefaultTextureSourceMesh {
+    pub(crate) fn new(game_io: &GameIO) -> Self {
         Self {
             mesh: Mesh::new(
                 game_io,
@@ -22,12 +20,40 @@ impl TextureSourceModel {
                 ],
                 &[0, 1, 2, 2, 0, 3],
             ),
-            texture,
-            sampler: game_io
-                .resource::<DefaultSpriteSampler>()
+        }
+    }
+}
+
+pub struct TextureSourceModel {
+    mesh: Arc<Mesh<Vec2>>,
+    texture: Arc<Texture>,
+    sampler: Arc<TextureSampler>,
+}
+
+impl TextureSourceModel {
+    pub fn new(game_io: &GameIO, texture: Arc<Texture>) -> Self {
+        let sampler = game_io
+            .resource::<DefaultSpriteSampler>()
+            .unwrap()
+            .as_texture_sampler()
+            .clone();
+
+        Self::new_with_sampler(game_io, texture, sampler)
+    }
+
+    pub fn new_with_sampler(
+        game_io: &GameIO,
+        texture: Arc<Texture>,
+        sampler: Arc<TextureSampler>,
+    ) -> Self {
+        Self {
+            mesh: game_io
+                .resource::<DefaultTextureSourceMesh>()
                 .unwrap()
-                .as_texture_sampler()
+                .mesh
                 .clone(),
+            texture,
+            sampler,
         }
     }
 
