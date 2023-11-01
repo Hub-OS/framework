@@ -6,14 +6,14 @@ use std::sync::Arc;
 pub struct RenderTarget {
     clear_color: Option<Color>,
     texture: Arc<Texture>,
-    usage: TextureUsages,
+    usage: wgpu::TextureUsages,
 }
 
 impl RenderTarget {
     // todo: Swap when const_trait_impl is stable
     /// wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_SRC  | wgpu::TextureUsages::RENDER_ATTACHMENT
-    pub const DEFAULT_USAGE: TextureUsages =
-        TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
+    pub const DEFAULT_USAGE: wgpu::TextureUsages =
+        wgpu::TextureUsages::from_bits_retain((1 << 0) | (1 << 2) | (1 << 4));
 
     pub fn new(graphics: &impl HasGraphicsContext, size: UVec2) -> Self {
         Self {
@@ -26,7 +26,7 @@ impl RenderTarget {
     pub fn new_with_usage(
         graphics: &impl HasGraphicsContext,
         size: UVec2,
-        usage: TextureUsages,
+        usage: wgpu::TextureUsages,
     ) -> Self {
         Self {
             texture: RenderTarget::create_texture(graphics, size, usage),
@@ -103,7 +103,7 @@ impl RenderTarget {
     fn create_texture(
         graphics: &impl HasGraphicsContext,
         size: UVec2,
-        usage: TextureUsages,
+        usage: wgpu::TextureUsages,
     ) -> Arc<Texture> {
         let graphics = graphics.graphics();
         let device = graphics.device();
