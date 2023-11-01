@@ -4,14 +4,37 @@ use std::sync::Arc;
 
 /// A wrapped SpritePipeline for storage in resources. Preset and accessible from GameIO::resource()
 pub struct DefaultSpritePipeline {
+    shader: wgpu::ShaderModule,
     pipeline: SpritePipeline<SpriteInstanceData>,
 }
 
 impl DefaultSpritePipeline {
     pub(crate) fn new(game_io: &GameIO) -> Self {
+        let device = game_io.graphics().device();
+
+        let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));
+
+        let render_pipeline = RenderPipelineBuilder::new(game_io)
+            .with_uniform_bind_group(&[BindGroupLayoutEntry {
+                visibility: wgpu::ShaderStages::VERTEX,
+                binding_type: OrthoCamera::binding_type(),
+            }])
+            .with_instance_bind_group(
+                SpritePipeline::<SpriteInstanceData>::instance_bind_group_layout(),
+            )
+            .with_vertex_shader(&shader, "vs_main")
+            .with_fragment_shader(&shader, "fs_main")
+            .build::<SpriteVertex, SpriteInstanceData>()
+            .unwrap();
+
         Self {
-            pipeline: SpritePipeline::new(game_io),
+            shader,
+            pipeline: SpritePipeline::from_custom_pipeline(render_pipeline),
         }
+    }
+
+    pub fn shader_module(&self) -> &wgpu::ShaderModule {
+        &self.shader
     }
 
     pub fn as_sprite_pipeline(&self) -> &SpritePipeline<SpriteInstanceData> {

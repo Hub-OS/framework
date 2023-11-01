@@ -1,4 +1,3 @@
-use crate::common::GameIO;
 use crate::graphics::*;
 
 pub struct SpritePipeline<SpriteData: InstanceData = SpriteInstanceData> {
@@ -6,25 +5,6 @@ pub struct SpritePipeline<SpriteData: InstanceData = SpriteInstanceData> {
 }
 
 impl<SpriteData: InstanceData> SpritePipeline<SpriteData> {
-    pub(crate) fn new(game_io: &GameIO) -> Self {
-        let device = game_io.graphics().device();
-
-        let shader = device.create_shader_module(include_wgsl!("sprite_shader.wgsl"));
-
-        let render_pipeline = RenderPipelineBuilder::new(game_io)
-            .with_uniform_bind_group(&[BindGroupLayoutEntry {
-                visibility: wgpu::ShaderStages::VERTEX,
-                binding_type: OrthoCamera::binding_type(),
-            }])
-            .with_instance_bind_group(Self::instance_bind_group_layout())
-            .with_vertex_shader(&shader, "vs_main")
-            .with_fragment_shader(&shader, "fs_main")
-            .build::<SpriteVertex, SpriteData>()
-            .unwrap();
-
-        Self { render_pipeline }
-    }
-
     pub fn instance_bind_group_layout() -> &'static [BindGroupLayoutEntry] {
         &[
             BindGroupLayoutEntry {
