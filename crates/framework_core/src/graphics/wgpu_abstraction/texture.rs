@@ -9,11 +9,13 @@ pub struct Texture {
 }
 
 impl Texture {
+    pub const DEFAULT_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8UnormSrgb;
+
     pub fn load_from_memory(
         graphics: &impl HasGraphicsContext,
         bytes: &[u8],
     ) -> anyhow::Result<Arc<Self>> {
-        Self::load_from_memory_with_format(graphics, bytes, wgpu::TextureFormat::Rgba8UnormSrgb)
+        Self::load_from_memory_with_format(graphics, bytes, Self::DEFAULT_FORMAT)
     }
 
     pub fn load_from_memory_with_format(
