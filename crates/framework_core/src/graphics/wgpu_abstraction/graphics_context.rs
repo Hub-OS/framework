@@ -30,6 +30,49 @@ impl HasGraphicsContext for GraphicsContext {
 }
 
 impl GraphicsContext {
+    pub async fn new(
+        instance: wgpu::Instance,
+        surface: Option<&wgpu::Surface>,
+    ) -> anyhow::Result<GraphicsContext> {
+        let adapter_opt = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::HighPerformance,
+                compatible_surface: surface,
+                force_fallback_adapter: false,
+            })
+            .await;
+
+        let adapter = adapter_opt.ok_or_else(|| anyhow::anyhow!("No adapter found"))?;
+
+        let (device, queue) = adapter
+            .request_device(
+                &wgpu::DeviceDescriptor {
+                    label: None,
+                    limits: {
+                        cfg_web! {
+                            wgpu::Limits::downlevel_webgl2_defaults()
+                        }
+                        cfg_native! {
+                            wgpu::Limits::default()
+                        }
+                    },
+                    features: wgpu::Features::empty(),
+                },
+                None,
+            )
+            .await?;
+
+        Ok(GraphicsContext {
+            internal: Arc::new(GraphicsContextInternal {
+                instance,
+                adapter,
+                device,
+                queue,
+            }),
+            texture_format: wgpu::TextureFormat::Rgba8UnormSrgb,
+        })
+    }
+
     pub fn wgpu_instance(&self) -> &wgpu::Instance {
         &self.internal.instance
     }
@@ -102,48 +145,5 @@ impl GraphicsContext {
         let error = device.pop_error_scope();
 
         SyncResultAsyncError::new(shader, error)
-    }
-
-    pub async fn new(
-        instance: wgpu::Instance,
-        surface: Option<&wgpu::Surface>,
-    ) -> anyhow::Result<GraphicsContext> {
-        let adapter_opt = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::HighPerformance,
-                compatible_surface: surface,
-                force_fallback_adapter: false,
-            })
-            .await;
-
-        let adapter = adapter_opt.ok_or_else(|| anyhow::anyhow!("No adapter found"))?;
-
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    limits: {
-                        cfg_web! {
-                            wgpu::Limits::downlevel_webgl2_defaults()
-                        }
-                        cfg_native! {
-                            wgpu::Limits::default()
-                        }
-                    },
-                    features: wgpu::Features::empty(),
-                },
-                None,
-            )
-            .await?;
-
-        Ok(GraphicsContext {
-            internal: Arc::new(GraphicsContextInternal {
-                instance,
-                adapter,
-                device,
-                queue,
-            }),
-            texture_format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        })
     }
 }
