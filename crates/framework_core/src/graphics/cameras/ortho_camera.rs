@@ -87,11 +87,11 @@ impl OrthoCamera {
         }
     }
 
-    pub fn is_y_inverted(&mut self) -> bool {
+    pub fn inverted_y(&mut self) -> bool {
         self.state.invert_y < 0.0
     }
 
-    pub fn invert_y(&mut self, invert: bool) {
+    pub fn set_inverted_y(&mut self, invert: bool) {
         self.state.invert_y = if invert { -1.0 } else { 1.0 };
     }
 

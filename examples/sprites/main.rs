@@ -19,7 +19,7 @@ struct MainScene {
 impl MainScene {
     fn new(game_io: &mut GameIO) -> MainScene {
         let mut camera = OrthoCamera::new(game_io, Vec2::new(800.0, 600.0));
-        camera.invert_y(true);
+        camera.set_inverted_y(true);
 
         let texture = Texture::load_from_memory(game_io, include_bytes!("sprite.png")).unwrap();
 

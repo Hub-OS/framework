@@ -27,7 +27,7 @@ struct ExampleScene {
 impl ExampleScene {
     fn new(game_io: &mut GameIO, depth: usize) -> Self {
         let mut camera = OrthoCamera::new(game_io, Vec2::new(800.0, 600.0));
-        camera.invert_y(true);
+        camera.set_inverted_y(true);
 
         let texture_bytes = match depth {
             0 => &include_bytes!("A.png")[..],
