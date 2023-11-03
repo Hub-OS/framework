@@ -4,7 +4,7 @@ use math::Rect;
 use std::sync::Arc;
 
 /// RenderQueues only render when consumed by a RenderPass
-pub struct SpriteQueue<'a, InstanceData: self::InstanceData> {
+pub struct SpriteQueue<'a, InstanceData: self::InstanceData = SpriteInstanceData> {
     game_io: &'a GameIO,
     render_queue: RenderQueue<'a, SpriteVertex, InstanceData>,
     mesh: &'a Arc<Mesh<SpriteVertex>>,
