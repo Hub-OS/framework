@@ -87,12 +87,27 @@ impl OrthoCamera {
         }
     }
 
+    pub fn with_inverted_y(mut self, inverted: bool) -> Self {
+        self.set_inverted_y(inverted);
+        self
+    }
+
+    pub fn with_position(mut self, position: Vec3) -> Self {
+        self.set_position(position);
+        self
+    }
+
+    pub fn with_scale(mut self, scale: Vec2) -> Self {
+        self.set_scale(scale);
+        self
+    }
+
     pub fn inverted_y(&mut self) -> bool {
         self.state.invert_y < 0.0
     }
 
-    pub fn set_inverted_y(&mut self, invert: bool) {
-        self.state.invert_y = if invert { -1.0 } else { 1.0 };
+    pub fn set_inverted_y(&mut self, inverted: bool) {
+        self.state.invert_y = if inverted { -1.0 } else { 1.0 };
     }
 
     pub fn x(&self) -> f32 {
