@@ -100,21 +100,23 @@ pub(crate) fn translate_winit_event(
                         }
                     }
 
-                    // text event
-                    let text = {
-                        cfg_desktop_and_web! { text.as_ref().map(|smol_string| smol_string.as_str()) }
-                        cfg_android! { logical_key.to_text() }
-                    };
-
-                    if let Some(text) = text {
-                        let text = if text == "\r" {
-                            String::from("\n")
-                        } else {
-                            text.to_string()
+                    if state == winit::event::ElementState::Pressed {
+                        // text event
+                        let text = {
+                            cfg_desktop_and_web! { text.as_ref().map(|smol_string| smol_string.as_str()) }
+                            cfg_android! { logical_key.to_text() }
                         };
 
-                        events.push(InputEvent::Text(text).into());
-                    };
+                        if let Some(text) = text {
+                            let text = if text == "\r" {
+                                String::from("\n")
+                            } else {
+                                text.to_string()
+                            };
+
+                            events.push(InputEvent::Text(text).into());
+                        };
+                    }
 
                     events
                 }

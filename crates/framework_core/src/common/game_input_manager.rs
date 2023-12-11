@@ -266,7 +266,6 @@ impl GameInputManager {
     }
 
     pub fn handle_event(&mut self, event: InputEvent) {
-        // println!("{:?}", event);
         match event {
             InputEvent::Touch(mut touch) => {
                 let mut touch_iter = self.touches.iter_mut();
@@ -330,6 +329,7 @@ impl GameInputManager {
             }
             InputEvent::Text(text) => {
                 if self.accept_text {
+                    println!("InputEvent::Text {text}");
                     self.text = text;
                 }
             }
