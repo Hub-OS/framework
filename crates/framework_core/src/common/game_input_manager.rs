@@ -329,7 +329,6 @@ impl GameInputManager {
             }
             InputEvent::Text(text) => {
                 if self.accept_text {
-                    println!("InputEvent::Text {text}");
                     self.text = text;
                 }
             }
