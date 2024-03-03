@@ -1,6 +1,5 @@
 use cfg_macros::*;
 
-pub use crate::graphics::*;
 pub use framework_core::async_task::{sleep as async_sleep, AsyncTask, SyncResultAsyncError};
 pub use framework_core::common::*;
 pub use framework_core::graphics::*;
