@@ -207,6 +207,7 @@ impl GameController {
 
                 self.axis_simulate_button(
                     self.left_stick_x,
+                    self.left_stick_y,
                     Button::LeftStickLeft,
                     Button::LeftStickRight,
                 );
@@ -219,6 +220,7 @@ impl GameController {
 
                 self.axis_simulate_button(
                     self.left_stick_y,
+                    self.left_stick_x,
                     Button::LeftStickDown,
                     Button::LeftStickUp,
                 );
@@ -231,6 +233,7 @@ impl GameController {
 
                 self.axis_simulate_button(
                     self.right_stick_x,
+                    self.right_stick_y,
                     Button::RightStickLeft,
                     Button::RightStickRight,
                 );
@@ -243,6 +246,7 @@ impl GameController {
 
                 self.axis_simulate_button(
                     self.right_stick_y,
+                    self.right_stick_x,
                     Button::RightStickDown,
                     Button::RightStickUp,
                 );
@@ -250,16 +254,22 @@ impl GameController {
         }
     }
 
-    fn axis_simulate_button(&mut self, value: f32, low: Button, high: Button) {
+    fn axis_simulate_button(&mut self, value: f32, other: f32, low: Button, high: Button) {
+        // a = 22.5 / 180 * Math.PI; Math.cos(a) / Math.sin(a)
+        const RATIO_THRESHOLD: f32 = 2.414;
+
+        if value == 0.0 || (other / value).abs() > RATIO_THRESHOLD {
+            self.simulate_button_release(low);
+            self.simulate_button_release(high);
+            return;
+        }
+
         if value < 0.0 {
             self.simulate_button_press(low);
             self.simulate_button_release(high);
         } else if value > 0.0 {
             self.simulate_button_press(high);
             self.simulate_button_release(low);
-        } else {
-            self.simulate_button_release(low);
-            self.simulate_button_release(high);
         }
     }
 
