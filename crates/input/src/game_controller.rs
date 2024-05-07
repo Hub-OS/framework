@@ -253,8 +253,10 @@ impl GameController {
     fn axis_simulate_button(&mut self, value: f32, low: Button, high: Button) {
         if value < 0.0 {
             self.simulate_button_press(low);
+            self.simulate_button_release(high);
         } else if value > 0.0 {
             self.simulate_button_press(high);
+            self.simulate_button_release(low);
         } else {
             self.simulate_button_release(low);
             self.simulate_button_release(high);
