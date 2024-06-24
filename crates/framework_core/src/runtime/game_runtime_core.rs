@@ -262,9 +262,10 @@ impl GameRuntimeCore {
         // update camera
         let window = game_io.window();
         let window_size = window.size().as_vec2();
-        let inverted_render_scale = 1.0 / window.render_scale();
+        let render_scale = window.render_scale();
+        let inverted_render_scale = 1.0 / render_scale;
         self.camera.resize(window_size);
-        self.camera.set_scale(Vec2::splat(inverted_render_scale));
+        self.camera.set_scale(Vec2::splat(render_scale));
         // extra positioning math to avoid fractional placement with integer scaling
         self.camera
             .set_position((window_size * 0.5 * inverted_render_scale).extend(0.0));
