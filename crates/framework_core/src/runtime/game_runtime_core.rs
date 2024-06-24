@@ -261,8 +261,13 @@ impl GameRuntimeCore {
 
         // update camera
         let window = game_io.window();
-        self.camera.resize(window.size().as_vec2());
-        self.camera.set_scale(Vec2::splat(window.render_scale()));
+        let window_size = window.size().as_vec2();
+        let inverted_render_scale = 1.0 / window.render_scale();
+        self.camera.resize(window_size);
+        self.camera.set_scale(Vec2::splat(inverted_render_scale));
+        // extra positioning math to avoid fractional placement with integer scaling
+        self.camera
+            .set_position((window_size * 0.5 * inverted_render_scale).extend(0.0));
 
         // render to window
         let buffer_aquire_start = Instant::now();
@@ -277,8 +282,10 @@ impl GameRuntimeCore {
             // render as a sprite
             self.render_sprite
                 .set_texture(self.render_target.texture().clone());
+            self.render_sprite.set_origin(Vec2::ZERO);
+            // extra positioning math to avoid fractional placement with integer scaling
             self.render_sprite
-                .set_origin(self.render_sprite.size() * 0.5);
+                .set_position(window.render_offset() * inverted_render_scale);
 
             let uniforms = [self.camera.as_binding()];
             let mut sprite_queue = SpriteQueue::new_with_default_pipeline(game_io, uniforms);
