@@ -143,11 +143,13 @@ impl<'a> RenderPipelineBuilder<'a> {
                 ],
                 module: vertex_shader,
                 entry_point: vertex_entry.as_str(),
+                compilation_options: Default::default(),
             },
             fragment: Some(wgpu::FragmentState {
                 targets: self.color_states.as_slice(),
                 module: fragment_shader,
                 entry_point: fragment_entry.as_str(),
+                compilation_options: Default::default(),
             }),
             primitive: self.primitive,
             depth_stencil: self.depth_stencil,

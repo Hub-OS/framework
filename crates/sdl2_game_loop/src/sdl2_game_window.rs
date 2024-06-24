@@ -6,7 +6,7 @@ use math::*;
 pub struct Sdl2GameWindow {
     window: sdl2::video::Window,
     graphics: GraphicsContext,
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     surface_config: wgpu::SurfaceConfiguration,
     surface_texture: Option<wgpu::SurfaceTexture>,
     position: IVec2,
@@ -25,7 +25,9 @@ impl Sdl2GameWindow {
         let size = window.size().into();
 
         let wgpu_instance = wgpu::Instance::default();
-        let surface = unsafe { wgpu_instance.create_surface(&window).unwrap() };
+
+        let surface_target = unsafe { wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap() };
+        let surface = unsafe { wgpu_instance.create_surface_unsafe(surface_target).unwrap() };
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
 
         let adapter = graphics.adapter();
@@ -71,10 +73,15 @@ impl HasGraphicsContext for Sdl2GameWindow {
 impl GameWindowLifecycle for Sdl2GameWindow {
     fn rebuild_surface(&mut self) {
         let graphics = self.graphics();
-        let wgpu_instance = graphics.wgpu_instance();
+        let instance = graphics.wgpu_instance();
         let device = graphics.device();
 
-        if let Ok(surface) = unsafe { wgpu_instance.create_surface(&self.window) } {
+        let Ok(surface_target) = (unsafe { wgpu::SurfaceTargetUnsafe::from_window(&self.window) })
+        else {
+            return;
+        };
+
+        if let Ok(surface) = unsafe { instance.create_surface_unsafe(surface_target) } {
             surface.configure(device, &self.surface_config);
             self.surface = surface;
         }
@@ -204,17 +211,17 @@ impl GameWindow for Sdl2GameWindow {
 }
 
 use framework_core::raw_window_handle::{
-    HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle,
+    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
 };
 
-unsafe impl HasRawWindowHandle for Sdl2GameWindow {
-    fn raw_window_handle(&self) -> RawWindowHandle {
-        self.window.raw_window_handle()
+impl HasWindowHandle for Sdl2GameWindow {
+    fn window_handle(&self) -> Result<WindowHandle, HandleError> {
+        self.window.window_handle()
     }
 }
 
-unsafe impl HasRawDisplayHandle for Sdl2GameWindow {
-    fn raw_display_handle(&self) -> RawDisplayHandle {
-        self.window.raw_display_handle()
+impl HasDisplayHandle for Sdl2GameWindow {
+    fn display_handle(&self) -> Result<DisplayHandle, HandleError> {
+        self.window.display_handle()
     }
 }

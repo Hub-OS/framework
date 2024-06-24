@@ -5,12 +5,12 @@ use framework_core::graphics::Color;
 use framework_core::graphics::{wgpu, GraphicsContext, HasGraphicsContext, RenderTarget};
 use framework_core::runtime::{GameWindowConfig, GameWindowLifecycle};
 use math::*;
-use winit::window::Window;
+use std::sync::Arc;
 
 pub struct WinitGameWindow {
-    window: winit::window::Window,
+    window: Arc<winit::window::Window>,
     graphics: GraphicsContext,
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     surface_config: wgpu::SurfaceConfiguration,
     surface_texture: Option<wgpu::SurfaceTexture>,
     position: IVec2,
@@ -24,13 +24,14 @@ pub struct WinitGameWindow {
 
 impl WinitGameWindow {
     pub(crate) async fn from_window_and_config(
-        window: Window,
+        window: winit::window::Window,
         window_config: GameWindowConfig<WinitPlatformApp>,
     ) -> anyhow::Result<Self> {
+        let window = Arc::new(window);
         let position = window.outer_position().unwrap_or_default();
 
         let wgpu_instance = wgpu::Instance::default();
-        let surface = unsafe { wgpu_instance.create_surface(&window).unwrap() };
+        let surface = wgpu_instance.create_surface(window.clone()).unwrap();
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
 
         let adapter = graphics.adapter();
@@ -76,7 +77,7 @@ impl GameWindowLifecycle for WinitGameWindow {
         let instance = graphics.wgpu_instance();
         let device = graphics.device();
 
-        if let Ok(surface) = unsafe { instance.create_surface(&self.window) } {
+        if let Ok(surface) = instance.create_surface(self.window.clone()) {
             surface.configure(device, &self.surface_config);
             self.surface = surface;
         }
@@ -226,17 +227,17 @@ impl GameWindow for WinitGameWindow {
 }
 
 use framework_core::raw_window_handle::{
-    HasRawDisplayHandle, HasRawWindowHandle, RawDisplayHandle, RawWindowHandle,
+    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
 };
 
-unsafe impl HasRawWindowHandle for WinitGameWindow {
-    fn raw_window_handle(&self) -> RawWindowHandle {
-        self.window.raw_window_handle()
+impl HasWindowHandle for WinitGameWindow {
+    fn window_handle(&self) -> Result<WindowHandle, HandleError> {
+        self.window.window_handle()
     }
 }
 
-unsafe impl HasRawDisplayHandle for WinitGameWindow {
-    fn raw_display_handle(&self) -> RawDisplayHandle {
-        self.window.raw_display_handle()
+impl HasDisplayHandle for WinitGameWindow {
+    fn display_handle(&self) -> Result<DisplayHandle, HandleError> {
+        self.window.display_handle()
     }
 }

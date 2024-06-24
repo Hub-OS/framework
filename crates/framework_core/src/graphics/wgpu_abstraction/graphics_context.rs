@@ -30,9 +30,9 @@ impl HasGraphicsContext for GraphicsContext {
 }
 
 impl GraphicsContext {
-    pub async fn new(
+    pub async fn new<'window>(
         instance: wgpu::Instance,
-        surface: Option<&wgpu::Surface>,
+        surface: Option<&wgpu::Surface<'window>>,
     ) -> anyhow::Result<GraphicsContext> {
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -48,7 +48,7 @@ impl GraphicsContext {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    limits: {
+                    required_limits: {
                         cfg_web! {
                             wgpu::Limits::downlevel_webgl2_defaults()
                         }
@@ -56,7 +56,7 @@ impl GraphicsContext {
                             wgpu::Limits::default()
                         }
                     },
-                    features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::empty(),
                 },
                 None,
             )

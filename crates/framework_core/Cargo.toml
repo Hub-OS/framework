@@ -16,9 +16,9 @@ anyhow = "1"
 bytemuck = { version = "1", features = ["derive"] }
 copypasta = "0.10"
 image = { version = "0.24", default-features = false }
-raw-window-handle = "0.5"
+raw-window-handle = "0.6"
 # using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "0.18", features = ["webgl"] }
+wgpu = { version = "0.20", features = ["webgl"] }
 slotmap = "1"
 
 # native dependencies
