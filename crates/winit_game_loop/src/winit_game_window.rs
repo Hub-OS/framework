@@ -17,6 +17,7 @@ pub struct WinitGameWindow {
     size: UVec2,
     resolution: UVec2,
     locked_resolution: bool,
+    integer_scaling: bool,
     clear_color: Option<Color>,
     #[allow(dead_code)]
     platform_app: Option<WinitPlatformApp>,
@@ -59,6 +60,7 @@ impl WinitGameWindow {
             size: window_config.size,
             resolution: window_config.resolution.unwrap_or(window_config.size),
             locked_resolution: window_config.resolution.is_some(),
+            integer_scaling: window_config.integer_scaling,
             clear_color: Some(Color::TRANSPARENT),
             platform_app: window_config.platform_app.clone(),
         })
@@ -196,6 +198,14 @@ impl GameWindow for WinitGameWindow {
 
     fn resolution(&self) -> UVec2 {
         self.resolution
+    }
+
+    fn integer_scaling(&self) -> bool {
+        self.integer_scaling
+    }
+
+    fn set_integer_scaling(&mut self, value: bool) {
+        self.integer_scaling = value;
     }
 
     fn set_title(&mut self, title: &str) {

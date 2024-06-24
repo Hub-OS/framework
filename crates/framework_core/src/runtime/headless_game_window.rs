@@ -10,6 +10,7 @@ pub struct HeadlessGameWindow {
     size: UVec2,
     resolution: UVec2,
     locked_resolution: bool,
+    integer_scaling: bool,
     clear_color: Option<Color>,
 }
 
@@ -28,6 +29,7 @@ impl HeadlessGameWindow {
             position: IVec2::new(0, 0),
             locked_resolution: window_config.resolution.is_some(),
             resolution,
+            integer_scaling: window_config.integer_scaling,
             clear_color: None,
         })
     }
@@ -104,6 +106,14 @@ impl GameWindow for HeadlessGameWindow {
 
     fn resolution(&self) -> UVec2 {
         self.resolution
+    }
+
+    fn integer_scaling(&self) -> bool {
+        self.integer_scaling
+    }
+
+    fn set_integer_scaling(&mut self, value: bool) {
+        self.integer_scaling = value;
     }
 
     fn set_title(&mut self, _title: &str) {}

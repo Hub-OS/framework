@@ -13,6 +13,7 @@ pub struct Sdl2GameWindow {
     size: UVec2,
     resolution: UVec2,
     locked_resolution: bool,
+    integer_scaling: bool,
     clear_color: Option<Color>,
 }
 
@@ -54,6 +55,7 @@ impl Sdl2GameWindow {
             position,
             size,
             locked_resolution: window_config.resolution.is_some(),
+            integer_scaling: window_config.integer_scaling,
             resolution: window_config.resolution.unwrap_or(size),
             clear_color: Some(Color::TRANSPARENT),
         })
@@ -180,6 +182,14 @@ impl GameWindow for Sdl2GameWindow {
 
     fn resolution(&self) -> UVec2 {
         self.resolution
+    }
+
+    fn integer_scaling(&self) -> bool {
+        self.integer_scaling
+    }
+
+    fn set_integer_scaling(&mut self, value: bool) {
+        self.integer_scaling = value;
     }
 
     fn set_title(&mut self, title: &str) {

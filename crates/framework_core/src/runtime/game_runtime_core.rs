@@ -1,7 +1,7 @@
 use crate::common::*;
 use crate::graphics::*;
 use crate::runtime::*;
-use math::Instant;
+use math::{Instant, Vec2};
 use std::any::TypeId;
 
 pub type SceneConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn Scene>>;
@@ -261,13 +261,8 @@ impl GameRuntimeCore {
 
         // update camera
         let window = game_io.window();
-
-        if window.has_locked_resolution() {
-            self.camera.resize(window.resolution().as_vec2());
-            self.camera.scale_to(window.size().as_vec2());
-        } else {
-            self.camera.resize(window.resolution().as_vec2());
-        }
+        self.camera.resize(window.size().as_vec2());
+        self.camera.set_scale(Vec2::splat(window.render_scale()));
 
         // render to window
         let buffer_aquire_start = Instant::now();

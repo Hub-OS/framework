@@ -55,6 +55,11 @@ impl<Loop: GameWindowLoop> Game<Loop> {
         self
     }
 
+    pub fn with_integer_scaling(mut self, value: bool) -> Self {
+        self.window_config.integer_scaling = value;
+        self
+    }
+
     pub fn with_target_fps(mut self, target_fps: u16) -> Self {
         self.target_fps = target_fps;
         self

@@ -20,6 +20,10 @@ pub trait GameWindow {
 
     fn resolution(&self) -> UVec2;
 
+    fn integer_scaling(&self) -> bool;
+
+    fn set_integer_scaling(&mut self, value: bool);
+
     fn set_title(&mut self, title: &str);
 
     fn clear_color(&self) -> Option<Color>;
@@ -34,44 +38,50 @@ pub trait GameWindow {
     /// to a position on the render, with (-1.0, -1.0) as the top left of the render and (1.0, 1.0) as the bottom right.
     fn normalize_vec2(&self, mut position: Vec2) -> Vec2 {
         let window_size = self.size().as_vec2();
-        let scale = window_size / self.resolution().as_vec2();
 
         position.x = position.x / window_size.x * 2.0 - 1.0;
         position.y = -(position.y / window_size.y * 2.0 - 1.0);
 
-        if scale.x > scale.y {
-            position.x *= scale.x / scale.y;
-        } else {
-            position.y *= scale.y / scale.x;
-        }
+        position *= window_size / (self.resolution().as_vec2() * self.render_scale());
 
         position
     }
 
     fn render_offset(&self) -> Vec2 {
+        if !self.has_locked_resolution() {
+            return Vec2::ZERO;
+        }
+
         let window_size = self.size().as_vec2();
         let window_resolution = self.resolution().as_vec2();
-        let scale = window_size / window_resolution;
-        let mut scaled_resolution = window_resolution;
+        let scaled_resolution = window_resolution * self.render_scale();
 
-        if scale.x > scale.y {
-            scaled_resolution *= scale.y;
-            Vec2::new((window_size.x - scaled_resolution.x) * 0.5, 0.0)
-        } else {
-            scaled_resolution *= scale.x;
-            Vec2::new(0.0, (window_size.y - scaled_resolution.y) * 0.5)
+        let mut offset = Vec2::new(
+            (window_size.x - scaled_resolution.x) * 0.5,
+            (window_size.y - scaled_resolution.y) * 0.5,
+        );
+
+        if self.integer_scaling() {
+            offset = offset.floor();
         }
+
+        offset
     }
 
     fn render_scale(&self) -> f32 {
-        let window_size = self.size().as_vec2();
-        let window_resolution = self.resolution().as_vec2();
-        let scale = window_size / window_resolution;
+        if !self.has_locked_resolution() {
+            return 1.0;
+        }
 
-        if scale.x > scale.y {
-            scale.y
+        if self.integer_scaling() {
+            let quotient = self.size() / self.resolution();
+            quotient.min_element().max(1) as f32
         } else {
-            scale.x
+            let window_size = self.size().as_vec2();
+            let window_resolution = self.resolution().as_vec2();
+            let scale = window_size / window_resolution;
+
+            scale.min_element()
         }
     }
 }
