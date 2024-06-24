@@ -17,14 +17,14 @@ gilrs = { version = "0.10" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.30", features = ["rwh_05"] }
 
 # android
 [target.'cfg(target_os = "android")'.dependencies]
-winit = { version = "0.29", features = ["android-native-activity", "rwh_05"] }
+winit = { version = "0.30", features = ["android-native-activity", "rwh_05"] }
 jni = "0.21"
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-winit = { version = "0.29", features = ["rwh_05"] }
+winit = { version = "0.30", features = ["rwh_05"] }
 wasm_forward = { path = "../wasm_forward" }

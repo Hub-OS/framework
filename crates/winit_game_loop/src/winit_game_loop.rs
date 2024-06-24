@@ -1,15 +1,11 @@
 use super::*;
-use crate::loop_states::{LoopState, StartingState, StartingStateParams};
+use crate::loop_states::{RootLoopState, StartingState, StartingStateParams};
 use cfg_macros::*;
 use framework_core::runtime::{GameRuntimeCoreParams, GameWindowConfig, GameWindowLoop};
 use std::future::Future;
-use winit::dpi::PhysicalSize;
-use winit::event::{Event as WinitEvent, StartCause as WinitEventStartCause};
 use winit::event_loop::EventLoop;
-use winit::window::{WindowBuilder, WindowLevel};
 
 pub struct WinitGameLoop {
-    winit_window: winit::window::Window,
     window_config: GameWindowConfig<super::WinitPlatformApp>,
     event_loop: EventLoop<()>,
 }
@@ -34,56 +30,7 @@ impl WinitGameLoop {
     ) -> anyhow::Result<Self> {
         let event_loop = create_winit_event_loop(window_config.platform_app.clone())?;
 
-        let mut winit_window_builder = WindowBuilder::new()
-            .with_title(&window_config.title)
-            .with_inner_size(PhysicalSize::new(
-                window_config.size.x,
-                window_config.size.y,
-            ))
-            .with_resizable(window_config.resizable)
-            .with_decorations(!window_config.borderless)
-            .with_transparent(window_config.transparent)
-            .with_window_level(if window_config.always_on_top {
-                WindowLevel::AlwaysOnTop
-            } else {
-                WindowLevel::Normal
-            });
-
-        if window_config.fullscreen {
-            use winit::window::Fullscreen;
-            winit_window_builder =
-                winit_window_builder.with_fullscreen(Some(Fullscreen::Borderless(None)));
-
-            cfg_android!({
-                use crate::android;
-
-                if let Some(app) = &window_config.platform_app {
-                    android::hide_system_bars(app);
-                }
-            });
-        }
-
-        let winit_window = winit_window_builder.build(&event_loop)?;
-
-        cfg_web!({
-            use wasm_forward::web_sys;
-            use winit::platform::web::WindowExtWebSys;
-
-            let document = web_sys::window().unwrap().document().unwrap();
-
-            let canvas = winit_window.canvas().unwrap();
-
-            canvas.style().set_property("outline", "0").unwrap();
-
-            document
-                .body()
-                .unwrap()
-                .append_child(&canvas)
-                .expect("Couldn't append canvas to document body.");
-        });
-
         let window_loop = Self {
-            winit_window,
             window_config,
             event_loop,
         };
@@ -93,23 +40,12 @@ impl WinitGameLoop {
 
     async fn run(self, params: GameRuntimeCoreParams) -> anyhow::Result<()> {
         let state_params = StartingStateParams {
-            winit_window: self.winit_window,
             window_config: self.window_config,
             runtime_params: params,
         };
 
-        let mut state: Box<dyn LoopState> = Box::new(StartingState::new(state_params));
-
-        self.event_loop.run(move |winit_event, event_loop_target| {
-            if let Some(new_state) = state.handle_event(winit_event, event_loop_target) {
-                state = new_state;
-
-                state.handle_event(
-                    WinitEvent::NewEvents(WinitEventStartCause::Init),
-                    event_loop_target,
-                );
-            }
-        })?;
+        self.event_loop
+            .run_app(&mut RootLoopState::new(StartingState::new(state_params)))?;
 
         Ok(())
     }
