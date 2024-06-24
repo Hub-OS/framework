@@ -292,7 +292,7 @@ impl GameController {
     }
 
     pub fn flush(&mut self) {
-        self.previous_buttons = self.pressed_buttons.clone();
+        self.previous_buttons.clone_from(&self.pressed_buttons);
         self.latest_button = None;
     }
 }

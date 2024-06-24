@@ -242,9 +242,10 @@ impl GameInputManager {
     }
 
     pub(crate) fn flush(&mut self) {
-        self.previous_mouse_buttons = self.pressed_mouse_buttons.clone();
+        self.previous_mouse_buttons
+            .clone_from(&self.pressed_mouse_buttons);
         self.repeated_keys.clear();
-        self.previous_keys = self.pressed_keys.clone();
+        self.previous_keys.clone_from(&self.pressed_keys);
         self.latest_mouse_button = None;
         self.latest_key = None;
         self.dropped_file = None;
