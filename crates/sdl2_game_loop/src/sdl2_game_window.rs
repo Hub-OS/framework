@@ -162,6 +162,10 @@ impl GameWindow for Sdl2GameWindow {
         let _ = self.window.set_fullscreen(mode);
     }
 
+    fn request_size(&mut self, size: UVec2) {
+        let _ = self.window.set_size(size.x, size.y);
+    }
+
     fn size(&self) -> UVec2 {
         self.size
     }

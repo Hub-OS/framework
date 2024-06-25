@@ -6,6 +6,7 @@ use framework_core::graphics::{wgpu, GraphicsContext, HasGraphicsContext, Render
 use framework_core::runtime::{GameWindowConfig, GameWindowLifecycle};
 use math::*;
 use std::sync::Arc;
+use winit::dpi::PhysicalSize;
 
 pub struct WinitGameWindow {
     window: Arc<winit::window::Window>,
@@ -180,6 +181,14 @@ impl GameWindow for WinitGameWindow {
 
     fn size(&self) -> UVec2 {
         self.size
+    }
+
+    fn request_size(&mut self, size: UVec2) {
+        let logical_size = PhysicalSize::new(size.x, size.y);
+
+        if let Some(size) = self.window.request_inner_size(logical_size) {
+            self.size = UVec2::new(size.width, size.height);
+        }
     }
 
     fn has_locked_resolution(&self) -> bool {

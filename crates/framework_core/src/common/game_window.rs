@@ -12,6 +12,8 @@ pub trait GameWindow {
 
     fn size(&self) -> UVec2;
 
+    fn request_size(&mut self, size: UVec2);
+
     fn has_locked_resolution(&self) -> bool;
 
     fn lock_resolution(&mut self, resolution: UVec2);

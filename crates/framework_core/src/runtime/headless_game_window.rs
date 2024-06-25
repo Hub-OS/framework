@@ -90,6 +90,10 @@ impl GameWindow for HeadlessGameWindow {
         self.size
     }
 
+    fn request_size(&mut self, size: UVec2) {
+        self.size = size;
+    }
+
     fn has_locked_resolution(&self) -> bool {
         self.locked_resolution
     }
