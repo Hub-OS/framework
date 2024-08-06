@@ -115,8 +115,8 @@ impl GameWindowLifecycle for WinitGameWindow {
             self.resolution = size;
         }
 
-        self.surface_config.width = size.x;
-        self.surface_config.height = size.y;
+        self.surface_config.width = size.x.max(1);
+        self.surface_config.height = size.y.max(1);
 
         let device = self.graphics().device();
         self.surface.configure(device, &self.surface_config);

@@ -114,6 +114,9 @@ impl GameWindowLifecycle for Sdl2GameWindow {
     fn resized(&mut self, size: UVec2) {
         self.size = size;
 
+        self.surface_config.width = size.x.max(1);
+        self.surface_config.height = size.y.max(1);
+
         if !self.locked_resolution {
             self.resolution = size;
         }
