@@ -58,9 +58,8 @@ fn create_winit_event_loop(
     cfg_android! {
         if let Some(app) = platform_app {
             use winit::platform::android::EventLoopBuilderExtAndroid;
-            use winit::event_loop::EventLoopBuilder;
 
-            return Ok(EventLoopBuilder::new().with_android_app(app).build()?)
+            return Ok(EventLoop::builder().with_android_app(app).build()?)
         }
     };
 
