@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 #[derive(Debug)]
 pub enum RenderOperation {
-    SetPipeline(Arc<wgpu::RenderPipeline>),
+    SetPipeline(wgpu::RenderPipeline),
     SetScissor(Rect),
     SetUniforms(wgpu::BindGroup),
-    SetMesh(Arc<(wgpu::Buffer, wgpu::Buffer)>),
+    SetMesh((wgpu::Buffer, wgpu::Buffer)),
     SetInstanceResources(wgpu::BindGroup),
     Draw {
         instance_buffer: Option<wgpu::Buffer>,

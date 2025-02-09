@@ -4,22 +4,17 @@ use cfg_macros::*;
 use std::borrow::Cow;
 use std::future::Future;
 use std::path::Path;
-use std::sync::Arc;
 
 pub trait HasGraphicsContext {
     fn graphics(&self) -> &GraphicsContext;
 }
 
-struct GraphicsContextInternal {
+#[derive(Clone)]
+pub struct GraphicsContext {
     instance: wgpu::Instance,
     adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
-}
-
-#[derive(Clone)]
-pub struct GraphicsContext {
-    internal: Arc<GraphicsContextInternal>,
     texture_format: wgpu::TextureFormat,
 }
 
@@ -64,30 +59,28 @@ impl GraphicsContext {
             .await?;
 
         Ok(GraphicsContext {
-            internal: Arc::new(GraphicsContextInternal {
-                instance,
-                adapter,
-                device,
-                queue,
-            }),
+            instance,
+            adapter,
+            device,
+            queue,
             texture_format: wgpu::TextureFormat::Rgba8UnormSrgb,
         })
     }
 
     pub fn wgpu_instance(&self) -> &wgpu::Instance {
-        &self.internal.instance
+        &self.instance
     }
 
     pub fn adapter(&self) -> &wgpu::Adapter {
-        &self.internal.adapter
+        &self.adapter
     }
 
     pub fn device(&self) -> &wgpu::Device {
-        &self.internal.device
+        &self.device
     }
 
     pub fn queue(&self) -> &wgpu::Queue {
-        &self.internal.queue
+        &self.queue
     }
 
     pub fn default_texture_format(&self) -> wgpu::TextureFormat {

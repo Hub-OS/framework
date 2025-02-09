@@ -91,7 +91,7 @@ impl<'a> RenderPass<'a> {
             for operation in queue {
                 match operation {
                     RenderOperation::SetPipeline(render_pipeline) => {
-                        render_pass.set_pipeline(render_pipeline.as_ref());
+                        render_pass.set_pipeline(render_pipeline);
                         // println!("set pipeline");
                     }
                     RenderOperation::SetScissor(rect) => {
@@ -112,8 +112,7 @@ impl<'a> RenderPass<'a> {
                         render_pass.set_bind_group(0, bind_group, &[]);
                         // println!("set uniforms");
                     }
-                    RenderOperation::SetMesh(rc) => {
-                        let (vertex_buffer, index_buffer) = rc.as_ref();
+                    RenderOperation::SetMesh((vertex_buffer, index_buffer)) => {
                         render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
                         render_pass
                             .set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);

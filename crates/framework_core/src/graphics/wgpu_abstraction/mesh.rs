@@ -5,7 +5,7 @@ use wgpu::util::DeviceExt;
 pub struct Mesh<Vertex: super::Vertex> {
     vertices: Vec<Vertex>,
     indices: Vec<u32>,
-    buffers: Arc<(wgpu::Buffer, wgpu::Buffer)>,
+    buffers: (wgpu::Buffer, wgpu::Buffer),
 }
 
 impl<Vertex: super::Vertex> Mesh<Vertex> {
@@ -16,7 +16,7 @@ impl<Vertex: super::Vertex> Mesh<Vertex> {
     ) -> Arc<Self> {
         let device = graphics.graphics().device();
 
-        let buffers = Arc::new((
+        let buffers = (
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("vertex_buffer"),
                 contents: bytemuck::cast_slice(vertices),
@@ -27,7 +27,7 @@ impl<Vertex: super::Vertex> Mesh<Vertex> {
                 contents: bytemuck::cast_slice(indices),
                 usage: wgpu::BufferUsages::INDEX,
             }),
-        ));
+        );
 
         Arc::new(Self {
             vertices: vertices.to_vec(),
@@ -44,7 +44,7 @@ impl<Vertex: super::Vertex> Mesh<Vertex> {
         &self.indices
     }
 
-    pub(super) fn buffers(&self) -> &Arc<(wgpu::Buffer, wgpu::Buffer)> {
+    pub(super) fn buffers(&self) -> &(wgpu::Buffer, wgpu::Buffer) {
         &self.buffers
     }
 }
