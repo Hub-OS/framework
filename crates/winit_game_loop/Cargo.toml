@@ -13,7 +13,7 @@ framework_core = { path = "../framework_core" }
 anyhow = "1"
 async-executor = "1"
 async-task = "4"
-gilrs = { version = "0.10" }
+gilrs = { version = "0.11" }
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]

@@ -32,7 +32,7 @@ impl ControllerEventPump {
 
     pub(crate) fn pump(&mut self, game_runtime: &mut GameRuntimeCore) {
         // Examine new events
-        while let Some(gilrs::Event { id, event, time: _ }) = self.gilrs.borrow_mut().next_event() {
+        while let Some(gilrs::Event { id, event, .. }) = self.gilrs.borrow_mut().next_event() {
             let input_event = convert_event(&self.gilrs, id, event);
 
             if let Some(input_event) = input_event {
