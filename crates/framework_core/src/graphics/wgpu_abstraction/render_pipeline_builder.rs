@@ -133,14 +133,21 @@ impl<'a> RenderPipelineBuilder<'a> {
         let mut instance_layout = InstanceData::instance_layout();
         instance_layout.offset_attribute_locations(vertex_layout.attribute_len());
 
+        let buffer_layouts = [
+            vertex_layout.build::<Vertex>()?,
+            instance_layout.build::<InstanceData>()?,
+        ];
+        let buffer_layouts_slice = if std::mem::size_of::<InstanceData>() > 0 {
+            &buffer_layouts
+        } else {
+            &buffer_layouts[..1]
+        };
+
         let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: None,
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
-                buffers: &[
-                    vertex_layout.build::<Vertex>()?,
-                    instance_layout.build::<InstanceData>()?,
-                ],
+                buffers: buffer_layouts_slice,
                 module: vertex_shader,
                 entry_point: Some(vertex_entry.as_str()),
                 compilation_options: Default::default(),

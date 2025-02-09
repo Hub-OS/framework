@@ -128,7 +128,10 @@ impl<'a> RenderPass<'a> {
                         index_count,
                         instance_count,
                     } => {
-                        render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
+                        if let Some(instance_buffer) = instance_buffer {
+                            render_pass.set_vertex_buffer(1, instance_buffer.slice(..));
+                        }
+
                         render_pass.draw_indexed(0..*index_count, 0, 0..*instance_count);
                         // println!("draw");
                     }

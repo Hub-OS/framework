@@ -10,7 +10,7 @@ pub enum RenderOperation {
     SetMesh(Arc<(wgpu::Buffer, wgpu::Buffer)>),
     SetInstanceResources(wgpu::BindGroup),
     Draw {
-        instance_buffer: wgpu::Buffer,
+        instance_buffer: Option<wgpu::Buffer>,
         index_count: u32,
         instance_count: u32,
     },
@@ -215,15 +215,17 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
         use wgpu::util::DeviceExt;
 
         let device = self.graphics.device();
-        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("instance_buffer"),
-            contents: if std::mem::size_of::<InstanceData>() > 0 {
-                bytemuck::cast_slice(&self.latest_data[..])
-            } else {
-                &[]
-            },
-            usage: wgpu::BufferUsages::VERTEX,
-        });
+        let instance_buffer = if std::mem::size_of::<InstanceData>() > 0 {
+            Some(
+                device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("instance_buffer"),
+                    contents: bytemuck::cast_slice(&self.latest_data[..]),
+                    usage: wgpu::BufferUsages::VERTEX,
+                }),
+            )
+        } else {
+            None
+        };
 
         // actually make the draw call
         let index_count = self.latest_mesh.as_ref().unwrap().indices().len() as u32;
