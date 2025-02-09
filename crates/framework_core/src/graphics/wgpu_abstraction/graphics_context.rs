@@ -57,6 +57,7 @@ impl GraphicsContext {
                         }
                     },
                     required_features: wgpu::Features::empty(),
+                    memory_hints: wgpu::MemoryHints::default(),
                 },
                 None,
             )

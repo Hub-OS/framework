@@ -49,14 +49,14 @@ impl Texture {
             view_formats: &[],
         });
 
-        let image_copy_texture = wgpu::ImageCopyTexture {
+        let image_copy_texture = wgpu::TexelCopyTextureInfo {
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
             aspect: wgpu::TextureAspect::All,
         };
 
-        let image_data_layout = wgpu::ImageDataLayout {
+        let image_data_layout = wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: Some(4 * width),
             rows_per_image: Some(height),
@@ -119,7 +119,7 @@ impl Texture {
 
         // copy render target data to buffer
         encoder.copy_texture_to_buffer(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 aspect: wgpu::TextureAspect::All,
                 // expecting texture to be None only from internal API usage
                 // this function should never be called by internal API
@@ -127,9 +127,9 @@ impl Texture {
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
-            wgpu::ImageCopyBuffer {
+            wgpu::TexelCopyBufferInfo {
                 buffer: &output_buffer,
-                layout: wgpu::ImageDataLayout {
+                layout: wgpu::TexelCopyBufferLayout {
                     offset: 0,
                     bytes_per_row: Some(bytes_per_row),
                     rows_per_image: Some(height),
