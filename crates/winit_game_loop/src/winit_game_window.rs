@@ -32,7 +32,11 @@ impl WinitGameWindow {
         let window = Arc::new(window);
         let position = window.outer_position().unwrap_or_default();
 
-        let wgpu_instance = wgpu::Instance::default();
+        let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: Default::default(),
+            flags: wgpu::InstanceFlags::empty(),
+            backend_options: Default::default(),
+        });
         let surface = wgpu_instance.create_surface(window.clone()).unwrap();
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
 

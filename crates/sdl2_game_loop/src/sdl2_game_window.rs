@@ -25,7 +25,11 @@ impl Sdl2GameWindow {
         let position = window.position().into();
         let size = window.size().into();
 
-        let wgpu_instance = wgpu::Instance::default();
+        let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: Default::default(),
+            flags: wgpu::InstanceFlags::empty(),
+            backend_options: Default::default(),
+        });
 
         let surface_target = unsafe { wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap() };
         let surface = unsafe { wgpu_instance.create_surface_unsafe(surface_target).unwrap() };
