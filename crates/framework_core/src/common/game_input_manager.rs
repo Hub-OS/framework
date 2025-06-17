@@ -16,7 +16,6 @@ pub struct GameInputManager {
     pressed_keys: Vec<Key>,
     repeated_keys: Vec<Key>,
     controllers: Vec<GameController>,
-    controller_deadzone: f32,
     dropping_data: bool,
     dropped_file: Option<PathBuf>,
     dropped_text: Option<String>,
@@ -39,7 +38,6 @@ impl Default for GameInputManager {
             pressed_keys: Vec::new(),
             repeated_keys: Vec::new(),
             controllers: Vec::new(),
-            controller_deadzone: 0.0,
             dropping_data: false,
             dropped_file: None,
             dropped_text: None,
@@ -118,10 +116,6 @@ impl GameInputManager {
 
     fn controller_mut(&mut self, id: usize) -> Option<&mut GameController> {
         self.controllers.iter_mut().find(|c| c.id() == id)
-    }
-
-    pub fn set_default_controller_deadzone(&mut self, deadzone: f32) {
-        self.controller_deadzone = deadzone;
     }
 
     pub fn latest_button(&self) -> Option<Button> {
@@ -292,11 +286,8 @@ impl GameInputManager {
                 controller_id,
                 rumble_pack,
             } => {
-                self.controllers.push(GameController::new(
-                    controller_id,
-                    rumble_pack,
-                    self.controller_deadzone,
-                ));
+                self.controllers
+                    .push(GameController::new(controller_id, rumble_pack));
             }
             InputEvent::ControllerDisconnected(id) => {
                 if let Some(index) = self.controllers.iter().position(|c| c.id() == id) {
