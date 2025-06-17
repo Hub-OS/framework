@@ -74,7 +74,6 @@ impl Sdl2GameLoop {
         let mut game_runtime = GameRuntimeCore::new(Box::new(self.window), loop_params).await?;
 
         let game_io = game_runtime.game_io_mut();
-        game_io.input_mut().set_default_controller_deadzone(0.05);
 
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {

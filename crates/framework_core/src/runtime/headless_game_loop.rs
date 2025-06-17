@@ -35,9 +35,6 @@ impl HeadlessGameLoop {
 
         let mut game_runtime = GameRuntimeCore::new(window, runtime_params).await?;
 
-        let game_io = game_runtime.game_io_mut();
-        game_io.input_mut().set_default_controller_deadzone(0.05);
-
         while !game_runtime.quitting() {
             game_runtime.tick();
             game_runtime.sleep().await;

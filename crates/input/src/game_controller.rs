@@ -2,6 +2,8 @@ use math::*;
 use std::time::Duration;
 pub use strum::{EnumString, IntoStaticStr};
 
+const STICK_DEADZONE: f32 = 0.05;
+
 #[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum AnalogAxis {
     DPadX,
@@ -87,11 +89,10 @@ pub struct GameController {
     right_stick_y: f32,
     left_trigger: f32,
     right_trigger: f32,
-    deadzone: f32,
 }
 
 impl GameController {
-    pub fn new(id: usize, rumble_pack: Box<dyn RumblePack>, deadzone: f32) -> Self {
+    pub fn new(id: usize, rumble_pack: Box<dyn RumblePack>) -> Self {
         Self {
             id,
             rumble_pack,
@@ -110,7 +111,6 @@ impl GameController {
             right_stick_y: 0.0,
             left_trigger: 0.0,
             right_trigger: 0.0,
-            deadzone,
         }
     }
 
@@ -182,7 +182,7 @@ impl GameController {
         match axis {
             AnalogAxis::DPadX | AnalogAxis::DPadY => {}
             AnalogAxis::LeftTrigger => {
-                self.left_trigger = if value < self.deadzone { 0.0 } else { value };
+                self.left_trigger = if value < STICK_DEADZONE { 0.0 } else { value };
 
                 if self.left_trigger > 0.0 {
                     self.simulate_button_press(Button::LeftTrigger);
@@ -191,7 +191,7 @@ impl GameController {
                 }
             }
             AnalogAxis::RightTrigger => {
-                self.right_trigger = if value < self.deadzone { 0.0 } else { value };
+                self.right_trigger = if value < STICK_DEADZONE { 0.0 } else { value };
 
                 if self.right_trigger > 0.0 {
                     self.simulate_button_press(Button::RightTrigger);
@@ -274,7 +274,7 @@ impl GameController {
     }
 
     fn apply_deadzone(&self, x: f32, y: f32) -> (f32, f32) {
-        if self.deadzone == 0.0 {
+        if STICK_DEADZONE == 0.0 {
             return (x, y);
         }
 
@@ -282,11 +282,11 @@ impl GameController {
 
         let length = v.length().min(1.0);
 
-        if length < self.deadzone {
+        if length < STICK_DEADZONE {
             return (0.0, 0.0);
         }
 
-        let norm = inverse_lerp!(self.deadzone, 1.0, length) / length;
+        let norm = inverse_lerp!(STICK_DEADZONE, 1.0, length) / length;
 
         (v * norm).into()
     }
