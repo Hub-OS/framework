@@ -2,7 +2,7 @@ use math::*;
 use std::time::Duration;
 pub use strum::{EnumString, IntoStaticStr};
 
-const STICK_DEADZONE: f32 = 0.05;
+const STICK_DEADZONE: f32 = 0.1;
 
 #[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum AnalogAxis {
