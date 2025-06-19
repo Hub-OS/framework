@@ -233,6 +233,13 @@ impl GameController {
             Button::LeftStickRight,
         );
 
+        self.axis_simulate_button(
+            button_y,
+            button_x,
+            Button::LeftStickDown,
+            Button::LeftStickUp,
+        );
+
         // right stick
         (self.right_stick_x, self.right_stick_y) = self.apply_deadzone(
             STICK_DEADZONE,
@@ -249,6 +256,13 @@ impl GameController {
         self.axis_simulate_button(
             button_x,
             button_y,
+            Button::RightStickLeft,
+            Button::RightStickRight,
+        );
+
+        self.axis_simulate_button(
+            button_y,
+            button_x,
             Button::RightStickDown,
             Button::RightStickUp,
         );
