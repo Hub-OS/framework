@@ -3,6 +3,7 @@ use std::time::Duration;
 pub use strum::{EnumString, IntoStaticStr};
 
 const STICK_DEADZONE: f32 = 0.1;
+const STICK_BUTTON_DEADZONE: f32 = 0.2;
 
 #[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
 pub enum AnalogAxis {
@@ -201,57 +202,56 @@ impl GameController {
             }
             AnalogAxis::LeftStickX => {
                 self.raw_left_stick_x = value;
-
-                (self.left_stick_x, self.left_stick_y) =
-                    self.apply_deadzone(self.raw_left_stick_x, self.raw_left_stick_y);
-
-                self.axis_simulate_button(
-                    self.left_stick_x,
-                    self.left_stick_y,
-                    Button::LeftStickLeft,
-                    Button::LeftStickRight,
-                );
             }
             AnalogAxis::LeftStickY => {
                 self.raw_left_stick_y = value;
-
-                (self.left_stick_x, self.left_stick_y) =
-                    self.apply_deadzone(self.raw_left_stick_x, self.raw_left_stick_y);
-
-                self.axis_simulate_button(
-                    self.left_stick_y,
-                    self.left_stick_x,
-                    Button::LeftStickDown,
-                    Button::LeftStickUp,
-                );
             }
             AnalogAxis::RightStickX => {
                 self.raw_right_stick_x = value;
-
-                (self.right_stick_x, self.right_stick_y) =
-                    self.apply_deadzone(self.raw_right_stick_x, self.raw_right_stick_y);
-
-                self.axis_simulate_button(
-                    self.right_stick_x,
-                    self.right_stick_y,
-                    Button::RightStickLeft,
-                    Button::RightStickRight,
-                );
             }
             AnalogAxis::RightStickY => {
                 self.raw_right_stick_y = value;
-
-                (self.right_stick_x, self.right_stick_y) =
-                    self.apply_deadzone(self.raw_right_stick_x, self.raw_right_stick_y);
-
-                self.axis_simulate_button(
-                    self.right_stick_y,
-                    self.right_stick_x,
-                    Button::RightStickDown,
-                    Button::RightStickUp,
-                );
             }
         }
+    }
+
+    pub fn update_sticks(&mut self) {
+        // left stick
+        (self.left_stick_x, self.left_stick_y) =
+            self.apply_deadzone(STICK_DEADZONE, self.raw_left_stick_x, self.raw_left_stick_y);
+
+        let (button_x, button_y) = self.apply_deadzone(
+            STICK_BUTTON_DEADZONE,
+            self.raw_left_stick_x,
+            self.raw_left_stick_y,
+        );
+
+        self.axis_simulate_button(
+            button_x,
+            button_y,
+            Button::LeftStickLeft,
+            Button::LeftStickRight,
+        );
+
+        // right stick
+        (self.right_stick_x, self.right_stick_y) = self.apply_deadzone(
+            STICK_DEADZONE,
+            self.raw_right_stick_x,
+            self.raw_right_stick_y,
+        );
+
+        let (button_x, button_y) = self.apply_deadzone(
+            STICK_BUTTON_DEADZONE,
+            self.raw_right_stick_x,
+            self.raw_right_stick_y,
+        );
+
+        self.axis_simulate_button(
+            button_x,
+            button_y,
+            Button::RightStickDown,
+            Button::RightStickUp,
+        );
     }
 
     fn axis_simulate_button(&mut self, value: f32, other: f32, low: Button, high: Button) {
@@ -273,8 +273,8 @@ impl GameController {
         }
     }
 
-    fn apply_deadzone(&self, x: f32, y: f32) -> (f32, f32) {
-        if STICK_DEADZONE == 0.0 {
+    fn apply_deadzone(&self, deadzone: f32, x: f32, y: f32) -> (f32, f32) {
+        if deadzone == 0.0 {
             return (x, y);
         }
 
@@ -282,11 +282,11 @@ impl GameController {
 
         let length = v.length().min(1.0);
 
-        if length < STICK_DEADZONE {
+        if length < deadzone {
             return (0.0, 0.0);
         }
 
-        let norm = inverse_lerp!(STICK_DEADZONE, 1.0, length) / length;
+        let norm = inverse_lerp!(deadzone, 1.0, length) / length;
 
         (v * norm).into()
     }

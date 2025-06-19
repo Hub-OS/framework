@@ -260,6 +260,12 @@ impl GameInputManager {
         }
     }
 
+    pub(crate) fn finalize_events(&mut self) {
+        for controller in &mut self.controllers {
+            controller.update_sticks();
+        }
+    }
+
     pub fn handle_event(&mut self, event: InputEvent) {
         match event {
             InputEvent::Touch(mut touch) => {

@@ -234,6 +234,8 @@ impl GameIO {
                 }
             }
         }
+
+        self.input_manager.finalize_events();
     }
 
     pub(crate) fn set_frame_start_instant(&mut self, instant: Instant) {
