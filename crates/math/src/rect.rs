@@ -137,7 +137,7 @@ macro_rules! impl_rect2 {
             /// Excludes the bottom and right edges
             pub fn overlaps(&self, other: Self) -> bool {
                 let contains_x = self.horizontal_range().contains(&other.left())
-                    || self.horizontal_range().contains(&self.left());
+                    || other.horizontal_range().contains(&self.left());
 
                 let contains_y = self.vertical_range().contains(&other.top())
                     || other.vertical_range().contains(&self.top());
