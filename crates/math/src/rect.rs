@@ -167,10 +167,13 @@ macro_rules! impl_rect2 {
                     max_y = bounds.y;
                 }
 
+                let right = self.x + self.width;
+                let bottom = self.y + self.height;
+
                 let x = self.x.clamp(min_x, max_x);
                 let y = self.y.clamp(min_y, max_y);
-                let width = (x + self.width).clamp(min_x, max_x) - x;
-                let height = (y + self.height).clamp(min_y, max_y) - y;
+                let width = right.clamp(min_x, max_x) - x;
+                let height = bottom.clamp(min_y, max_y) - y;
 
                 Self {
                     x,
@@ -444,7 +447,8 @@ mod test {
         const LARGER: Rect = Rect::new(-1.0, -1.0, 1.5, 1.5);
         const NEGATIVE: Rect = Rect::new(1.0, 1.0, -0.5, -0.5);
         const BOTTOM_RIGHT_CORNER: Rect = Rect::new(1.0, 1.0, 1.0, 1.0);
-        const OUTSIDE: Rect = Rect::new(2.0, 1.0, 1.0, 1.0);
+        const OUTSIDE_X: Rect = Rect::new(2.0, 0.0, 1.0, 1.0);
+        const OUTSIDE_Y: Rect = Rect::new(0.0, 2.0, 1.0, 1.0);
 
         assert!(Rect::UNIT.overlaps(TOP_LEFT));
         assert!(TOP_LEFT.overlaps(Rect::UNIT));
@@ -458,7 +462,22 @@ mod test {
         assert!(!Rect::UNIT.overlaps(BOTTOM_RIGHT_CORNER));
         assert!(!BOTTOM_RIGHT_CORNER.overlaps(Rect::UNIT));
 
-        assert!(!Rect::UNIT.overlaps(OUTSIDE));
-        assert!(!OUTSIDE.overlaps(Rect::UNIT));
+        assert!(!Rect::UNIT.overlaps(OUTSIDE_X));
+        assert!(!OUTSIDE_X.overlaps(Rect::UNIT));
+
+        assert!(!Rect::UNIT.overlaps(OUTSIDE_Y));
+        assert!(!OUTSIDE_Y.overlaps(Rect::UNIT));
+    }
+
+    #[test]
+    fn scissor() {
+        const TOP_LEFT: Rect = Rect::new(-0.5, -0.5, 1.0, 1.0);
+        const BOTTOM_RIGHT: Rect = Rect::new(0.5, 0.5, 1.0, 1.0);
+
+        assert_eq!(Rect::UNIT.scissor(TOP_LEFT), Rect::new(0.0, 0.0, 0.5, 0.5));
+        assert_eq!(
+            Rect::UNIT.scissor(BOTTOM_RIGHT),
+            Rect::new(0.5, 0.5, 0.5, 0.5)
+        );
     }
 }
