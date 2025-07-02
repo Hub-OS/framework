@@ -1,6 +1,6 @@
 pub use strum::{EnumString, IntoStaticStr};
 
-#[derive(EnumString, IntoStaticStr, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(EnumString, IntoStaticStr, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Key {
     Backquote,
     Key1,

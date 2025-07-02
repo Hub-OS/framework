@@ -5,7 +5,7 @@ pub use strum::{EnumString, IntoStaticStr};
 const STICK_DEADZONE: f32 = 0.1;
 const STICK_BUTTON_DEADZONE: f32 = 0.35;
 
-#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone, Hash)]
 pub enum AnalogAxis {
     DPadX,
     DPadY,
@@ -33,7 +33,7 @@ impl AnalogAxis {
     }
 }
 
-#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone)]
+#[derive(EnumString, IntoStaticStr, Debug, PartialEq, Eq, Copy, Clone, Hash)]
 pub enum Button {
     Meta,
     Start,
