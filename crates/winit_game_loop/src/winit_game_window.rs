@@ -130,9 +130,11 @@ impl GameWindowLifecycle for WinitGameWindow {
         cfg_android!({
             use crate::android;
 
-            if accept {
-                if let Some(app) = &self.platform_app {
+            if let Some(app) = &self.platform_app {
+                if accept {
                     android::show_ime(app);
+                } else {
+                    android::hide_ime(app);
                 }
             }
         });

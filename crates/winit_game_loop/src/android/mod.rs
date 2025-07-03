@@ -67,3 +67,17 @@ pub fn show_ime(app: &PlatformApp) {
         Ok(())
     });
 }
+
+pub fn hide_ime(app: &PlatformApp) {
+    let vm = AndroidJVM::from(app);
+
+    vm.wrap(|jni_env| {
+        let activity = AndroidActivity::from(app);
+        let activity_window = activity.get_window(jni_env)?;
+        let insets_controller = activity_window.get_insets_controller(jni_env)?;
+
+        insets_controller.hide(jni_env, InsetsType::Ime as i32)?;
+
+        Ok(())
+    });
+}
