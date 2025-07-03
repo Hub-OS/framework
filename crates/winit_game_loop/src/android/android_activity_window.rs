@@ -22,6 +22,14 @@ impl<'a> AndroidActivityWindow<'a> {
 
         Ok(AndroidInsetsController::from(JObject::try_from(owned_obj)?))
     }
+
+    // API 1
+    pub fn get_decor_view(&self, jni_env: &mut JNIEnv<'a>) -> jni::errors::Result<AndroidView<'a>> {
+        let owned_obj =
+            jni_env.call_method(&self.j_object, "getDecorView", "()Landroid/view/View;", &[])?;
+
+        Ok(AndroidView::from(JObject::try_from(owned_obj)?))
+    }
 }
 
 impl<'a> From<JObject<'a>> for AndroidActivityWindow<'a> {

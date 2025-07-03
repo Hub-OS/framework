@@ -36,6 +36,10 @@ pub trait GameWindow {
 
     fn set_vsync_enabled(&mut self, enabled: bool);
 
+    fn ime_height(&self) -> i32 {
+        0
+    }
+
     /// Normalizes from a position on the window, with (0.0, 0.0) as the top left and the window size as the bottom right,
     /// to a position on the render, with (-1.0, -1.0) as the top left of the render and (1.0, 1.0) as the bottom right.
     fn normalize_vec2(&self, mut position: Vec2) -> Vec2 {

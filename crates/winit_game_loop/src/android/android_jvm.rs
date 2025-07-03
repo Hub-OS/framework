@@ -23,7 +23,9 @@ impl AndroidJVM {
                 jni_env.exception_describe().unwrap();
                 jni_env.exception_clear().unwrap();
             }
-            Err(_) => {}
+            Err(err) => {
+                logging::error!("{err:?}");
+            }
         }
     }
 }

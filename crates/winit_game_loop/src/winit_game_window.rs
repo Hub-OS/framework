@@ -249,6 +249,18 @@ impl GameWindow for WinitGameWindow {
         let device = self.graphics.device();
         self.surface.configure(device, &self.surface_config);
     }
+
+    fn ime_height(&self) -> i32 {
+        cfg_android!({
+            use crate::android;
+
+            if let Some(app) = &self.platform_app {
+                return android::get_ime_height(app);
+            }
+        });
+
+        0
+    }
 }
 
 use framework_core::raw_window_handle::{

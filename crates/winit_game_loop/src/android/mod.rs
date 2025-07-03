@@ -4,15 +4,19 @@
 
 mod android_activity;
 mod android_activity_window;
+mod android_insets;
 mod android_insets_controller;
 mod android_jvm;
 mod android_rumble_pack;
+mod android_view;
 mod controller_event_pump;
 
 use android_activity::*;
 use android_activity_window::*;
+use android_insets::*;
 use android_insets_controller::*;
 use android_jvm::*;
+use android_view::*;
 
 pub(crate) use android_rumble_pack::*;
 pub(crate) use controller_event_pump::*;
@@ -80,4 +84,25 @@ pub fn hide_ime(app: &PlatformApp) {
 
         Ok(())
     });
+}
+
+pub fn get_ime_height(app: &PlatformApp) -> i32 {
+    let vm = AndroidJVM::from(app);
+
+    let mut height = 0;
+
+    vm.wrap(|jni_env| {
+        let activity = AndroidActivity::from(app);
+        let activity_window = activity.get_window(jni_env)?;
+        let view = activity_window.get_decor_view(jni_env)?;
+        let window_insets = view.get_root_window_insets(jni_env)?;
+        let ime_mask = AndroidWindowInsetsType::ime(jni_env)?;
+        let insets = window_insets.get_insets(jni_env, ime_mask)?;
+
+        height = insets.bottom(jni_env)?;
+
+        Ok(())
+    });
+
+    height
 }
