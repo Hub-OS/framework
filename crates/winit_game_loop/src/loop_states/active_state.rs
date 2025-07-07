@@ -28,8 +28,7 @@ impl ActiveState {
             WinitGameWindow::from_window_and_config(params.winit_window, params.window_config)
                 .await?;
 
-        let mut game_runtime =
-            GameRuntimeCore::new(Box::new(window), params.runtime_params).await?;
+        let mut game_runtime = GameRuntimeCore::new(Box::new(window), params.runtime_params)?;
 
         let controller_event_pump = ControllerEventPump::new(&mut game_runtime)?;
 

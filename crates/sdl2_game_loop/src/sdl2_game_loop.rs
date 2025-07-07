@@ -71,7 +71,7 @@ impl Sdl2GameLoop {
 
     async fn run(mut self, loop_params: GameRuntimeCoreParams) -> anyhow::Result<()> {
         let window_id = self.window.id();
-        let mut game_runtime = GameRuntimeCore::new(Box::new(self.window), loop_params).await?;
+        let mut game_runtime = GameRuntimeCore::new(Box::new(self.window), loop_params)?;
 
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {

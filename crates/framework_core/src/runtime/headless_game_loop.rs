@@ -33,7 +33,7 @@ impl HeadlessGameLoop {
     async fn run(self, runtime_params: GameRuntimeCoreParams) -> anyhow::Result<()> {
         let window = Box::new(self.window);
 
-        let mut game_runtime = GameRuntimeCore::new(window, runtime_params).await?;
+        let mut game_runtime = GameRuntimeCore::new(window, runtime_params)?;
 
         while !game_runtime.quitting() {
             game_runtime.tick();

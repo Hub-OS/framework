@@ -36,7 +36,7 @@ pub struct GameRuntimeCore {
 }
 
 impl GameRuntimeCore {
-    pub async fn new(
+    pub fn new(
         window: Box<dyn GameWindowLifecycle>,
         params: GameRuntimeCoreParams,
     ) -> anyhow::Result<Self> {
