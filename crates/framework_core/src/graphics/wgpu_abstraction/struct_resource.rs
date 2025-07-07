@@ -25,7 +25,7 @@ impl<T: bytemuck::Pod> StructResource<T> {
             let count = vertex_format.size() as usize;
             bytes.extend_from_slice(&slice[..count]);
 
-            bytes.extend(std::iter::repeat(0).take(count.next_power_of_two() - count));
+            bytes.extend(std::iter::repeat_n(0, count.next_power_of_two() - count));
 
             slice = &slice[count..];
         }

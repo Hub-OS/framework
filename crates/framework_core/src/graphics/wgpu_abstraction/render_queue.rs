@@ -242,8 +242,8 @@ impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData>
     }
 }
 
-impl<'a, Vertex: super::Vertex, InstanceData: super::InstanceData> RenderQueueTrait
-    for RenderQueue<'a, Vertex, InstanceData>
+impl<Vertex: super::Vertex, InstanceData: super::InstanceData> RenderQueueTrait
+    for RenderQueue<'_, Vertex, InstanceData>
 {
     fn into_operation_vec(mut self) -> Vec<RenderOperation> {
         self.try_create_draw_call();

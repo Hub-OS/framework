@@ -25,9 +25,9 @@ impl HasGraphicsContext for GraphicsContext {
 }
 
 impl GraphicsContext {
-    pub async fn new<'window>(
+    pub async fn new(
         instance: wgpu::Instance,
-        surface: Option<&wgpu::Surface<'window>>,
+        surface: Option<&wgpu::Surface<'_>>,
     ) -> anyhow::Result<GraphicsContext> {
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {

@@ -73,8 +73,6 @@ impl Sdl2GameLoop {
         let window_id = self.window.id();
         let mut game_runtime = GameRuntimeCore::new(Box::new(self.window), loop_params).await?;
 
-        let game_io = game_runtime.game_io_mut();
-
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {
                 if let sdl2::event::Event::JoyDeviceAdded { which, .. } = sdl_event {

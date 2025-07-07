@@ -70,7 +70,7 @@ impl<'a, InstanceData: self::InstanceData> SpriteQueue<'a, InstanceData> {
     }
 }
 
-impl<'a, InstanceData: self::InstanceData> RenderQueueTrait for SpriteQueue<'a, InstanceData> {
+impl<InstanceData: self::InstanceData> RenderQueueTrait for SpriteQueue<'_, InstanceData> {
     fn into_operation_vec(self) -> Vec<RenderOperation> {
         self.render_queue.into_operation_vec()
     }
