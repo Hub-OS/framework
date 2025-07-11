@@ -39,21 +39,29 @@ impl Color {
         self
     }
 
-    pub fn multiply_color(mut self, value: f32) -> Self {
+    pub const fn multiply_color(mut self, value: f32) -> Self {
         self.r *= value;
         self.g *= value;
         self.b *= value;
         self
     }
 
-    pub fn multiply_alpha(mut self, a: f32) -> Self {
+    pub const fn multiply_alpha(mut self, a: f32) -> Self {
         self.a *= a;
         self
     }
 
-    pub fn lerp(start: Color, end: Color, progress: f32) -> Color {
-        let multiplied_start = start * (1.0 - progress);
-        let multiplied_end = end * progress;
+    const fn const_mul(mut self, rhs: f32) -> Self {
+        self.r *= rhs;
+        self.g *= rhs;
+        self.b *= rhs;
+        self.a *= rhs;
+        self
+    }
+
+    pub const fn lerp(start: Color, end: Color, progress: f32) -> Color {
+        let multiplied_start = start.const_mul(1.0 - progress);
+        let multiplied_end = end.const_mul(progress);
 
         Color {
             r: multiplied_end.r + multiplied_start.r,
@@ -84,12 +92,8 @@ fn to_srgb(v: f32) -> f32 {
 impl std::ops::Mul<f32> for Color {
     type Output = Self;
 
-    fn mul(mut self, rhs: f32) -> Self {
-        self.r *= rhs;
-        self.g *= rhs;
-        self.b *= rhs;
-        self.a *= rhs;
-        self
+    fn mul(self, rhs: f32) -> Self {
+        self.const_mul(rhs)
     }
 }
 
