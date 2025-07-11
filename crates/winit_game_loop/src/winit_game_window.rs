@@ -67,7 +67,7 @@ impl WinitGameWindow {
             locked_resolution: window_config.resolution.is_some(),
             integer_scaling: window_config.integer_scaling,
             clear_color: Some(Color::TRANSPARENT),
-            platform_app: window_config.platform_app.clone(),
+            platform_app: window_config.platform_app,
         })
     }
 }
