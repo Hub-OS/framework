@@ -19,11 +19,24 @@ impl Color {
     pub const ORANGE: Color = Color::new(1.0, 0.5, 0.0, 1.0);
     pub const TRANSPARENT: Color = Color::new(0.0, 0.0, 0.0, 0.0);
 
-    pub const fn new(r: f32, g: f32, b: f32, a: f32) -> Color {
+    pub const fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Color { r, g, b, a }
     }
 
-    pub fn to_linear(mut self) -> Color {
+    pub const fn from_rgb_u8s(r: u8, g: u8, b: u8) -> Self {
+        Self::new(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0, 1.0)
+    }
+
+    pub const fn from_rgba_u8s(r: u8, g: u8, b: u8, a: u8) -> Self {
+        Self::new(
+            r as f32 / 255.0,
+            g as f32 / 255.0,
+            b as f32 / 255.0,
+            a as f32 / 255.0,
+        )
+    }
+
+    pub fn to_linear(mut self) -> Self {
         self.r = to_linear(self.r);
         self.g = to_linear(self.g);
         self.b = to_linear(self.b);
@@ -31,7 +44,7 @@ impl Color {
         self
     }
 
-    pub fn to_srgb(mut self) -> Color {
+    pub fn to_srgb(mut self) -> Self {
         self.r = to_srgb(self.r);
         self.g = to_srgb(self.g);
         self.b = to_srgb(self.b);
@@ -59,7 +72,7 @@ impl Color {
         self
     }
 
-    pub const fn lerp(start: Color, end: Color, progress: f32) -> Color {
+    pub const fn lerp(start: Color, end: Color, progress: f32) -> Self {
         let multiplied_start = start.const_mul(1.0 - progress);
         let multiplied_end = end.const_mul(progress);
 
@@ -109,35 +122,25 @@ impl From<Color> for wgpu::Color {
 }
 
 impl From<(f32, f32, f32, f32)> for Color {
-    fn from(rgba: (f32, f32, f32, f32)) -> Self {
-        Self::new(rgba.0, rgba.1, rgba.2, rgba.3)
+    fn from((r, g, b, a): (f32, f32, f32, f32)) -> Self {
+        Self::new(r, g, b, a)
     }
 }
 
 impl From<(f32, f32, f32)> for Color {
-    fn from(rgb: (f32, f32, f32)) -> Self {
-        Self::new(rgb.0, rgb.1, rgb.2, 1.0)
+    fn from((r, g, b): (f32, f32, f32)) -> Self {
+        Self::new(r, g, b, 1.0)
     }
 }
 
 impl From<(u8, u8, u8, u8)> for Color {
-    fn from(rgba: (u8, u8, u8, u8)) -> Self {
-        Self::new(
-            rgba.0 as f32 / 255.0,
-            rgba.1 as f32 / 255.0,
-            rgba.2 as f32 / 255.0,
-            rgba.3 as f32 / 255.0,
-        )
+    fn from((r, g, b, a): (u8, u8, u8, u8)) -> Self {
+        Self::from_rgba_u8s(r, g, b, a)
     }
 }
 
 impl From<(u8, u8, u8)> for Color {
-    fn from(rgb: (u8, u8, u8)) -> Self {
-        Self::new(
-            rgb.0 as f32 / 255.0,
-            rgb.1 as f32 / 255.0,
-            rgb.2 as f32 / 255.0,
-            1.0,
-        )
+    fn from((r, g, b): (u8, u8, u8)) -> Self {
+        Self::from_rgb_u8s(r, g, b)
     }
 }
