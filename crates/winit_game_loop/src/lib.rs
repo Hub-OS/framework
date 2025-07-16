@@ -20,6 +20,6 @@ cfg_desktop_and_web! {
 }
 
 cfg_android! {
-    mod android;
-    pub use android::*;
+    pub mod android;
+    pub(crate) use android::controller_event_pump::*;
 }

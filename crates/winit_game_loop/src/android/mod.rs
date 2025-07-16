@@ -7,23 +7,23 @@ mod android_activity_window;
 mod android_insets;
 mod android_insets_controller;
 mod android_jvm;
-mod android_rumble_pack;
 mod android_view;
-mod controller_event_pump;
 
 use android_activity::*;
 use android_activity_window::*;
 use android_insets::*;
 use android_insets_controller::*;
-use android_jvm::*;
 use android_view::*;
 
-pub(crate) use android_rumble_pack::*;
-pub(crate) use controller_event_pump::*;
+pub(crate) mod android_rumble_pack;
+pub(crate) mod controller_event_pump;
+
+pub use android_jvm::*;
+pub use jni;
 
 use super::WinitPlatformApp as PlatformApp;
 
-pub fn show_system_bars(app: &PlatformApp) {
+pub(crate) fn show_system_bars(app: &PlatformApp) {
     let vm = AndroidJVM::from(app);
 
     vm.wrap(|jni_env| {
@@ -39,7 +39,7 @@ pub fn show_system_bars(app: &PlatformApp) {
     });
 }
 
-pub fn hide_system_bars(app: &PlatformApp) {
+pub(crate) fn hide_system_bars(app: &PlatformApp) {
     let vm = AndroidJVM::from(app);
 
     vm.wrap(|jni_env| {
@@ -56,7 +56,7 @@ pub fn hide_system_bars(app: &PlatformApp) {
     });
 }
 
-pub fn show_ime(app: &PlatformApp) {
+pub(crate) fn show_ime(app: &PlatformApp) {
     // https://stackoverflow.com/questions/75477112/android-12-ignoring-showsoftinput-as-view-is-not-served
 
     let vm = AndroidJVM::from(app);
@@ -72,7 +72,7 @@ pub fn show_ime(app: &PlatformApp) {
     });
 }
 
-pub fn hide_ime(app: &PlatformApp) {
+pub(crate) fn hide_ime(app: &PlatformApp) {
     let vm = AndroidJVM::from(app);
 
     vm.wrap(|jni_env| {
@@ -86,7 +86,7 @@ pub fn hide_ime(app: &PlatformApp) {
     });
 }
 
-pub fn get_ime_height(app: &PlatformApp) -> i32 {
+pub(crate) fn get_ime_height(app: &PlatformApp) -> i32 {
     let vm = AndroidJVM::from(app);
 
     let mut height = 0;

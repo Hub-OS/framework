@@ -14,7 +14,7 @@ impl From<&PlatformApp> for AndroidJVM {
 }
 
 impl AndroidJVM {
-    pub fn wrap(&self, mut func: impl FnMut(&mut JNIEnv) -> jni::errors::Result<()>) {
+    pub fn wrap(&self, func: impl FnOnce(&mut JNIEnv) -> jni::errors::Result<()>) {
         let mut jni_env = self.vm.get_env().unwrap();
 
         match func(&mut jni_env) {
