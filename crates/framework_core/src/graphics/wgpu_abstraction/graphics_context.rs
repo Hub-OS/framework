@@ -29,9 +29,9 @@ impl GraphicsContext {
         instance: wgpu::Instance,
         surface: Option<&wgpu::Surface<'_>>,
     ) -> anyhow::Result<GraphicsContext> {
-        logging::info!("Initializing WGPU");
+        logging::trace!("Initializing WGPU");
 
-        logging::info!("Requesting Adapter");
+        logging::trace!("Requesting Adapter");
 
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -43,7 +43,7 @@ impl GraphicsContext {
 
         let adapter = adapter_opt.ok_or_else(|| anyhow::anyhow!("No adapter found"))?;
 
-        logging::info!("Found Adapter: {:#?}", adapter.get_info());
+        logging::trace!("Found Adapter: {:#?}", adapter.get_info());
 
         let (device, queue) = adapter
             .request_device(
@@ -64,7 +64,7 @@ impl GraphicsContext {
             )
             .await?;
 
-        logging::info!("WGPU Initialized");
+        logging::trace!("WGPU Initialized");
 
         Ok(GraphicsContext {
             instance,
