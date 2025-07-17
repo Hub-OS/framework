@@ -6,6 +6,7 @@ license = "Zlib"
 
 [workspace]
 members = [
+  "crates/android",
   "crates/cfg_macros",
   "crates/framework_core",
   "crates/input",
@@ -16,6 +17,9 @@ members = [
   "crates/winit_game_loop",
   "examples/multiplatform"
 ]
+
+[workspace.dependencies]
+log = { version = "0.4", features = ["std"] }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]

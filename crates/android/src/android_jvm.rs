@@ -1,12 +1,12 @@
-use crate::WinitPlatformApp as PlatformApp;
+use crate::activity::AndroidApp;
 use jni::{JNIEnv, JavaVM};
 
 pub struct AndroidJVM {
     vm: JavaVM,
 }
 
-impl From<&PlatformApp> for AndroidJVM {
-    fn from(app: &PlatformApp) -> Self {
+impl From<&AndroidApp> for AndroidJVM {
+    fn from(app: &AndroidApp) -> Self {
         Self {
             vm: unsafe { JavaVM::from_raw(std::mem::transmute(app.vm_as_ptr())).unwrap() },
         }
@@ -24,7 +24,7 @@ impl AndroidJVM {
                 jni_env.exception_clear().unwrap();
             }
             Err(err) => {
-                logging::error!("{err:?}");
+                log::error!("{err:?}");
             }
         }
     }

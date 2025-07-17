@@ -128,13 +128,11 @@ impl GameWindowLifecycle for WinitGameWindow {
 
     fn set_accepting_text_input(&mut self, accept: bool) {
         cfg_android!({
-            use crate::android;
-
             if let Some(app) = &self.platform_app {
                 if accept {
-                    android::show_ime(app);
+                    android::util::show_ime(app);
                 } else {
-                    android::hide_ime(app);
+                    android::util::hide_ime(app);
                 }
             }
         });
@@ -173,13 +171,11 @@ impl GameWindow for WinitGameWindow {
         self.window.set_fullscreen(mode);
 
         cfg_android!({
-            use crate::android;
-
             if let Some(app) = &self.platform_app {
                 if fullscreen {
-                    android::hide_system_bars(app)
+                    android::util::hide_system_bars(app)
                 } else {
-                    android::show_system_bars(app)
+                    android::util::show_system_bars(app)
                 }
             }
         });
@@ -252,10 +248,8 @@ impl GameWindow for WinitGameWindow {
 
     fn ime_height(&self) -> i32 {
         cfg_android!({
-            use crate::android;
-
             if let Some(app) = &self.platform_app {
-                return android::get_ime_height(app);
+                return android::util::get_ime_height(app);
             }
         });
 

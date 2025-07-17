@@ -68,10 +68,8 @@ impl ApplicationHandler for StartingState {
                 window_attributes.with_fullscreen(Some(Fullscreen::Borderless(None)));
 
             cfg_android!({
-                use crate::android;
-
                 if let Some(app) = &window_config.platform_app {
-                    android::hide_system_bars(app);
+                    android::util::hide_system_bars(app);
                 }
             });
         }

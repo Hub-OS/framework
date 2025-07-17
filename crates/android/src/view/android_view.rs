@@ -1,14 +1,18 @@
 use super::*;
-use crate::WinitPlatformApp as PlatformApp;
 use jni::objects::JObject;
 use jni::JNIEnv;
 
+/// https://developer.android.com/reference/android/view/View
+///
+/// API level 1
 pub struct AndroidView<'a> {
     j_object: JObject<'a>,
 }
 
 impl<'a> AndroidView<'a> {
-    // API 23
+    /// https://developer.android.com/reference/android/view/View#getRootWindowInsets()
+    ///
+    /// API level 23
     pub fn get_root_window_insets(
         &self,
         jni_env: &mut JNIEnv<'a>,
