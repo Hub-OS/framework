@@ -264,7 +264,7 @@ impl SceneManager {
         transition: Option<Box<dyn SceneTransition>>,
     ) {
         if self.final_indices.len() == 1 {
-            error!("No scene to pop into");
+            log::error!("No scene to pop into");
             return;
         }
 
@@ -300,7 +300,7 @@ impl SceneManager {
 
     fn pop_scene(&mut self, game_io: &mut GameIO, transition: Option<Box<dyn SceneTransition>>) {
         if self.final_indices.len() == 1 {
-            error!("No scene to pop into");
+            log::error!("No scene to pop into");
             return;
         }
 

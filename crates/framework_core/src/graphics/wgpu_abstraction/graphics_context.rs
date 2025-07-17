@@ -1,6 +1,7 @@
 use crate::async_task::SyncResultAsyncError;
 use crate::graphics::*;
 use cfg_macros::*;
+use logging::log;
 use std::borrow::Cow;
 use std::future::Future;
 use std::path::Path;
@@ -29,9 +30,9 @@ impl GraphicsContext {
         instance: wgpu::Instance,
         surface: Option<&wgpu::Surface<'_>>,
     ) -> anyhow::Result<GraphicsContext> {
-        logging::trace!("Initializing WGPU");
+        log::trace!("Initializing WGPU");
 
-        logging::trace!("Requesting Adapter");
+        log::trace!("Requesting Adapter");
 
         let adapter_opt = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -43,7 +44,7 @@ impl GraphicsContext {
 
         let adapter = adapter_opt.ok_or_else(|| anyhow::anyhow!("No adapter found"))?;
 
-        logging::trace!("Found Adapter: {:#?}", adapter.get_info());
+        log::trace!("Found Adapter: {:#?}", adapter.get_info());
 
         let (device, queue) = adapter
             .request_device(
@@ -64,7 +65,7 @@ impl GraphicsContext {
             )
             .await?;
 
-        logging::trace!("WGPU Initialized");
+        log::trace!("WGPU Initialized");
 
         Ok(GraphicsContext {
             instance,

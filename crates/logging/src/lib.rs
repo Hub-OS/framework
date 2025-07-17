@@ -1,14 +1,12 @@
 use cfg_macros::*;
 
-pub use log::Level as LogLevel;
-pub use log::LevelFilter as LogLevelFilter;
-pub use log::{debug, error, info, log, trace, warn};
+pub use log;
 pub mod crate_name;
 pub mod default_logger;
 
 #[derive(Clone)]
 pub struct LogRecord {
-    pub level: LogLevel,
+    pub level: log::Level,
     pub target: String,
     pub message: String,
 }

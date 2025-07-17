@@ -47,7 +47,7 @@ impl Scene for MainScene {
     }
 
     fn update(&mut self, _game_io: &mut GameIO) {
-        info!("updating");
+        log::info!("updating");
     }
 
     fn draw(&mut self, game_io: &mut GameIO, render_pass: &mut RenderPass) {
@@ -55,6 +55,6 @@ impl Scene for MainScene {
         render_queue.draw_model(&self.triangle);
         render_pass.consume_queue(render_queue);
 
-        info!("drawing");
+        log::info!("drawing");
     }
 }

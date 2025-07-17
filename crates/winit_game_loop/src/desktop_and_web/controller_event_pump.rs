@@ -2,6 +2,7 @@ use super::default_rumble_pack::DefaultRumblePack;
 use framework_core::runtime::{GameRuntimeCore, InputEvent};
 use gilrs::ev::EventType as GilRsEvent;
 use input::{AnalogAxis, Button};
+use logging::log;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -12,7 +13,7 @@ pub(crate) struct ControllerEventPump {
 impl ControllerEventPump {
     pub(crate) fn new(game_runtime: &mut GameRuntimeCore) -> anyhow::Result<Self> {
         let gilrs = gilrs::Gilrs::new().map_err(|e| {
-            logging::error!("{e}");
+            log::error!("{e}");
             anyhow::anyhow!("Failed to initialize game controller subsystem")
         })?;
 

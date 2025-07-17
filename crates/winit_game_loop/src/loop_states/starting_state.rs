@@ -3,7 +3,7 @@ use crate::cfg_android;
 use cfg_macros::cfg_web;
 use framework_core::runtime::GameRuntimeCoreParams;
 use framework_core::runtime::GameWindowConfig;
-use logging::error;
+use logging::log;
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalSize;
 use winit::event_loop::ActiveEventLoop;
@@ -130,7 +130,7 @@ impl ApplicationHandler for StartingState {
                     self.next_state = Some(Box::new(new_state));
                 }
                 Err(e) => {
-                    error!("{}", e);
+                    log::error!("{}", e);
                     event_loop.exit();
                 }
             }
