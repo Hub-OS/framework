@@ -129,16 +129,15 @@ impl log::Log for DefaultLogger {
         });
 
         cfg_android!({
-            use super::LogLevel;
             use ndk_sys::android_LogPriority as AndroidLogPriority;
             use std::ffi::{c_int, CString};
 
             let priority = match record.level() {
-                LogLevel::Error => AndroidLogPriority::ANDROID_LOG_ERROR,
-                LogLevel::Warn => AndroidLogPriority::ANDROID_LOG_WARN,
-                LogLevel::Info => AndroidLogPriority::ANDROID_LOG_INFO,
-                LogLevel::Debug => AndroidLogPriority::ANDROID_LOG_DEBUG,
-                LogLevel::Trace => AndroidLogPriority::ANDROID_LOG_VERBOSE,
+                log::Level::Error => AndroidLogPriority::ANDROID_LOG_ERROR,
+                log::Level::Warn => AndroidLogPriority::ANDROID_LOG_WARN,
+                log::Level::Info => AndroidLogPriority::ANDROID_LOG_INFO,
+                log::Level::Debug => AndroidLogPriority::ANDROID_LOG_DEBUG,
+                log::Level::Trace => AndroidLogPriority::ANDROID_LOG_VERBOSE,
             };
 
             let tag = CString::new(record.target()).unwrap_or_default();
