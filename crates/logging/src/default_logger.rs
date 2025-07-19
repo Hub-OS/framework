@@ -11,11 +11,11 @@ cfg_native! {
 #[macro_export]
 macro_rules! init {
     () => {{
-        use $crate::{default_logger::DefaultLogger, LogLevelFilter};
+        use $crate::{default_logger::DefaultLogger, log::LevelFilter};
 
         DefaultLogger::new()
-            .with_global_level_filter(LogLevelFilter::Warn)
-            .with_crate_level_filter($crate::crate_name!(), LogLevelFilter::Trace)
+            .with_global_level_filter(LevelFilter::Warn)
+            .with_crate_level_filter($crate::crate_name!(), LevelFilter::Trace)
             .init()
             .unwrap();
     }};
@@ -24,11 +24,11 @@ macro_rules! init {
 #[macro_export]
 macro_rules! init_with_listener {
     ($listener:expr) => {{
-        use $crate::{default_logger::DefaultLogger, LogLevelFilter};
+        use $crate::{default_logger::DefaultLogger, log::LevelFilter};
 
         DefaultLogger::new()
-            .with_global_level_filter(LogLevelFilter::Warn)
-            .with_crate_level_filter($crate::crate_name!(), LogLevelFilter::Trace)
+            .with_global_level_filter(LevelFilter::Warn)
+            .with_crate_level_filter($crate::crate_name!(), LevelFilter::Trace)
             .with_listener($listener)
             .init()
             .unwrap();
