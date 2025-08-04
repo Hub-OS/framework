@@ -48,10 +48,11 @@ impl GraphicsContext {
 
         // we don't need compute
         let strip_compute = |mut limits: wgpu::Limits| {
+            limits.max_compute_workgroup_storage_size = 0;
             limits.max_compute_invocations_per_workgroup = 0;
             limits.max_compute_workgroup_size_x = 0;
+            limits.max_compute_workgroup_size_y = 0;
             limits.max_compute_workgroup_size_z = 0;
-            limits.max_compute_workgroup_storage_size = 0;
             limits.max_compute_workgroups_per_dimension = 0;
             limits
         };
