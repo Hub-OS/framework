@@ -46,14 +46,20 @@ impl GraphicsContext {
 
         log::trace!("Found Adapter: {:#?}", adapter.get_info());
 
-        // we don't need compute
-        let strip_compute = |mut limits: wgpu::Limits| {
+        let strip_flags = |mut limits: wgpu::Limits| {
+            // we don't need compute
             limits.max_compute_workgroup_storage_size = 0;
             limits.max_compute_invocations_per_workgroup = 0;
             limits.max_compute_workgroup_size_x = 0;
             limits.max_compute_workgroup_size_y = 0;
             limits.max_compute_workgroup_size_z = 0;
             limits.max_compute_workgroups_per_dimension = 0;
+
+            // we don't need storage
+            limits.max_storage_buffer_binding_size = 0;
+            limits.max_storage_buffers_per_shader_stage = 0;
+            limits.max_storage_textures_per_shader_stage = 0;
+
             limits
         };
 
@@ -74,7 +80,7 @@ impl GraphicsContext {
                 return Err(last_error.unwrap().into());
             };
 
-            let limits = strip_compute(limits.clone());
+            let limits = strip_flags(limits.clone());
 
             let result = adapter
                 .request_device(
