@@ -46,24 +46,54 @@ impl GraphicsContext {
 
         log::trace!("Found Adapter: {:#?}", adapter.get_info());
 
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_limits: {
-                        cfg_web! {
-                            wgpu::Limits::downlevel_webgl2_defaults()
-                        }
-                        cfg_native! {
-                            wgpu::Limits::default()
-                        }
+        // we don't need compute
+        let strip_compute = |mut limits: wgpu::Limits| {
+            limits.max_compute_invocations_per_workgroup = 0;
+            limits.max_compute_workgroup_size_x = 0;
+            limits.max_compute_workgroup_size_z = 0;
+            limits.max_compute_workgroup_storage_size = 0;
+            limits.max_compute_workgroups_per_dimension = 0;
+            limits
+        };
+
+        let required_limits_list = {
+            cfg_web! {
+                [wgpu::Limits::downlevel_webgl2_defaults()]
+            }
+            cfg_native! {
+                [wgpu::Limits::default(), wgpu::Limits::downlevel_defaults()]
+            }
+        };
+
+        let mut i = 0;
+        let mut last_error: Option<wgpu::RequestDeviceError> = None;
+
+        let (device, queue) = loop {
+            let Some(limits) = required_limits_list.get(i) else {
+                return Err(last_error.unwrap().into());
+            };
+
+            let limits = strip_compute(limits.clone());
+
+            let result = adapter
+                .request_device(
+                    &wgpu::DeviceDescriptor {
+                        label: None,
+                        required_limits: limits,
+                        required_features: wgpu::Features::empty(),
+                        memory_hints: wgpu::MemoryHints::default(),
                     },
-                    required_features: wgpu::Features::empty(),
-                    memory_hints: wgpu::MemoryHints::default(),
-                },
-                None,
-            )
-            .await?;
+                    None,
+                )
+                .await;
+
+            match result {
+                Ok(tuple) => break tuple,
+                Err(err) => last_error = Some(err),
+            }
+
+            i += 1;
+        };
 
         log::trace!("WGPU Initialized");
 
