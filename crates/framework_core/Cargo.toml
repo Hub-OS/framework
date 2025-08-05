@@ -18,7 +18,7 @@ copypasta = "0.10"
 image = { version = "0.24", default-features = false }
 raw-window-handle = "0.6"
 # using webgl feature until wgpu is standardized and implemented in browsers
-wgpu = { version = "24", features = ["webgl"] }
+wgpu = { version = "24", features = ["webgl", "angle"] }
 slotmap = "1"
 
 # native dependencies
