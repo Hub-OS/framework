@@ -91,6 +91,7 @@ impl RenderTarget {
     pub(crate) fn color_attachment(&self) -> wgpu::RenderPassColorAttachment {
         wgpu::RenderPassColorAttachment {
             view: &self.texture.view,
+            depth_slice: None,
             resolve_target: None,
             ops: wgpu::Operations {
                 load: match self.clear_color {

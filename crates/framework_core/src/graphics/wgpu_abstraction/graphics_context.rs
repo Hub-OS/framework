@@ -42,7 +42,7 @@ impl GraphicsContext {
             })
             .await;
 
-        let adapter = adapter_opt.ok_or_else(|| anyhow::anyhow!("No adapter found"))?;
+        let adapter = adapter_opt?;
 
         log::trace!("Found Adapter: {:#?}", adapter.get_info());
 
@@ -64,15 +64,13 @@ impl GraphicsContext {
             };
 
             let result = adapter
-                .request_device(
-                    &wgpu::DeviceDescriptor {
-                        label: None,
-                        required_limits: limits.clone(),
-                        required_features: wgpu::Features::empty(),
-                        memory_hints: wgpu::MemoryHints::default(),
-                    },
-                    None,
-                )
+                .request_device(&wgpu::DeviceDescriptor {
+                    label: None,
+                    required_limits: limits.clone(),
+                    required_features: wgpu::Features::empty(),
+                    memory_hints: wgpu::MemoryHints::default(),
+                    trace: wgpu::Trace::Off,
+                })
                 .await;
 
             match result {

@@ -35,6 +35,7 @@ impl WinitGameWindow {
         let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: Default::default(),
             flags: wgpu::InstanceFlags::empty(),
+            memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
         });
         let surface = wgpu_instance.create_surface(window.clone()).unwrap();

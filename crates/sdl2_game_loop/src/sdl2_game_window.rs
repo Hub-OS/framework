@@ -28,6 +28,7 @@ impl Sdl2GameWindow {
         let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: Default::default(),
             flags: wgpu::InstanceFlags::empty(),
+            memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
         });
 
