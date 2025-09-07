@@ -75,6 +75,14 @@ impl GameInputManager {
         }
     }
 
+    pub fn set_clipboard_text(&mut self, text: String) -> bool {
+        if let Some(clipboard) = &mut self.clipboard {
+            clipboard.set_contents(text).is_ok()
+        } else {
+            false
+        }
+    }
+
     pub fn text(&self) -> &str {
         &self.text
     }
