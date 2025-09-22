@@ -263,13 +263,13 @@ use framework_core::raw_window_handle::{
 };
 
 impl HasWindowHandle for WinitGameWindow {
-    fn window_handle(&self) -> Result<WindowHandle, HandleError> {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         self.window.window_handle()
     }
 }
 
 impl HasDisplayHandle for WinitGameWindow {
-    fn display_handle(&self) -> Result<DisplayHandle, HandleError> {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
         self.window.display_handle()
     }
 }

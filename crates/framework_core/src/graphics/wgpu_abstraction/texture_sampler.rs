@@ -47,7 +47,7 @@ impl TextureSampler {
 }
 
 impl AsBinding for TextureSampler {
-    fn as_binding(&self) -> BindingResource {
+    fn as_binding(&self) -> BindingResource<'_> {
         wgpu::BindingResource::Sampler(&self.sampler)
     }
 }

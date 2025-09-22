@@ -3,7 +3,7 @@ use crate::graphics::*;
 
 pub trait PostProcess {
     fn render_pipeline(&self) -> &PostPipeline;
-    fn uniform_resources(&self) -> Vec<BindingResource>;
+    fn uniform_resources(&self) -> Vec<BindingResource<'_>>;
 
     fn update(&mut self, _game_io: &GameIO) {}
 

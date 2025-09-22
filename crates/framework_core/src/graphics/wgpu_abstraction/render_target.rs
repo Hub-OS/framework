@@ -88,7 +88,7 @@ impl RenderTarget {
         self.clear_color = color;
     }
 
-    pub(crate) fn color_attachment(&self) -> wgpu::RenderPassColorAttachment {
+    pub(crate) fn color_attachment(&self) -> wgpu::RenderPassColorAttachment<'_> {
         wgpu::RenderPassColorAttachment {
             view: &self.texture.view,
             depth_slice: None,
@@ -103,7 +103,7 @@ impl RenderTarget {
         }
     }
 
-    pub(crate) fn depth_attachment(&self) -> wgpu::RenderPassDepthStencilAttachment {
+    pub(crate) fn depth_attachment(&self) -> wgpu::RenderPassDepthStencilAttachment<'_> {
         wgpu::RenderPassDepthStencilAttachment {
             view: &self.texture.view,
             depth_ops: Some(wgpu::Operations {

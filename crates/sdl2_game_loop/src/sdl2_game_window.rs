@@ -237,13 +237,13 @@ use framework_core::raw_window_handle::{
 };
 
 impl HasWindowHandle for Sdl2GameWindow {
-    fn window_handle(&self) -> Result<WindowHandle, HandleError> {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         self.window.window_handle()
     }
 }
 
 impl HasDisplayHandle for Sdl2GameWindow {
-    fn display_handle(&self) -> Result<DisplayHandle, HandleError> {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
         self.window.display_handle()
     }
 }
