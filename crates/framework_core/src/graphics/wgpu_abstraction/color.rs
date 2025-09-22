@@ -36,6 +36,23 @@ impl Color {
         )
     }
 
+    pub fn from_rgb_u32(value: u64) -> Self {
+        Self::from_rgb_u8s(
+            ((value >> 16) & 255) as u8,
+            ((value >> 8) & 255) as u8,
+            (value & 255) as u8,
+        )
+    }
+
+    pub fn from_rgba_u32(value: u64) -> Self {
+        Self::from_rgba_u8s(
+            (value >> 24) as u8,
+            ((value >> 16) & 255) as u8,
+            ((value >> 8) & 255) as u8,
+            (value & 255) as u8,
+        )
+    }
+
     pub fn to_linear(mut self) -> Self {
         self.r = to_linear(self.r);
         self.g = to_linear(self.g);
