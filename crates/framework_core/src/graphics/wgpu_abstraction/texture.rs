@@ -80,7 +80,12 @@ impl Texture {
         UVec2::new(size_3d.width, size_3d.height)
     }
 
-    pub fn read_rgba_bytes(
+    pub fn view(&self) -> &wgpu::TextureView {
+        &self.view
+    }
+
+    /// Only supports uncompressed texture formats using 1 byte per component
+    pub fn read_bytes(
         &self,
         graphics: &impl HasGraphicsContext,
     ) -> impl std::future::Future<Output = Vec<u8>> {
@@ -94,8 +99,9 @@ impl Texture {
         // create buffer
         let width = self.width();
         let height = self.height();
+        let format = self.view.texture().format();
 
-        let final_bytes_per_row = 4 * width;
+        let final_bytes_per_row = format.components() as u32 * width;
         let alignment_remainder = final_bytes_per_row % wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
         let bytes_per_row = if alignment_remainder > 0 {
             final_bytes_per_row + (wgpu::COPY_BYTES_PER_ROW_ALIGNMENT - alignment_remainder)
@@ -144,35 +150,37 @@ impl Texture {
         let (resolve_future, promised_future) = promise_future();
         let buffer_slice = output_buffer.slice(..);
 
+        let output_buffer = output_buffer.clone();
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-            resolve_future(result);
+            // spawn thread to avoid blocking while copying to vec
+            std::thread::spawn(move || {
+                result.unwrap();
+
+                let data = {
+                    let buffer_slice = output_buffer.slice(..);
+                    let buffer_view = buffer_slice.get_mapped_range();
+
+                    // move bytes to vec and remove padding
+                    let bytes_per_row = bytes_per_row as usize;
+                    let final_bytes_per_row = final_bytes_per_row as usize;
+                    let height = height as usize;
+                    let mut data = Vec::with_capacity(final_bytes_per_row * height);
+
+                    data.extend(
+                        buffer_view
+                            .chunks(bytes_per_row)
+                            .flat_map(|chunk| chunk.iter().take(final_bytes_per_row)),
+                    );
+
+                    data
+                };
+
+                output_buffer.unmap();
+                resolve_future(data);
+            });
         });
 
-        async move {
-            promised_future.await.unwrap();
-
-            let data = {
-                let buffer_slice = output_buffer.slice(..);
-                let buffer_view = buffer_slice.get_mapped_range();
-
-                // move bytes to vec and remove padding
-                let bytes_per_row = bytes_per_row as usize;
-                let final_bytes_per_row = final_bytes_per_row as usize;
-                let height = height as usize;
-                let mut data = Vec::with_capacity(final_bytes_per_row * height);
-
-                data.extend(
-                    buffer_view
-                        .chunks(bytes_per_row)
-                        .flat_map(|chunk| chunk.iter().take(final_bytes_per_row)),
-                );
-
-                data
-            };
-
-            output_buffer.unmap();
-            data
-        }
+        promised_future
     }
 }
 
