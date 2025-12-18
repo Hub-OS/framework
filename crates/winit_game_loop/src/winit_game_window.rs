@@ -33,7 +33,7 @@ impl WinitGameWindow {
         let position = window.outer_position().unwrap_or_default();
 
         let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
-            backends: Default::default(),
+            backends: wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all()),
             flags: wgpu::InstanceFlags::empty(),
             memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
@@ -96,11 +96,10 @@ impl GameWindowLifecycle for WinitGameWindow {
         let texture = &surface_texture.texture;
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let texture_size = self.size();
 
         self.surface_texture = Some(surface_texture);
 
-        Some(RenderTarget::from_view(view, texture_size))
+        Some(RenderTarget::from_view(view))
     }
 
     fn present_frame(&mut self, _render_target: RenderTarget) {

@@ -3,8 +3,6 @@ use math::*;
 use std::sync::Arc;
 
 pub struct Texture {
-    pub(crate) size: UVec2,
-    pub(crate) texture: Option<wgpu::Texture>,
     pub(crate) view: wgpu::TextureView,
 }
 
@@ -66,23 +64,20 @@ impl Texture {
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
-        Ok(Arc::new(Self {
-            size: size.into(),
-            texture: Some(texture),
-            view,
-        }))
+        Ok(Arc::new(Self { view }))
     }
 
     pub fn width(&self) -> u32 {
-        self.size.x
+        self.size().x
     }
 
     pub fn height(&self) -> u32 {
-        self.size.y
+        self.size().y
     }
 
     pub fn size(&self) -> UVec2 {
-        self.size
+        let size_3d = self.view.texture().size();
+        UVec2::new(size_3d.width, size_3d.height)
     }
 
     pub fn read_rgba_bytes(
@@ -123,7 +118,7 @@ impl Texture {
                 aspect: wgpu::TextureAspect::All,
                 // expecting texture to be None only from internal API usage
                 // this function should never be called by internal API
-                texture: self.texture.as_ref().unwrap(),
+                texture: self.view.texture(),
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },

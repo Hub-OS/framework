@@ -50,13 +50,9 @@ impl RenderTarget {
         }
     }
 
-    pub fn from_view(view: wgpu::TextureView, size: UVec2) -> Self {
+    pub fn from_view(view: wgpu::TextureView) -> Self {
         Self {
-            texture: Arc::new(Texture {
-                texture: None,
-                view,
-                size,
-            }),
+            texture: Arc::new(Texture { view }),
             clear_color: Some(Color::TRANSPARENT),
             usage: Self::DEFAULT_USAGE,
             format: Texture::DEFAULT_FORMAT,
@@ -68,11 +64,11 @@ impl RenderTarget {
     }
 
     pub fn size(&self) -> UVec2 {
-        self.texture.size
+        self.texture.size()
     }
 
     pub fn resize(&mut self, graphics: &impl HasGraphicsContext, size: UVec2) {
-        if self.texture.size == size {
+        if self.size() == size {
             return;
         }
 
@@ -142,12 +138,8 @@ impl RenderTarget {
         };
 
         let texture = device.create_texture(&texture_desc);
-        let texture_view = texture.create_view(&Default::default());
+        let view = texture.create_view(&Default::default());
 
-        Arc::new(Texture {
-            texture: Some(texture),
-            view: texture_view,
-            size,
-        })
+        Arc::new(Texture { view })
     }
 }

@@ -99,11 +99,10 @@ impl GameWindowLifecycle for Sdl2GameWindow {
         let texture = &surface_texture.texture;
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let texture_size = self.size();
 
         self.surface_texture = Some(surface_texture);
 
-        Some(RenderTarget::from_view(view, texture_size))
+        Some(RenderTarget::from_view(view))
     }
 
     fn present_frame(&mut self, _target: RenderTarget) {
