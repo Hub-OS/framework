@@ -61,6 +61,16 @@ pub(crate) fn translate_winit_event(
                 Vec::new()
             }
         }
+        WinitWindowEvent::Ime(ime_event) => match ime_event {
+            winit::event::Ime::Enabled => {
+                vec![]
+            }
+            winit::event::Ime::Preedit(text, selection) => {
+                vec![InputEvent::TextPreEdit(text, selection).into()]
+            }
+            winit::event::Ime::Commit(text) => vec![InputEvent::Text(text).into()],
+            winit::event::Ime::Disabled => vec![InputEvent::TextPreEditEnd.into()],
+        },
         #[allow(unused_variables)]
         WinitWindowEvent::KeyboardInput {
             event:

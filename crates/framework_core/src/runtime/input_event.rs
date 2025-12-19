@@ -4,6 +4,8 @@ use std::path::PathBuf;
 
 pub enum InputEvent {
     Text(String),
+    TextPreEdit(String, Option<(usize, usize)>),
+    TextPreEditEnd,
     DropStart,
     DropCancelled,
     DroppedFile(PathBuf),

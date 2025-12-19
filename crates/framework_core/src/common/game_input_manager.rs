@@ -20,6 +20,7 @@ pub struct GameInputManager {
     dropped_file: Option<PathBuf>,
     dropped_text: Option<String>,
     text: String,
+    pre_edit: Option<(String, Option<(usize, usize)>)>,
     accept_text: bool,
     requires_ime_update: bool,
     pending_ime_cursor_area: Option<Rect>,
@@ -43,6 +44,7 @@ impl Default for GameInputManager {
             dropped_file: None,
             dropped_text: None,
             text: String::new(),
+            pre_edit: None,
             accept_text: false,
             requires_ime_update: false,
             pending_ime_cursor_area: Default::default(),
@@ -76,6 +78,7 @@ impl GameInputManager {
     pub fn end_text_input(&mut self) {
         self.accept_text = false;
         self.requires_ime_update = true;
+        self.pre_edit = None;
     }
 
     pub fn request_clipboard_text(&mut self) -> String {
@@ -96,6 +99,13 @@ impl GameInputManager {
 
     pub fn text(&self) -> &str {
         &self.text
+    }
+
+    // Returns the pre edit text with selection start and end
+    pub fn text_pre_edit(&self) -> Option<(&str, Option<(usize, usize)>)> {
+        self.pre_edit
+            .as_ref()
+            .map(|(text, selection)| (text.as_str(), *selection))
     }
 
     pub fn touches(&self) -> &[Touch] {
@@ -348,7 +358,16 @@ impl GameInputManager {
             InputEvent::Text(text) => {
                 if self.accept_text {
                     self.text = text;
+                    self.pre_edit = None;
                 }
+            }
+            InputEvent::TextPreEdit(text, selection) => {
+                if self.accept_text {
+                    self.pre_edit = Some((text, selection));
+                }
+            }
+            InputEvent::TextPreEditEnd => {
+                self.pre_edit = None;
             }
             InputEvent::DropStart => {
                 self.dropping_data = true;
