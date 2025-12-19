@@ -122,12 +122,15 @@ impl GameWindowLifecycle for Sdl2GameWindow {
     fn resized(&mut self, size: UVec2) {
         self.size = size;
 
-        self.surface_config.width = size.x.max(1);
-        self.surface_config.height = size.y.max(1);
-
         if !self.locked_resolution {
             self.resolution = size;
         }
+
+        self.surface_config.width = size.x.max(1);
+        self.surface_config.height = size.y.max(1);
+
+        let device = self.graphics().device();
+        self.surface.configure(device, &self.surface_config);
 
         self.set_ime_cursor_area(self.ime_cursor_area);
     }
