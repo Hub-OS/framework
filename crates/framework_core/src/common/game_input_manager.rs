@@ -22,6 +22,7 @@ pub struct GameInputManager {
     text: String,
     accept_text: bool,
     requires_ime_update: bool,
+    pending_ime_cursor_area: Option<Rect>,
 }
 
 impl Default for GameInputManager {
@@ -44,6 +45,7 @@ impl Default for GameInputManager {
             text: String::new(),
             accept_text: false,
             requires_ime_update: false,
+            pending_ime_cursor_area: Default::default(),
         }
     }
 }
@@ -53,6 +55,10 @@ impl GameInputManager {
         self.requires_ime_update
     }
 
+    pub fn pending_ime_cursor_area_update(&self) -> Option<Rect> {
+        self.pending_ime_cursor_area
+    }
+
     pub fn accepting_text(&self) -> bool {
         self.accept_text
     }
@@ -60,6 +66,11 @@ impl GameInputManager {
     pub fn start_text_input(&mut self) {
         self.accept_text = true;
         self.requires_ime_update = true;
+    }
+
+    /// Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
+    pub fn set_ime_cursor_area(&mut self, area: Rect) {
+        self.pending_ime_cursor_area = Some(area);
     }
 
     pub fn end_text_input(&mut self) {
@@ -91,7 +102,7 @@ impl GameInputManager {
         &self.touches
     }
 
-    // Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
+    /// Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
     pub fn mouse_position(&self) -> Vec2 {
         self.mouse_position
     }
@@ -253,6 +264,7 @@ impl GameInputManager {
         self.dropped_file = None;
         self.dropped_text = None;
         self.requires_ime_update = false;
+        self.pending_ime_cursor_area = None;
         self.text.clear();
         self.touches.retain_mut(|touch| {
             if touch.phase == TouchPhase::Start {

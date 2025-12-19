@@ -3,6 +3,8 @@ use framework_core::runtime::GameWindowConfig;
 use framework_core::{common::GameWindow, runtime::GameWindowLifecycle};
 use math::*;
 
+const DEFAULT_IME_CURSOR_AREA: Rect = Rect::new(-1.0, 1.0, 0.0, 0.0);
+
 pub struct Sdl2GameWindow {
     window: sdl2::video::Window,
     graphics: GraphicsContext,
@@ -15,6 +17,7 @@ pub struct Sdl2GameWindow {
     locked_resolution: bool,
     integer_scaling: bool,
     clear_color: Option<Color>,
+    ime_cursor_area: Rect,
 }
 
 impl Sdl2GameWindow {
@@ -63,6 +66,7 @@ impl Sdl2GameWindow {
             integer_scaling: window_config.integer_scaling,
             resolution: window_config.resolution.unwrap_or(size),
             clear_color: Some(Color::TRANSPARENT),
+            ime_cursor_area: DEFAULT_IME_CURSOR_AREA,
         })
     }
 
@@ -124,6 +128,8 @@ impl GameWindowLifecycle for Sdl2GameWindow {
         if !self.locked_resolution {
             self.resolution = size;
         }
+
+        self.set_ime_cursor_area(self.ime_cursor_area);
     }
 
     fn set_accepting_text_input(&mut self, accept: bool) {
@@ -133,7 +139,24 @@ impl GameWindowLifecycle for Sdl2GameWindow {
             text_input.start();
         } else {
             text_input.stop();
+            self.ime_cursor_area = DEFAULT_IME_CURSOR_AREA;
         }
+    }
+
+    fn set_ime_cursor_area(&mut self, mut rect: Rect) {
+        self.ime_cursor_area = rect;
+
+        rect.set_position(rect.position() * Vec2::new(0.5, -0.5) + 0.5);
+        rect *= self.resolution.as_vec2();
+        rect *= self.render_scale();
+
+        let text_input = self.window.subsystem().text_input();
+        text_input.set_rect(sdl2::rect::Rect::new(
+            rect.x as _,
+            rect.y as _,
+            rect.width as _,
+            rect.height as _,
+        ));
     }
 }
 

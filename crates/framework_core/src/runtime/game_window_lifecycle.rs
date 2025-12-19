@@ -17,4 +17,7 @@ pub trait GameWindowLifecycle: GameWindow + HasGraphicsContext {
 
     /// Called by GameIO to notify the window to display a virtual keyboard
     fn set_accepting_text_input(&mut self, accept: bool);
+
+    /// Relative to the render. Top left is (-1.0, 1.0), bottom right is (1.0, -1.0)
+    fn set_ime_cursor_area(&mut self, area: Rect);
 }

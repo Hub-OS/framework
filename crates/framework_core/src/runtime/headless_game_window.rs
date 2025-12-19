@@ -69,6 +69,7 @@ impl GameWindowLifecycle for HeadlessGameWindow {
     }
 
     fn set_accepting_text_input(&mut self, _accept: bool) {}
+    fn set_ime_cursor_area(&mut self, _area: Rect) {}
 }
 
 impl GameWindow for HeadlessGameWindow {

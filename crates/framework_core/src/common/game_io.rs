@@ -213,6 +213,10 @@ impl GameIO {
                 .set_accepting_text_input(self.input_manager.accepting_text());
         }
 
+        if let Some(rect) = self.input_manager.pending_ime_cursor_area_update() {
+            self.window.set_ime_cursor_area(rect);
+        }
+
         self.input_manager.flush();
 
         for event in events {

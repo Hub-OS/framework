@@ -6,7 +6,9 @@ use framework_core::graphics::{wgpu, GraphicsContext, HasGraphicsContext, Render
 use framework_core::runtime::{GameWindowConfig, GameWindowLifecycle};
 use math::*;
 use std::sync::Arc;
-use winit::dpi::PhysicalSize;
+use winit::dpi::{PhysicalPosition, PhysicalSize};
+
+const DEFAULT_IME_CURSOR_AREA: Rect = Rect::new(-1.0, 1.0, 0.0, 0.0);
 
 pub struct WinitGameWindow {
     window: Arc<winit::window::Window>,
@@ -20,6 +22,7 @@ pub struct WinitGameWindow {
     locked_resolution: bool,
     integer_scaling: bool,
     clear_color: Option<Color>,
+    ime_cursor_area: Rect,
     #[allow(dead_code)]
     platform_app: Option<WinitPlatformApp>,
 }
@@ -68,6 +71,7 @@ impl WinitGameWindow {
             locked_resolution: window_config.resolution.is_some(),
             integer_scaling: window_config.integer_scaling,
             clear_color: Some(Color::TRANSPARENT),
+            ime_cursor_area: DEFAULT_IME_CURSOR_AREA,
             platform_app: window_config.platform_app,
         })
     }
@@ -124,6 +128,8 @@ impl GameWindowLifecycle for WinitGameWindow {
 
         let device = self.graphics().device();
         self.surface.configure(device, &self.surface_config);
+
+        self.set_ime_cursor_area(self.ime_cursor_area);
     }
 
     fn set_accepting_text_input(&mut self, accept: bool) {
@@ -139,7 +145,26 @@ impl GameWindowLifecycle for WinitGameWindow {
 
         cfg_desktop_and_web!({
             self.window.set_ime_allowed(accept);
-        })
+        });
+
+        if accept {
+            // reapply
+            self.set_ime_cursor_area(self.ime_cursor_area);
+        } else {
+            self.ime_cursor_area = DEFAULT_IME_CURSOR_AREA;
+        }
+    }
+
+    fn set_ime_cursor_area(&mut self, mut rect: Rect) {
+        self.ime_cursor_area = rect;
+
+        rect.set_position(rect.position() * Vec2::new(0.5, -0.5) + 0.5);
+        rect *= self.resolution.as_vec2();
+        rect *= self.render_scale();
+
+        let position = PhysicalPosition::new(rect.x, rect.y);
+        let size = PhysicalSize::new(rect.width, rect.height);
+        self.window.set_ime_cursor_area(position, size);
     }
 }
 
@@ -186,9 +211,9 @@ impl GameWindow for WinitGameWindow {
     }
 
     fn request_size(&mut self, size: UVec2) {
-        let logical_size = PhysicalSize::new(size.x, size.y);
+        let requested_size = PhysicalSize::new(size.x, size.y);
 
-        if let Some(size) = self.window.request_inner_size(logical_size) {
+        if let Some(size) = self.window.request_inner_size(requested_size) {
             self.size = UVec2::new(size.width, size.height);
         }
     }
