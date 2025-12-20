@@ -95,6 +95,12 @@ async fn run(
                     AndroidMainEvent::InitWindow { .. } => {
                         game_runtime.push_event(GameWindowEvent::Created);
                     }
+                    AndroidMainEvent::Resume { .. } => {
+                        game_runtime.set_suspended(false);
+                    }
+                    AndroidMainEvent::Pause { .. } => {
+                        game_runtime.set_suspended(true);
+                    }
                     AndroidMainEvent::WindowResized { .. } => {
                         if let Some(window) = app.native_window() {
                             let size = UVec2::new(window.width() as _, window.height() as _);
