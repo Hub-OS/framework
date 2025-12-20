@@ -9,6 +9,7 @@ pub type GameLoop = WinitGameLoop;
 pub type PlatformApp = <GameLoop as GameWindowLoop>::PlatformApp;
 
 pub fn shared_main(platform_app: PlatformApp) -> anyhow::Result<()> {
+    std::panic::set_hook(panic_hook());
     default_logger::init!();
 
     Game::<GameLoop>::new("Multiplatform", (800, 600))

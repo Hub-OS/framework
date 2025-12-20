@@ -3,6 +3,7 @@ use framework::prelude::*;
 use rand::prelude::*;
 
 fn main() -> anyhow::Result<()> {
+    std::panic::set_hook(panic_hook());
     default_logger::init!();
 
     let game = Game::<WinitGameLoop>::new("Sprites", (800, 600));

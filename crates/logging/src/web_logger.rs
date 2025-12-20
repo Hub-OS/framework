@@ -36,8 +36,6 @@ impl DefaultLogger {
     }
 
     pub fn init(self) -> Result<(), log::SetLoggerError> {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-
         // allow everything, we'll filter logs within the logger
         log::set_max_level(log::LevelFilter::Trace);
         log::set_boxed_logger(Box::new(self))

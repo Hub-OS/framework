@@ -6,6 +6,7 @@ use framework_core::runtime::HeadlessGameLoop;
 use triangle::{Triangle, TriangleInstanceData, TriangleVertex};
 
 fn main() -> anyhow::Result<()> {
+    std::panic::set_hook(panic_hook());
     default_logger::init!();
 
     let game = Game::<HeadlessGameLoop>::new("Triangle Headless Example", (800, 600));

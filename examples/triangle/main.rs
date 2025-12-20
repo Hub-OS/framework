@@ -5,6 +5,7 @@ use framework::prelude::*;
 use triangle::{Triangle, TriangleInstanceData, TriangleVertex};
 
 fn main() -> anyhow::Result<()> {
+    std::panic::set_hook(panic_hook());
     default_logger::init!();
 
     let game = Game::<WinitGameLoop>::new("Triangle Example", (800, 600));

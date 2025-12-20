@@ -5,6 +5,7 @@ mod push_transition;
 use push_transition::*;
 
 fn main() -> anyhow::Result<()> {
+    std::panic::set_hook(panic_hook());
     default_logger::init!();
 
     let game = Game::<WinitGameLoop>::new("Transitions", (800, 600));
