@@ -23,10 +23,12 @@ cfg_native! {
 ///
 /// Panics won't log on Web and Android unless a panic hook is set.
 pub fn panic_hook() -> Box<dyn Fn(&std::panic::PanicHookInfo<'_>) + 'static + Sync + Send> {
-    cfg_web!({ Box::new(console_error_panic_hook::hook) });
+    cfg_web!({
+        return Box::new(console_error_panic_hook::hook);
+    });
 
     cfg_android!({
-        Box::new(|panic_info| {
+        return Box::new(|panic_info| {
             use backtrace::Backtrace;
             let backtrace = Backtrace::new();
 
@@ -44,7 +46,7 @@ pub fn panic_hook() -> Box<dyn Fn(&std::panic::PanicHookInfo<'_>) + 'static + Sy
                     msg.as_c_str().as_ptr(),
                 );
             }
-        })
+        });
     });
 
     cfg_desktop!({ std::panic::take_hook() })
