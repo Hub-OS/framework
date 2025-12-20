@@ -7,4 +7,6 @@ license = "Zlib"
 [dependencies]
 jni = "0.21"
 android-activity = { workspace = true }
+ndk = { workspace = true }
+ndk-sys = { workspace = true }
 log = { workspace = true }
