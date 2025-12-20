@@ -7,6 +7,7 @@ license = "Zlib"
 [workspace]
 members = [
   "crates/android",
+  "crates/android_game_loop",
   "crates/cfg_macros",
   "crates/framework_core",
   "crates/input",
@@ -20,6 +21,7 @@ members = [
 
 [workspace.dependencies]
 log = { version = "0.4", features = ["std"] }
+android-activity = "0.6"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
@@ -30,6 +32,7 @@ logging = { path = "crates/logging" }
 math = { path = "crates/math" }
 winit_game_loop = { path = "crates/winit_game_loop", optional = true }
 sdl2_game_loop = { path = "crates/sdl2_game_loop", optional = true }
+android_game_loop = { path = "crates/android_game_loop", optional = true }
 
 # web dependencies
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -41,6 +44,7 @@ default_image_formats = ["framework_core/default_image_formats"]
 all_image_formats = ["framework_core/all_image_formats"]
 sdl2 = ["dep:sdl2_game_loop"]
 winit = ["dep:winit_game_loop"]
+android = ["dep:android_game_loop"]
 
 # dependencies for examples
 [dev-dependencies]

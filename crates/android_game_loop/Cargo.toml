@@ -1,0 +1,15 @@
+[package]
+name = "android_game_loop"
+version = "0.1.0"
+edition = "2021"
+license = "Zlib"
+
+[dependencies]
+android = { path = "../android" }
+input = { path = "../input" }
+math = { path = "../math" }
+framework_core = { path = "../framework_core" }
+android-activity = { workspace = true, features = ["native-activity"] }
+ndk = { version = "0.9", features = ["rwh_06"] }
+log = { workspace = true }
+anyhow = "1"

@@ -1,16 +1,12 @@
-use crate::WinitPlatformApp;
-use cfg_macros::*;
+use crate::window_handle::AndroidWindowHandle;
+use crate::AndroidPlatformApp;
 use framework_core::common::GameWindow;
 use framework_core::graphics::{wgpu, Color, GraphicsContext, HasGraphicsContext, RenderTarget};
 use framework_core::runtime::{GameWindowConfig, GameWindowLifecycle};
-use math::*;
-use std::sync::Arc;
-use winit::dpi::{PhysicalPosition, PhysicalSize};
+use math::{IVec2, Rect, UVec2};
 
-const DEFAULT_IME_CURSOR_AREA: Rect = Rect::new(-1.0, 1.0, 0.0, 0.0);
-
-pub struct WinitGameWindow {
-    window: Arc<winit::window::Window>,
+pub(crate) struct AndroidGameWindow {
+    pub(crate) app: AndroidPlatformApp,
     graphics: GraphicsContext,
     surface: wgpu::Surface<'static>,
     surface_config: wgpu::SurfaceConfiguration,
@@ -20,19 +16,17 @@ pub struct WinitGameWindow {
     resolution: UVec2,
     locked_resolution: bool,
     integer_scaling: bool,
+    fullscreen: bool,
     clear_color: Option<Color>,
-    ime_cursor_area: Rect,
-    #[allow(dead_code)]
-    platform_app: Option<WinitPlatformApp>,
 }
 
-impl WinitGameWindow {
-    pub(crate) async fn from_window_and_config(
-        window: winit::window::Window,
-        window_config: GameWindowConfig<WinitPlatformApp>,
+impl AndroidGameWindow {
+    pub(crate) async fn new(
+        mut window_config: GameWindowConfig<AndroidPlatformApp>,
     ) -> anyhow::Result<Self> {
-        let window = Arc::new(window);
-        let position = window.outer_position().unwrap_or_default();
+        let app = window_config.platform_app.take().unwrap();
+        let window = app.native_window().unwrap();
+        let window_handle = AndroidWindowHandle::from(window.clone());
 
         let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all()),
@@ -40,7 +34,7 @@ impl WinitGameWindow {
             memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
         });
-        let surface = wgpu_instance.create_surface(window.clone()).unwrap();
+        let surface = wgpu_instance.create_surface(window_handle).unwrap();
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
 
         let adapter = graphics.adapter();
@@ -59,36 +53,41 @@ impl WinitGameWindow {
         graphics.set_default_texture_format(surface_config.format);
 
         Ok(Self {
-            window,
+            app,
             graphics,
             surface,
             surface_config,
             surface_texture: None,
-            position: IVec2::new(position.x, position.y),
+            position: Default::default(),
             size: window_config.size,
             resolution: window_config.resolution.unwrap_or(window_config.size),
             locked_resolution: window_config.resolution.is_some(),
             integer_scaling: window_config.integer_scaling,
+            fullscreen: false,
             clear_color: Some(Color::TRANSPARENT),
-            ime_cursor_area: DEFAULT_IME_CURSOR_AREA,
-            platform_app: window_config.platform_app,
         })
     }
 }
 
-impl HasGraphicsContext for WinitGameWindow {
+impl HasGraphicsContext for AndroidGameWindow {
     fn graphics(&self) -> &GraphicsContext {
         &self.graphics
     }
 }
 
-impl GameWindowLifecycle for WinitGameWindow {
+impl GameWindowLifecycle for AndroidGameWindow {
     fn rebuild_surface(&mut self) {
+        let Some(window) = self.app.native_window() else {
+            return;
+        };
+
         let graphics = self.graphics();
         let instance = graphics.wgpu_instance();
         let device = graphics.device();
 
-        if let Ok(surface) = instance.create_surface(self.window.clone()) {
+        let window_handle = AndroidWindowHandle::from(window.clone());
+
+        if let Ok(surface) = instance.create_surface(window_handle) {
             surface.configure(device, &self.surface_config);
             self.surface = surface;
         }
@@ -127,94 +126,48 @@ impl GameWindowLifecycle for WinitGameWindow {
 
         let device = self.graphics().device();
         self.surface.configure(device, &self.surface_config);
-
-        self.set_ime_cursor_area(self.ime_cursor_area);
     }
 
     fn set_accepting_text_input(&mut self, accept: bool) {
-        cfg_android!({
-            if let Some(app) = &self.platform_app {
-                if accept {
-                    android::util::show_ime(app);
-                } else {
-                    android::util::hide_ime(app);
-                }
-            }
-        });
-
-        cfg_desktop_and_web!({
-            self.window.set_ime_allowed(accept);
-        });
-
         if accept {
-            // reapply
-            self.set_ime_cursor_area(self.ime_cursor_area);
+            android::util::show_ime(&self.app);
         } else {
-            self.ime_cursor_area = DEFAULT_IME_CURSOR_AREA;
+            android::util::hide_ime(&self.app);
         }
     }
 
-    fn set_ime_cursor_area(&mut self, mut rect: Rect) {
-        self.ime_cursor_area = rect;
-
-        rect.set_position(rect.position() * Vec2::new(0.5, -0.5) + 0.5);
-        rect *= self.resolution.as_vec2();
-        rect *= self.render_scale();
-
-        let position = PhysicalPosition::new(rect.x, rect.y);
-        let size = PhysicalSize::new(rect.width, rect.height);
-        self.window.set_ime_cursor_area(position, size);
-    }
+    fn set_ime_cursor_area(&mut self, _rect: Rect) {}
 }
 
-impl GameWindow for WinitGameWindow {
+impl GameWindow for AndroidGameWindow {
     fn position(&self) -> IVec2 {
         self.position
     }
 
-    fn set_position(&mut self, position: IVec2) {
-        use winit::dpi::LogicalPosition;
-        self.window
-            .set_outer_position(LogicalPosition::new(position.x, position.y));
-        self.position = position;
+    fn set_position(&mut self, _position: IVec2) {
+        log::warn!("AndroidGameWindow::set_position() is unimplemented");
     }
 
     fn fullscreen(&self) -> bool {
-        self.window.fullscreen().is_some()
+        self.fullscreen
     }
 
     fn set_fullscreen(&mut self, fullscreen: bool) {
-        use winit::window::Fullscreen;
-
-        let mode = if fullscreen {
-            Some(Fullscreen::Borderless(None))
+        if fullscreen {
+            android::util::hide_system_bars(&self.app);
         } else {
-            None
-        };
+            android::util::show_system_bars(&self.app);
+        }
 
-        self.window.set_fullscreen(mode);
-
-        cfg_android!({
-            if let Some(app) = &self.platform_app {
-                if fullscreen {
-                    android::util::hide_system_bars(app)
-                } else {
-                    android::util::show_system_bars(app)
-                }
-            }
-        });
+        self.fullscreen = fullscreen;
     }
 
     fn size(&self) -> UVec2 {
         self.size
     }
 
-    fn request_size(&mut self, size: UVec2) {
-        let requested_size = PhysicalSize::new(size.x, size.y);
-
-        if let Some(size) = self.window.request_inner_size(requested_size) {
-            self.size = UVec2::new(size.width, size.height);
-        }
+    fn request_size(&mut self, _size: UVec2) {
+        log::warn!("AndroidGameWindow::request_size() is unimplemented");
     }
 
     fn has_locked_resolution(&self) -> bool {
@@ -243,8 +196,8 @@ impl GameWindow for WinitGameWindow {
         self.integer_scaling = value;
     }
 
-    fn set_title(&mut self, title: &str) {
-        self.window.set_title(title);
+    fn set_title(&mut self, _title: &str) {
+        log::warn!("AndroidGameWindow::set_title() is unimplemented");
     }
 
     fn clear_color(&self) -> Option<Color> {
@@ -271,28 +224,6 @@ impl GameWindow for WinitGameWindow {
     }
 
     fn ime_height(&self) -> i32 {
-        cfg_android!({
-            if let Some(app) = &self.platform_app {
-                return android::util::get_ime_height(app);
-            }
-        });
-
-        0
-    }
-}
-
-use framework_core::raw_window_handle::{
-    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
-};
-
-impl HasWindowHandle for WinitGameWindow {
-    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
-        self.window.window_handle()
-    }
-}
-
-impl HasDisplayHandle for WinitGameWindow {
-    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
-        self.window.display_handle()
+        android::util::get_ime_height(&self.app)
     }
 }

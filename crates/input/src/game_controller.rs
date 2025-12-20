@@ -179,9 +179,33 @@ impl GameController {
         }
     }
 
+    fn update_axis_buttons(&mut self, negative: Button, positive: Button, value: f32) {
+        let Some(ordering) = value.partial_cmp(&0.0) else {
+            return;
+        };
+
+        match ordering {
+            std::cmp::Ordering::Less => {
+                self.simulate_button_press(negative);
+                self.simulate_button_release(positive);
+            }
+            std::cmp::Ordering::Equal => {
+                self.simulate_button_release(negative);
+                self.simulate_button_release(positive);
+            }
+            std::cmp::Ordering::Greater => {
+                self.simulate_button_release(negative);
+                self.simulate_button_press(positive);
+            }
+        }
+    }
+
     pub fn simulate_axis_movement(&mut self, axis: AnalogAxis, value: f32) {
         match axis {
-            AnalogAxis::DPadX | AnalogAxis::DPadY => {}
+            AnalogAxis::DPadX => {
+                self.update_axis_buttons(Button::DPadLeft, Button::DPadRight, value)
+            }
+            AnalogAxis::DPadY => self.update_axis_buttons(Button::DPadUp, Button::DPadDown, value),
             AnalogAxis::LeftTrigger => {
                 self.left_trigger = if value < STICK_DEADZONE { 0.0 } else { value };
 

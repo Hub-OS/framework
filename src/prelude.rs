@@ -16,3 +16,7 @@ pub use sdl2_game_loop::*;
 
 #[cfg(feature = "winit")]
 pub use winit_game_loop::*;
+
+#[cfg(target_os = "android")]
+#[cfg(feature = "android")]
+pub use android_game_loop::*;
