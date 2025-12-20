@@ -93,7 +93,7 @@ async fn run(
             if let AndroidPollEvent::Main(main_event) = event {
                 match main_event {
                     AndroidMainEvent::InitWindow { .. } => {
-                        game_runtime.push_event(GameWindowEvent::Resumed);
+                        game_runtime.push_event(GameWindowEvent::Created);
                     }
                     AndroidMainEvent::WindowResized { .. } => {
                         if let Some(window) = app.native_window() {

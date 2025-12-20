@@ -2,7 +2,7 @@ use super::InputEvent;
 use math::*;
 
 pub enum GameWindowEvent {
-    Resumed,
+    Created,
     CloseRequested,
     Resized(UVec2),
     Moved(IVec2),

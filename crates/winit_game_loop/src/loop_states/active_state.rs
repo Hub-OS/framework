@@ -64,7 +64,7 @@ impl ApplicationHandler for ActiveState {
 
     fn resumed(&mut self, _: &ActiveEventLoop) {
         self.game_runtime.set_suspended(false);
-        self.game_runtime.push_event(GameWindowEvent::Resumed);
+        self.game_runtime.push_event(GameWindowEvent::Created);
     }
 
     fn suspended(&mut self, _: &ActiveEventLoop) {

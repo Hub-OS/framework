@@ -221,7 +221,7 @@ impl GameIO {
 
         for event in events {
             match event {
-                GameWindowEvent::Resumed => {
+                GameWindowEvent::Created => {
                     self.window.rebuild_surface();
                 }
                 GameWindowEvent::CloseRequested => {
