@@ -96,3 +96,14 @@ pub fn get_ime_height(app: &AndroidApp) -> i32 {
 
     height
 }
+
+pub fn finish(app: &AndroidApp) {
+    let vm = AndroidJVM::from(app);
+
+    vm.wrap(|jni_env| {
+        let activity = AndroidActivity::from(app);
+        activity.finish(jni_env)?;
+
+        Ok(())
+    });
+}

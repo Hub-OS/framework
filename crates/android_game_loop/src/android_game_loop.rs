@@ -152,5 +152,7 @@ async fn run(
         }
     }
 
+    android::util::finish(&app);
+
     Ok(())
 }

@@ -20,6 +20,14 @@ impl<'a> AndroidActivity<'a> {
 
         Ok(AndroidWindow::from(JObject::try_from(owned_obj)?))
     }
+
+    /// https://developer.android.com/reference/android/app/Activity#getWindow()
+    ///
+    /// API level 21
+    pub fn finish(&self, jni_env: &mut JNIEnv<'a>) -> jni::errors::Result<()> {
+        jni_env.call_method(&self.j_object, "finish", "()V", &[])?;
+        Ok(())
+    }
 }
 
 impl<'a> From<&AndroidApp> for AndroidActivity<'a> {
