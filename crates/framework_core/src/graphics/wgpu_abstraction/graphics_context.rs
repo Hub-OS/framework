@@ -51,31 +51,41 @@ impl GraphicsContext {
                 [wgpu::Limits::downlevel_webgl2_defaults()]
             }
             cfg_native! {
-                [wgpu::Limits::default(), wgpu::Limits::downlevel_defaults(), wgpu::Limits::downlevel_webgl2_defaults()]
+                [wgpu::Limits::defaults(), wgpu::Limits::downlevel_defaults(), wgpu::Limits::downlevel_webgl2_defaults()]
             }
         };
 
         let mut i = 0;
         let mut last_error: Option<wgpu::RequestDeviceError> = None;
 
-        let (device, queue) = loop {
+        // 8k, cut in half until we reach downlevel_webgl2_defaults
+        let resolutions = [8192, 4096, 2048];
+
+        let (device, queue) = 'outer: loop {
             let Some(limits) = required_limits_list.get(i) else {
                 return Err(last_error.unwrap().into());
             };
 
-            let result = adapter
-                .request_device(&wgpu::DeviceDescriptor {
-                    label: None,
-                    required_limits: limits.clone(),
-                    required_features: wgpu::Features::empty(),
-                    memory_hints: wgpu::MemoryHints::default(),
-                    trace: wgpu::Trace::Off,
-                })
-                .await;
+            for resolution in resolutions {
+                let required_limits = wgpu::Limits {
+                    max_texture_dimension_2d: resolution,
+                    ..limits.clone()
+                };
 
-            match result {
-                Ok(tuple) => break tuple,
-                Err(err) => last_error = Some(err),
+                let result = adapter
+                    .request_device(&wgpu::DeviceDescriptor {
+                        label: None,
+                        required_limits,
+                        required_features: wgpu::Features::empty(),
+                        memory_hints: wgpu::MemoryHints::default(),
+                        trace: wgpu::Trace::Off,
+                    })
+                    .await;
+
+                match result {
+                    Ok(tuple) => break 'outer tuple,
+                    Err(err) => last_error = Some(err),
+                }
             }
 
             i += 1;
