@@ -74,6 +74,8 @@ impl ApplicationHandler for StartingState {
             });
         }
 
+        let winit_window = event_loop.create_window(window_attributes).unwrap();
+
         cfg_web!({
             use wasm_forward::web_sys;
             use winit::platform::web::WindowExtWebSys;
@@ -92,7 +94,7 @@ impl ApplicationHandler for StartingState {
         });
 
         let active_state_params = ActiveStateParams {
-            winit_window: event_loop.create_window(window_attributes).unwrap(),
+            winit_window,
             window_config,
             runtime_params: params.runtime_params,
         };

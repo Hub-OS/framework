@@ -1,4 +1,5 @@
 use crate::{async_task::promise_future, graphics::*};
+use cfg_macros::{cfg_native, cfg_web};
 use math::*;
 use std::sync::Arc;
 
@@ -152,8 +153,7 @@ impl Texture {
 
         let output_buffer = output_buffer.clone();
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
-            // spawn thread to avoid blocking while copying to vec
-            std::thread::spawn(move || {
+            let read_bytes = move || {
                 result.unwrap();
 
                 let data = {
@@ -177,6 +177,16 @@ impl Texture {
 
                 output_buffer.unmap();
                 resolve_future(data);
+            };
+
+            // spawn thread to avoid blocking while copying to vec
+            cfg_native!({
+                std::thread::spawn(read_bytes);
+            });
+
+            // no threads on web
+            cfg_web!({
+                read_bytes();
             });
         });
 

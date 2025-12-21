@@ -115,7 +115,16 @@ impl GameWindowLifecycle for WinitGameWindow {
         self.position = position;
     }
 
-    fn resized(&mut self, size: UVec2) {
+    fn resized(&mut self, mut size: UVec2) {
+        if cfg_web!() {
+            // use logical size on web to avoid scaling issues,
+            // as the canvas uses logical size
+            let scale_factor = self.window.scale_factor();
+            let logical_size = self.window.inner_size().to_logical(scale_factor);
+
+            size = UVec2::new(logical_size.width, logical_size.height);
+        }
+
         self.size = size;
 
         if !self.locked_resolution {
