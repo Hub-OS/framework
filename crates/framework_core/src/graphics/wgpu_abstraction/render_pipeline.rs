@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+#[derive(Clone)]
 pub struct RenderPipeline<Vertex: super::Vertex, InstanceData: super::InstanceData> {
     pub(super) render_pipeline: wgpu::RenderPipeline,
     pub(super) uniform_bind_group_layout: wgpu::BindGroupLayout,

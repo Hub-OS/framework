@@ -1,5 +1,6 @@
 use crate::graphics::*;
 
+#[derive(Clone)]
 pub struct SpritePipeline<SpriteData: InstanceData = SpriteInstanceData> {
     render_pipeline: RenderPipeline<SpriteVertex, SpriteData>,
 }
