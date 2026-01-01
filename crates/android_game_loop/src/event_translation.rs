@@ -21,7 +21,28 @@ pub(crate) fn translate_input_event(
         AndroidInputEvent::KeyEvent(key_event) => {
             let key_code = key_event.key_code();
 
-            if key_event.source() == AndroidInputSource::Keyboard {
+            // check for controller input
+            match key_event.action() {
+                AndroidKeyAction::Down => {
+                    translate_android_button(key_code, |button| {
+                        push(InputEvent::ControllerButtonDown {
+                            controller_id: 0,
+                            button,
+                        });
+                    });
+                }
+                AndroidKeyAction::Up => {
+                    translate_android_button(key_code, |button| {
+                        push(InputEvent::ControllerButtonUp {
+                            controller_id: 0,
+                            button,
+                        });
+                    });
+                }
+                _ => {}
+            }
+
+            if key_event.device_id() == 0 || key_event.source() == AndroidInputSource::Keyboard {
                 // key down + up events
                 match key_event.action() {
                     AndroidKeyAction::Down => {
@@ -38,13 +59,13 @@ pub(crate) fn translate_input_event(
                 }
 
                 // text events
+                let combined_key_char =
+                    character_map_and_combine_key(&app, key_event, combining_accent);
+
                 if matches!(
                     key_event.action(),
                     AndroidKeyAction::Down | AndroidKeyAction::Multiple
                 ) {
-                    let combined_key_char =
-                        character_map_and_combine_key(&app, key_event, combining_accent);
-
                     if let Some(AndroidKeyMapChar::Unicode(c)) = combined_key_char {
                         push(InputEvent::Text(c.to_string()));
                     } else if key_code == AndroidKeyCode::Del {
@@ -52,27 +73,6 @@ pub(crate) fn translate_input_event(
                     } else if key_code == AndroidKeyCode::ForwardDel {
                         push(InputEvent::Text(String::from("\u{7f}")));
                     }
-                }
-            } else {
-                // treat as a controller
-                match key_event.action() {
-                    AndroidKeyAction::Down => {
-                        translate_android_button(key_code, |button| {
-                            push(InputEvent::ControllerButtonDown {
-                                controller_id: 0,
-                                button,
-                            });
-                        });
-                    }
-                    AndroidKeyAction::Up => {
-                        translate_android_button(key_code, |button| {
-                            push(InputEvent::ControllerButtonUp {
-                                controller_id: 0,
-                                button,
-                            });
-                        });
-                    }
-                    _ => {}
                 }
             }
         }
