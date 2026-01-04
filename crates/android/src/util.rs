@@ -107,3 +107,17 @@ pub fn finish(app: &AndroidApp) {
         Ok(())
     });
 }
+
+pub fn is_this_device_a_controller(app: &AndroidApp, id: i32) -> bool {
+    let vm = AndroidJVM::from(app);
+    let mut is_controller = false;
+
+    vm.wrap(|jni_env| {
+        let number = AndroidInputDevice::get_device(jni_env, id)?.get_controller_number(jni_env)?;
+        is_controller = number != 0;
+
+        Ok(())
+    });
+
+    is_controller
+}

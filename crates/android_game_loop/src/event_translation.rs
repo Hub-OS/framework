@@ -1,4 +1,5 @@
 use crate::key_translation::{translate_android_button, translate_android_key};
+use android::util::is_this_device_a_controller;
 use android_activity::input::{
     Axis as AndroidAxis, InputEvent as AndroidInputEvent, KeyAction as AndroidKeyAction,
     KeyEvent as AndroidKeyEvent, KeyMapChar as AndroidKeyMapChar, Keycode as AndroidKeyCode,
@@ -42,7 +43,9 @@ pub(crate) fn translate_input_event(
                 _ => {}
             }
 
-            if key_event.device_id() == 0 || key_event.source() == AndroidInputSource::Keyboard {
+            if !is_this_device_a_controller(app, key_event.device_id())
+                || key_event.source() == AndroidInputSource::Keyboard
+            {
                 // key down + up events
                 match key_event.action() {
                     AndroidKeyAction::Down => {
