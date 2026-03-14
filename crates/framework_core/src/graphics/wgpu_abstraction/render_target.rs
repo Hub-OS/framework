@@ -124,8 +124,8 @@ impl RenderTarget {
 
         let texture_desc = wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
-                width: size.x,
-                height: size.y,
+                width: size.x.max(1),
+                height: size.y.max(1),
                 depth_or_array_layers: 1,
             },
             mip_level_count: 1,
