@@ -13,7 +13,7 @@ impl Texture {
     pub fn load_from_memory(
         graphics: &impl HasGraphicsContext,
         bytes: &[u8],
-    ) -> anyhow::Result<Arc<Self>> {
+    ) -> image::ImageResult<Arc<Self>> {
         Self::load_from_memory_with_format(graphics, bytes, Self::DEFAULT_FORMAT)
     }
 
@@ -21,7 +21,7 @@ impl Texture {
         graphics: &impl HasGraphicsContext,
         bytes: &[u8],
         format: wgpu::TextureFormat,
-    ) -> anyhow::Result<Arc<Self>> {
+    ) -> image::ImageResult<Arc<Self>> {
         let image = image::load_from_memory(bytes)?;
         let rgba_image = image.to_rgba8();
         let size = rgba_image.dimensions();
