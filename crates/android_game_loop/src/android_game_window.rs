@@ -28,11 +28,12 @@ impl AndroidGameWindow {
         let window = app.native_window().unwrap();
         let window_handle = AndroidWindowHandle::from(window.clone());
 
-        let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let wgpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all()),
             flags: wgpu::InstanceFlags::empty(),
             memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
+            display: None,
         });
         let surface = wgpu_instance.create_surface(window_handle).unwrap();
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
@@ -94,7 +95,12 @@ impl GameWindowLifecycle for AndroidGameWindow {
     }
 
     fn acquire_render_target(&mut self) -> Option<RenderTarget> {
-        let surface_texture = self.surface.get_current_texture().ok()?;
+        let wgpu::CurrentSurfaceTexture::Success(surface_texture) =
+            self.surface.get_current_texture()
+        else {
+            return None;
+        };
+
         let texture = &surface_texture.texture;
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());

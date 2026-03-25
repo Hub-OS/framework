@@ -78,6 +78,7 @@ impl<'a> RenderPass<'a> {
             depth_stencil_attachment,
             occlusion_query_set: None,
             timestamp_writes: None,
+            multiview_mask: None,
         };
 
         let encoder = self.encoder;

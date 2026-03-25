@@ -8,6 +8,7 @@ use winit::event_loop::{ActiveEventLoop, ControlFlow};
 use winit::window::WindowId;
 
 pub struct ActiveStateParams {
+    pub owned_display_handle: winit::event_loop::OwnedDisplayHandle,
     pub winit_window: winit::window::Window,
     pub window_config: GameWindowConfig<crate::WinitPlatformApp>,
     pub runtime_params: GameRuntimeCoreParams,
@@ -24,9 +25,12 @@ pub struct ActiveState {
 impl ActiveState {
     pub async fn new(params: ActiveStateParams) -> anyhow::Result<Self> {
         let window_id = params.winit_window.id();
-        let window =
-            WinitGameWindow::from_window_and_config(params.winit_window, params.window_config)
-                .await?;
+        let window = WinitGameWindow::from_window_and_config(
+            params.owned_display_handle,
+            params.winit_window,
+            params.window_config,
+        )
+        .await?;
 
         let mut game_runtime = GameRuntimeCore::new(Box::new(window), params.runtime_params)?;
 

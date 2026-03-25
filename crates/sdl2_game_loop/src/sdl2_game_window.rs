@@ -28,11 +28,14 @@ impl Sdl2GameWindow {
         let position = window.position().into();
         let size = window.size().into();
 
-        let wgpu_instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let wgpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: Default::default(),
             flags: wgpu::InstanceFlags::empty(),
             memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
+            // todo: need to find out if SDL2 exposes this, or if SDL3 does
+            // required for Wayland support?
+            display: None,
         });
 
         let surface_target = unsafe { wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap() };
@@ -99,7 +102,12 @@ impl GameWindowLifecycle for Sdl2GameWindow {
     }
 
     fn acquire_render_target(&mut self) -> Option<RenderTarget> {
-        let surface_texture = self.surface.get_current_texture().ok()?;
+        let wgpu::CurrentSurfaceTexture::Success(surface_texture) =
+            self.surface.get_current_texture()
+        else {
+            return None;
+        };
+
         let texture = &surface_texture.texture;
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());

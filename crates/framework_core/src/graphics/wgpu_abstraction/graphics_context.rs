@@ -79,6 +79,7 @@ impl GraphicsContext {
                         required_features: wgpu::Features::empty(),
                         memory_hints: wgpu::MemoryHints::default(),
                         trace: wgpu::Trace::Off,
+                        experimental_features: wgpu::ExperimentalFeatures::disabled(),
                     })
                     .await;
 
@@ -169,9 +170,9 @@ impl GraphicsContext {
     > {
         let device = self.device();
 
-        device.push_error_scope(wgpu::ErrorFilter::Validation);
+        let scope = device.push_error_scope(wgpu::ErrorFilter::Validation);
         let shader = device.create_shader_module(descriptor);
-        let error = device.pop_error_scope();
+        let error = scope.pop();
 
         SyncResultAsyncError::new(shader, error)
     }

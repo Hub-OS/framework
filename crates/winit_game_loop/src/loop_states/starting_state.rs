@@ -93,7 +93,9 @@ impl ApplicationHandler for StartingState {
                 .expect("Couldn't append canvas to document body.");
         });
 
+        let owned_display_handle = event_loop.owned_display_handle();
         let active_state_params = ActiveStateParams {
+            owned_display_handle,
             winit_window,
             window_config,
             runtime_params: params.runtime_params,
