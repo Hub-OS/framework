@@ -1,5 +1,6 @@
 use super::GameInputManager;
 use crate::async_task::*;
+use crate::common::*;
 use crate::graphics::*;
 use crate::runtime::*;
 use math::Instant;
@@ -11,6 +12,7 @@ use std::time::Duration;
 pub struct GameIO {
     window: Box<dyn GameWindowLifecycle>,
     resources: HashMap<TypeId, Box<dyn Any>>,
+    pub(crate) runtime_requests: Vec<GameRuntimeRequest>,
     disabled_post_processes: Vec<TypeId>,
     async_executor: async_executor::LocalExecutor<'static>,
     input_manager: GameInputManager,
@@ -39,6 +41,7 @@ impl GameIO {
         Self {
             window,
             resources: HashMap::new(),
+            runtime_requests: Vec::new(),
             disabled_post_processes: Vec::new(),
             async_executor: async_executor::LocalExecutor::new(),
             input_manager: GameInputManager::default(),
@@ -85,6 +88,29 @@ impl GameIO {
 
     pub fn set_resource<R: Any>(&mut self, r: R) {
         self.resources.insert(r.type_id(), Box::new(r));
+    }
+
+    pub fn add_service<S: GameService + 'static>(&mut self, service: S) {
+        self.runtime_requests
+            .push(GameRuntimeRequest::Service(Box::new(service)));
+    }
+
+    pub fn add_overlay<O: GameOverlay + 'static>(&mut self, target: GameOverlayTarget, overlay: O) {
+        let overlay = Box::new(overlay);
+
+        let request = match target {
+            GameOverlayTarget::Render => GameRuntimeRequest::RenderOverlay(overlay),
+            GameOverlayTarget::Window => GameRuntimeRequest::WindowOverlay(overlay),
+        };
+
+        self.runtime_requests.push(request);
+    }
+
+    pub fn add_post_process<P: PostProcess + 'static>(&mut self, post_process: P) {
+        self.runtime_requests.push(GameRuntimeRequest::PostProcess(
+            TypeId::of::<P>(),
+            Box::new(post_process),
+        ));
     }
 
     pub fn set_post_process_enabled<P: PostProcess + 'static>(&mut self, enabled: bool) {

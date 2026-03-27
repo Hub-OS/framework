@@ -10,6 +10,13 @@ pub type OverlayConstructor = Box<dyn FnOnce(&mut GameIO) -> Box<dyn GameOverlay
 pub type PostProcessConstructor = Box<dyn FnOnce(&mut GameIO) -> (TypeId, Box<dyn PostProcess>)>;
 pub type SetupCallback = Box<dyn FnOnce(&mut GameIO)>;
 
+pub(crate) enum GameRuntimeRequest {
+    Service(Box<dyn GameService>),
+    RenderOverlay(Box<dyn GameOverlay>),
+    WindowOverlay(Box<dyn GameOverlay>),
+    PostProcess(TypeId, Box<dyn PostProcess>),
+}
+
 pub struct GameRuntimeCoreParams {
     pub scene_constructor: SceneConstructor,
     pub target_fps: u16,
@@ -139,6 +146,17 @@ impl GameRuntimeCore {
     }
 
     pub fn tick(&mut self) {
+        for request in self.game_io.runtime_requests.drain(..) {
+            match request {
+                GameRuntimeRequest::Service(service) => self.services.push(service),
+                GameRuntimeRequest::RenderOverlay(overlay) => self.render_overlays.push(overlay),
+                GameRuntimeRequest::WindowOverlay(overlay) => self.window_overlays.push(overlay),
+                GameRuntimeRequest::PostProcess(t, post_process) => {
+                    self.post_processes.push((t, post_process))
+                }
+            }
+        }
+
         if self.frame_end.elapsed() < self.game_io.target_sleep_duration() {
             // running too fast skip tick (this issue should only occur on web)
             return;
