@@ -62,6 +62,10 @@ impl log::Log for DefaultLogger {
     }
 
     fn log(&self, record: &log::Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
         if !self.listeners.is_empty() {
             let record = LogRecord {
                 target: record.target().to_string(),
@@ -72,10 +76,6 @@ impl log::Log for DefaultLogger {
             for listener in &self.listeners {
                 listener(record.clone());
             }
-        }
-
-        if !self.enabled(record.metadata()) {
-            return;
         }
 
         cfg_desktop!({

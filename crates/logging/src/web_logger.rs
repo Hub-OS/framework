@@ -63,6 +63,10 @@ impl log::Log for DefaultLogger {
     }
 
     fn log(&self, record: &log::Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
         if !self.listeners.is_empty() {
             let record = LogRecord {
                 target: record.target().to_string(),
@@ -75,29 +79,27 @@ impl log::Log for DefaultLogger {
             }
         }
 
-        if self.enabled(record.metadata()) {
-            let message = format!(
-                "%c{}%c [{}] {}",
-                record.level(),
-                record.target(),
-                record.args()
-            );
-            let log_level_style = get_style_str(record.level());
+        let message = format!(
+            "%c{}%c [{}] {}",
+            record.level(),
+            record.target(),
+            record.args()
+        );
+        let log_level_style = get_style_str(record.level());
 
-            let console_args = js_sys::Array::of3(
-                &JsValue::from(message),
-                &JsValue::from(log_level_style),
-                &JsValue::from("color: inherit"),
-            );
+        let console_args = js_sys::Array::of3(
+            &JsValue::from(message),
+            &JsValue::from(log_level_style),
+            &JsValue::from("color: inherit"),
+        );
 
-            match record.level() {
-                log::Level::Error => web_sys::console::error(&console_args),
-                log::Level::Warn => web_sys::console::warn(&console_args),
-                log::Level::Info => web_sys::console::info(&console_args),
-                log::Level::Debug => web_sys::console::log(&console_args),
-                log::Level::Trace => web_sys::console::debug(&console_args),
-            };
-        }
+        match record.level() {
+            log::Level::Error => web_sys::console::error(&console_args),
+            log::Level::Warn => web_sys::console::warn(&console_args),
+            log::Level::Info => web_sys::console::info(&console_args),
+            log::Level::Debug => web_sys::console::log(&console_args),
+            log::Level::Trace => web_sys::console::debug(&console_args),
+        };
     }
 
     fn flush(&self) {}
