@@ -95,16 +95,22 @@ impl<'a> RenderPass<'a> {
                         render_pass.set_pipeline(render_pipeline);
                         // println!("set pipeline");
                     }
-                    RenderOperation::SetScissor(rect) => {
-                        let rect = rect.scissor(Rect::UNIT) * self.texture_size.as_vec2();
+                    RenderOperation::SetScissor(mut rect) => {
+                        rect *= self.texture_size.as_vec2();
 
-                        // rounding to avoid precision issues, applying a minimum size to avoid wgpu complaints
-                        render_pass.set_scissor_rect(
-                            (rect.x.round() as u32).min(self.texture_size.x - 1),
-                            (rect.y.round() as u32).min(self.texture_size.y - 1),
-                            (rect.width.round() as u32).max(1),
-                            (rect.height.round() as u32).max(1),
-                        );
+                        // rounding to avoid precision issues
+                        let x = (rect.x.round() as u32).min(self.texture_size.x - 1);
+                        let y = (rect.y.round() as u32).min(self.texture_size.y - 1);
+                        // clamping to avoid wgpu complaints
+                        // avoiding .clamp to avoid panics from std
+                        let w = (rect.width.round() as u32)
+                            .min(self.texture_size.x.saturating_sub(x))
+                            .max(1);
+                        let h = (rect.height.round() as u32)
+                            .min(self.texture_size.y.saturating_sub(y))
+                            .max(1);
+
+                        render_pass.set_scissor_rect(x, y, w, h);
 
                         scissor_set = true;
                         // println!("set scissor");
