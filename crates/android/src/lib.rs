@@ -1,6 +1,10 @@
 mod android_jvm;
 
+pub mod java;
+
+pub mod content;
 pub mod graphics;
+pub mod text;
 pub mod util;
 pub mod view;
 

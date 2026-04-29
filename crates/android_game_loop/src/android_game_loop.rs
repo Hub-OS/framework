@@ -1,3 +1,4 @@
+use crate::android_clipboard::AndroidClipboard;
 use crate::android_rumble_pack::AndroidRumblePack;
 use crate::{android_game_window::AndroidGameWindow, event_translation::translate_input_event};
 use android::activity::{MainEvent as AndroidMainEvent, PollEvent as AndroidPollEvent};
@@ -63,7 +64,9 @@ async fn run(
 
     // init the window and runtime
     let window = AndroidGameWindow::new(window_config).await?;
-    let mut game_runtime = GameRuntimeCore::new(Box::new(window), runtime_params)?;
+    let window = Box::new(window);
+    let clipboard = Box::new(AndroidClipboard::new(app.clone()));
+    let mut game_runtime = GameRuntimeCore::new(window, clipboard, runtime_params)?;
 
     let mut combining_accent = None;
 

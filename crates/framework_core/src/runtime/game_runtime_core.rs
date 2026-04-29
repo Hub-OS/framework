@@ -45,11 +45,12 @@ pub struct GameRuntimeCore {
 impl GameRuntimeCore {
     pub fn new(
         window: Box<dyn GameWindowLifecycle>,
+        clipboard: Box<dyn GameClipboard>,
         params: GameRuntimeCoreParams,
     ) -> anyhow::Result<Self> {
         let window_size = window.size();
 
-        let mut game_io = GameIO::new(window);
+        let mut game_io = GameIO::new(window, clipboard);
         game_io.set_target_fps(params.target_fps);
 
         crate::common::default_resources::inject(&mut game_io);

@@ -1,3 +1,4 @@
+mod android_clipboard;
 mod android_game_loop;
 mod android_game_window;
 mod android_rumble_pack;

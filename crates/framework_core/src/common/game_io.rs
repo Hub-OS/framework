@@ -37,14 +37,17 @@ impl HasGraphicsContext for GameIO {
 }
 
 impl GameIO {
-    pub(crate) fn new(window: Box<dyn GameWindowLifecycle>) -> Self {
+    pub(crate) fn new(
+        window: Box<dyn GameWindowLifecycle>,
+        clipboard: Box<dyn GameClipboard>,
+    ) -> Self {
         Self {
             window,
             resources: HashMap::new(),
             runtime_requests: Vec::new(),
             disabled_post_processes: Vec::new(),
             async_executor: async_executor::LocalExecutor::new(),
-            input_manager: GameInputManager::default(),
+            input_manager: GameInputManager::new(clipboard),
             target_fps: 60,
             game_start_instant: Instant::now(),
             frame_start_instant: Instant::now(),

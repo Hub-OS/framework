@@ -1,5 +1,7 @@
 use super::HeadlessGameWindow;
-use crate::runtime::{GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowLoop};
+use crate::runtime::{
+    GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowLoop, PrivateClipboard,
+};
 use std::future::Future;
 
 /// A game loop without a window
@@ -32,8 +34,9 @@ impl HeadlessGameLoop {
 
     async fn run(self, runtime_params: GameRuntimeCoreParams) -> anyhow::Result<()> {
         let window = Box::new(self.window);
+        let clipboard = Box::new(PrivateClipboard::new());
 
-        let mut game_runtime = GameRuntimeCore::new(window, runtime_params)?;
+        let mut game_runtime = GameRuntimeCore::new(window, clipboard, runtime_params)?;
 
         while !game_runtime.quitting() {
             game_runtime.tick();

@@ -1,3 +1,4 @@
+mod game_clipboard;
 mod game_runtime_core;
 mod game_window_config;
 mod game_window_event;
@@ -9,6 +10,7 @@ mod input_event;
 
 use headless_game_window::*;
 
+pub use game_clipboard::*;
 pub use game_runtime_core::*;
 pub use game_window_config::*;
 pub use game_window_event::*;

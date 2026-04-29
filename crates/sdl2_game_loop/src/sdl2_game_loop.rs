@@ -1,7 +1,7 @@
 use crate::{translate_sdl_event, Sdl2GameWindow, Sdl2RumblePack};
 use framework_core::runtime::{
-    GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent, GameWindowLoop,
-    InputEvent,
+    DesktopClipboard, GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent,
+    GameWindowLoop, InputEvent,
 };
 use input::*;
 use std::future::Future;
@@ -71,7 +71,10 @@ impl Sdl2GameLoop {
 
     async fn run(mut self, loop_params: GameRuntimeCoreParams) -> anyhow::Result<()> {
         let window_id = self.window.id();
-        let mut game_runtime = GameRuntimeCore::new(Box::new(self.window), loop_params)?;
+
+        let window = Box::new(self.window);
+        let clipboard = Box::new(DesktopClipboard::new());
+        let mut game_runtime = GameRuntimeCore::new(window, clipboard, loop_params)?;
 
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {

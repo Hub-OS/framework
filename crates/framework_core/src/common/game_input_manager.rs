@@ -1,11 +1,10 @@
 use crate::runtime::*;
-use copypasta::{ClipboardContext, ClipboardProvider};
 use input::*;
 use math::*;
 use std::path::PathBuf;
 
 pub struct GameInputManager {
-    clipboard: Option<ClipboardContext>,
+    clipboard: Box<dyn GameClipboard>,
     latest_mouse_button: Option<MouseButton>,
     latest_key: Option<Key>,
     touches: Vec<Touch>,
@@ -26,10 +25,10 @@ pub struct GameInputManager {
     pending_ime_cursor_area: Option<Rect>,
 }
 
-impl Default for GameInputManager {
-    fn default() -> Self {
+impl GameInputManager {
+    pub(crate) fn new(clipboard: Box<dyn GameClipboard>) -> Self {
         Self {
-            clipboard: ClipboardContext::new().ok(),
+            clipboard,
             latest_mouse_button: None,
             latest_key: None,
             touches: Vec::new(),
@@ -50,9 +49,7 @@ impl Default for GameInputManager {
             pending_ime_cursor_area: Default::default(),
         }
     }
-}
 
-impl GameInputManager {
     pub fn requires_ime_update(&self) -> bool {
         self.requires_ime_update
     }
@@ -81,20 +78,8 @@ impl GameInputManager {
         self.pre_edit = None;
     }
 
-    pub fn request_clipboard_text(&mut self) -> String {
-        if let Some(clipboard) = &mut self.clipboard {
-            clipboard.get_contents().unwrap_or_default()
-        } else {
-            String::new()
-        }
-    }
-
-    pub fn set_clipboard_text(&mut self, text: String) -> bool {
-        if let Some(clipboard) = &mut self.clipboard {
-            clipboard.set_contents(text).is_ok()
-        } else {
-            false
-        }
+    pub fn clipboard_mut(&mut self) -> &mut dyn GameClipboard {
+        &mut *self.clipboard
     }
 
     pub fn text(&self) -> &str {
