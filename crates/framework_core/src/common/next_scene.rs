@@ -1,5 +1,6 @@
 use crate::common::{Scene, SceneTransition};
 
+#[derive(Default)]
 pub enum NextScene {
     Push {
         scene: Box<dyn Scene>,
@@ -16,6 +17,7 @@ pub enum NextScene {
     Pop {
         transition: Option<Box<dyn SceneTransition>>,
     },
+    #[default]
     None,
 }
 
@@ -77,11 +79,5 @@ impl NextScene {
         let mut next_scene = NextScene::None;
         std::mem::swap(&mut next_scene, self);
         next_scene
-    }
-}
-
-impl Default for NextScene {
-    fn default() -> Self {
-        Self::None
     }
 }
