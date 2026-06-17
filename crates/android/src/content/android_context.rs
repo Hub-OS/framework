@@ -1,51 +1,53 @@
-use crate::java::lang::JavaString;
+use crate::net::wifi::AndroidWifiManager;
+use crate::text::AndroidClipboardManager;
 use android_activity::AndroidApp;
-use jni::objects::JObject;
-use jni::JNIEnv;
+use jni::objects::JString;
 
-pub struct AndroidContext<'a> {
-    j_object: JObject<'a>,
+/// https://developer.android.com/reference/android/content/Context
+///
+/// API level 1
+jni::bind_java_type! {
+    pub AndroidContext => "android.content.Context",
+    methods {
+        /// https://developer.android.com/reference/android/content/Context#getSystemService(java.lang.String)
+        ///
+        /// API level 1
+        pub fn get_system_service(name: JString) -> JObject,
+    }
 }
 
 impl<'a> AndroidContext<'a> {
     /// https://developer.android.com/reference/android/content/Context#CLIPBOARD_SERVICE
     ///
     /// API level 1
-    pub fn clipboard_service_name(jni_env: &mut JNIEnv<'a>) -> jni::errors::Result<JavaString<'a>> {
-        JavaString::from_str(jni_env, "clipboard")
-    }
-
     pub fn clipboard_service(
         &self,
-        jni_env: &mut JNIEnv<'a>,
-    ) -> jni::errors::Result<jni::objects::JObject<'a>> {
-        let clipboard_service_name = AndroidContext::clipboard_service_name(jni_env)?;
-        self.get_system_service(jni_env, &clipboard_service_name)
+        jni_env: &mut jni::Env<'a>,
+    ) -> jni::errors::Result<AndroidClipboardManager<'a>> {
+        let service_name = JString::from_jni_str(jni_env, jni::jni_str!("clipboard"))?;
+
+        let o = self.get_system_service(jni_env, service_name)?;
+
+        jni_env.cast_local::<AndroidClipboardManager>(o)
     }
 
-    /// https://developer.android.com/reference/android/content/Context#getSystemService(java.lang.String)
+    /// https://developer.android.com/reference/android/content/Context#WIFI_SERVICE
     ///
     /// API level 1
-    pub fn get_system_service(
+    pub fn wifi_service(
         &self,
-        jni_env: &mut JNIEnv<'a>,
-        name: &JavaString<'a>,
-    ) -> jni::errors::Result<jni::objects::JObject<'a>> {
-        let owned_obj = jni_env.call_method(
-            &self.j_object,
-            "getSystemService",
-            "(Ljava/lang/String;)Ljava/lang/Object;",
-            &[name.into()],
-        )?;
+        jni_env: &mut jni::Env<'a>,
+    ) -> jni::errors::Result<AndroidWifiManager<'a>> {
+        let service_name = JString::from_jni_str(jni_env, jni::jni_str!("wifi"))?;
 
-        owned_obj.l()
+        let o = self.get_system_service(jni_env, service_name)?;
+
+        jni_env.cast_local::<AndroidWifiManager>(o)
     }
 }
 
-impl<'a> From<&AndroidApp> for AndroidContext<'a> {
-    fn from(app: &AndroidApp) -> Self {
-        let j_object = unsafe { JObject::from_raw(std::mem::transmute(app.activity_as_ptr())) };
-
-        Self { j_object }
+impl<'a> AndroidContext<'a> {
+    pub fn from_app(jni_env: &jni::Env<'a>, app: &AndroidApp) -> Self {
+        unsafe { Self::from_raw(jni_env, app.activity_as_ptr().cast()) }
     }
 }

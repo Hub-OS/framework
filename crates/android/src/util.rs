@@ -1,79 +1,85 @@
 use crate::activity::AndroidApp;
 use crate::view::*;
 use crate::AndroidJVM;
+use jni::objects::{JObject, JString};
+
+pub fn j_object_to_j_string<'env, O>(
+    jni_env: &mut jni::Env<'env>,
+    o: O,
+) -> jni::errors::Result<JString<'env>>
+where
+    O: AsRef<JObject<'env>>,
+{
+    let obj = jni_env
+        .call_method(
+            o,
+            jni::jni_str!("toString"),
+            jni::jni_sig!("()Ljava/lang/String;"),
+            &[],
+        )?
+        .into_object()?;
+
+    jni_env.cast_local::<JString>(obj)
+}
 
 pub fn show_system_bars(app: &AndroidApp) {
-    let vm = AndroidJVM::from(app);
+    let captured_app = app.clone();
 
-    vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
-        let activity_window = activity.get_window(jni_env)?;
-        let insets_controller = activity_window.get_insets_controller(jni_env)?;
+    app.run_on_java_main_thread(Box::new(move || {
+        let app = &captured_app;
+        let vm = AndroidJVM::from(app);
 
-        insets_controller
-            .set_system_bars_behavior(jni_env, AndroidWindowInsetsBehavior::BehaviorDefault)?;
+        vm.wrap(|jni_env| {
+            let activity = AndroidActivity::from_app(jni_env, app);
+            let activity_window = activity.get_window(jni_env)?;
+            let insets_controller = activity_window.get_insets_controller(jni_env)?;
 
-        let navigation_bars = AndroidWindowInsetsType::navigation_bars(jni_env)?;
-        let display_cutout = AndroidWindowInsetsType::display_cutout(jni_env)?;
-        insets_controller.show(jni_env, navigation_bars)?;
-        insets_controller.hide(jni_env, display_cutout)?;
+            insets_controller
+                .set_system_bars_behavior(jni_env, AndroidWindowInsetsBehavior::BehaviorDefault)?;
 
-        Ok(())
-    });
+            let navigation_bars = AndroidWindowInsetsType::navigation_bars(jni_env)?;
+            let display_cutout = AndroidWindowInsetsType::display_cutout(jni_env)?;
+            insets_controller.show(jni_env, navigation_bars)?;
+            insets_controller.hide(jni_env, display_cutout)?;
+
+            Ok(())
+        });
+    }));
 }
 
 pub fn hide_system_bars(app: &AndroidApp) {
-    let vm = AndroidJVM::from(app);
+    let captured_app = app.clone();
 
-    vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
-        let activity_window = activity.get_window(jni_env)?;
-        let insets_controller = activity_window.get_insets_controller(jni_env)?;
+    app.run_on_java_main_thread(Box::new(move || {
+        let app = &captured_app;
+        let vm = AndroidJVM::from(app);
 
-        insets_controller.set_system_bars_behavior(
-            jni_env,
-            AndroidWindowInsetsBehavior::BehaviorShowTransientBarsBySwipe,
-        )?;
+        vm.wrap(|jni_env| {
+            let activity = AndroidActivity::from_app(jni_env, app);
+            let activity_window = activity.get_window(jni_env)?;
+            let insets_controller = activity_window.get_insets_controller(jni_env)?;
 
-        let navigation_bars = AndroidWindowInsetsType::navigation_bars(jni_env)?;
-        let display_cutout = AndroidWindowInsetsType::display_cutout(jni_env)?;
-        insets_controller.show(jni_env, display_cutout)?;
-        insets_controller.hide(jni_env, navigation_bars)?;
+            insets_controller.set_system_bars_behavior(
+                jni_env,
+                AndroidWindowInsetsBehavior::BehaviorShowTransientBarsBySwipe,
+            )?;
 
-        Ok(())
-    });
+            let navigation_bars = AndroidWindowInsetsType::navigation_bars(jni_env)?;
+            let display_cutout = AndroidWindowInsetsType::display_cutout(jni_env)?;
+            insets_controller.show(jni_env, display_cutout)?;
+            insets_controller.hide(jni_env, navigation_bars)?;
+
+            Ok(())
+        });
+    }));
 }
 
 pub fn show_ime(app: &AndroidApp) {
-    // https://stackoverflow.com/questions/75477112/android-12-ignoring-showsoftinput-as-view-is-not-served
-
-    let vm = AndroidJVM::from(app);
-
-    vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
-        let activity_window = activity.get_window(jni_env)?;
-        let insets_controller = activity_window.get_insets_controller(jni_env)?;
-
-        let ime = AndroidWindowInsetsType::ime(jni_env)?;
-        insets_controller.show(jni_env, ime)?;
-
-        Ok(())
-    });
+    app.show_soft_input(false);
 }
 
 pub fn hide_ime(app: &AndroidApp) {
-    let vm = AndroidJVM::from(app);
-
-    vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
-        let activity_window = activity.get_window(jni_env)?;
-        let insets_controller = activity_window.get_insets_controller(jni_env)?;
-
-        let ime = AndroidWindowInsetsType::ime(jni_env)?;
-        insets_controller.hide(jni_env, ime)?;
-
-        Ok(())
-    });
+    app.hide_soft_input(false);
 }
 
 pub fn get_ime_height(app: &AndroidApp) -> i32 {
@@ -82,7 +88,7 @@ pub fn get_ime_height(app: &AndroidApp) -> i32 {
     let mut height = 0;
 
     vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
+        let activity = AndroidActivity::from_app(jni_env, app);
         let activity_window = activity.get_window(jni_env)?;
         let view = activity_window.get_decor_view(jni_env)?;
         let window_insets = view.get_root_window_insets(jni_env)?;
@@ -98,14 +104,19 @@ pub fn get_ime_height(app: &AndroidApp) -> i32 {
 }
 
 pub fn finish(app: &AndroidApp) {
-    let vm = AndroidJVM::from(app);
+    let captured_app = app.clone();
 
-    vm.wrap(|jni_env| {
-        let activity = AndroidActivity::from(app);
-        activity.finish(jni_env)?;
+    app.run_on_java_main_thread(Box::new(move || {
+        let app = &captured_app;
+        let vm = AndroidJVM::from(app);
 
-        Ok(())
-    });
+        vm.wrap(|jni_env| {
+            let activity = AndroidActivity::from_app(jni_env, app);
+            activity.finish(jni_env)?;
+
+            Ok(())
+        });
+    }));
 }
 
 pub fn is_this_device_a_controller(app: &AndroidApp, id: i32) -> bool {

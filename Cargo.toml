@@ -21,7 +21,7 @@ members = [
 
 [workspace.dependencies]
 log = { version = "0.4", features = ["std"] }
-android-activity = "0.6"
+android-activity = "0.6.1"
 ndk = "0.9"
 ndk-sys = "0.6"
 

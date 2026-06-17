@@ -1,5 +1,4 @@
-use jni::objects::{JObject, JValueGen};
-use jni::JNIEnv;
+use jni::JValue;
 
 pub enum AndroidWindowInsetsBehavior {
     /// https://developer.android.com/reference/android/view/WindowInsetsController#BEHAVIOR_DEFAULT
@@ -12,17 +11,22 @@ pub enum AndroidWindowInsetsBehavior {
     BehaviorShowTransientBarsBySwipe = 2,
 }
 
-impl<O> From<AndroidWindowInsetsBehavior> for JValueGen<O> {
-    fn from(other: AndroidWindowInsetsBehavior) -> Self {
-        (other as i32).into()
-    }
-}
-
 /// https://developer.android.com/reference/android/view/WindowInsetsController
 ///
 ///  API level 30
-pub struct AndroidWindowInsetsController<'a> {
-    j_object: JObject<'a>,
+jni::bind_java_type! {
+    pub AndroidWindowInsetsController => "android.view.WindowInsetsController",
+    methods {
+        /// https://developer.android.com/reference/android/view/WindowInsetsController#show(int)
+        ///
+        /// API level 30
+        pub fn show(flags: i32),
+
+        /// https://developer.android.com/reference/android/view/WindowInsetsController#hide(int)
+        ///
+        /// API level 30
+        pub fn hide(flags: i32),
+    }
 }
 
 impl<'a> AndroidWindowInsetsController<'a> {
@@ -31,37 +35,15 @@ impl<'a> AndroidWindowInsetsController<'a> {
     /// API level 30
     pub fn set_system_bars_behavior(
         &self,
-        jni_env: &mut JNIEnv<'a>,
+        jni_env: &mut jni::Env<'a>,
         inset_behavior: AndroidWindowInsetsBehavior,
     ) -> jni::errors::Result<()> {
         jni_env.call_method(
-            &self.j_object,
-            "setSystemBarsBehavior",
-            "(I)V",
-            &[inset_behavior.into()],
+            &self,
+            jni::jni_str!("setSystemBarsBehavior"),
+            jni::jni_sig!("(I)V"),
+            &[JValue::Int(inset_behavior as _)],
         )?;
         Ok(())
-    }
-
-    /// https://developer.android.com/reference/android/view/WindowInsetsController#show(int)
-    ///
-    /// API level 30
-    pub fn show(&self, jni_env: &mut JNIEnv<'a>, flags: i32) -> jni::errors::Result<()> {
-        jni_env.call_method(&self.j_object, "show", "(I)V", &[flags.into()])?;
-        Ok(())
-    }
-
-    /// https://developer.android.com/reference/android/view/WindowInsetsController#hide(int)
-    ///
-    /// API level 30
-    pub fn hide(&self, jni_env: &mut JNIEnv<'a>, flags: i32) -> jni::errors::Result<()> {
-        jni_env.call_method(&self.j_object, "hide", "(I)V", &[flags.into()])?;
-        Ok(())
-    }
-}
-
-impl<'a> From<JObject<'a>> for AndroidWindowInsetsController<'a> {
-    fn from(j_object: JObject<'a>) -> Self {
-        Self { j_object }
     }
 }

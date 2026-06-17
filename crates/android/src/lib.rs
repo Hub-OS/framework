@@ -1,9 +1,10 @@
-mod android_jvm;
+#![allow(unused_doc_comments)]
 
-pub mod java;
+mod android_jvm;
 
 pub mod content;
 pub mod graphics;
+pub mod net;
 pub mod text;
 pub mod util;
 pub mod view;
