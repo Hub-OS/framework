@@ -1,7 +1,8 @@
 use crate::graphics::Color;
 use math::*;
+use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 
-pub trait GameWindow {
+pub trait GameWindow: HasWindowHandle + HasDisplayHandle {
     fn position(&self) -> IVec2;
 
     fn set_position(&mut self, position: IVec2);

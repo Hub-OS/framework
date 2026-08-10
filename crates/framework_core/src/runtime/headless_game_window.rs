@@ -137,3 +137,19 @@ impl GameWindow for HeadlessGameWindow {
 
     fn set_vsync_enabled(&mut self, _enabled: bool) {}
 }
+
+use raw_window_handle::{
+    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
+};
+
+impl HasWindowHandle for HeadlessGameWindow {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+        Err(HandleError::Unavailable)
+    }
+}
+
+impl HasDisplayHandle for HeadlessGameWindow {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
+        Err(HandleError::Unavailable)
+    }
+}
