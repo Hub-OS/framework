@@ -135,6 +135,10 @@ pub(super) fn translate_android_button(
     mut push: impl FnMut(Button),
 ) {
     match android_keycode {
+        AndroidKeycode::DpadUp => push(Button::DPadUp),
+        AndroidKeycode::DpadDown => push(Button::DPadDown),
+        AndroidKeycode::DpadLeft => push(Button::DPadLeft),
+        AndroidKeycode::DpadRight => push(Button::DPadRight),
         AndroidKeycode::ButtonA => push(Button::A),
         AndroidKeycode::ButtonB => push(Button::B),
         AndroidKeycode::ButtonC => push(Button::C),
