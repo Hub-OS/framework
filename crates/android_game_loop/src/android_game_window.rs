@@ -233,3 +233,21 @@ impl GameWindow for AndroidGameWindow {
         android::util::get_ime_height(&self.app)
     }
 }
+
+use framework_core::raw_window_handle::{
+    DisplayHandle, HandleError, HasDisplayHandle, HasWindowHandle, WindowHandle,
+};
+
+impl HasWindowHandle for AndroidGameWindow {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+        // todo: store a copy of self.app.native_window()
+        // do we need to also call self.app.native_window() every call to make sure it's still safe to use?
+        Err(HandleError::Unavailable)
+    }
+}
+
+impl HasDisplayHandle for AndroidGameWindow {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
+        Ok(DisplayHandle::android())
+    }
+}
