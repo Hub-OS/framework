@@ -6,6 +6,7 @@ pub struct DefaultLogger {
     listeners: Vec<Box<dyn Fn(LogRecord) + Send + Sync>>,
     default_level_filter: log::LevelFilter,
     crate_level_filters: Vec<(String, log::LevelFilter)>,
+    display_target: bool,
 }
 
 impl DefaultLogger {
@@ -14,6 +15,7 @@ impl DefaultLogger {
             listeners: Vec::new(),
             default_level_filter: log::LevelFilter::Trace,
             crate_level_filters: Vec::new(),
+            display_target: true,
         }
     }
 
@@ -32,6 +34,11 @@ impl DefaultLogger {
 
     pub fn with_listener(mut self, listener: impl Fn(LogRecord) + Send + Sync + 'static) -> Self {
         self.listeners.push(Box::new(listener));
+        self
+    }
+
+    pub fn with_display_target(mut self, display_target: bool) -> Self {
+        self.display_target = display_target;
         self
     }
 
@@ -79,12 +86,11 @@ impl log::Log for DefaultLogger {
             }
         }
 
-        let message = format!(
-            "%c{}%c [{}] {}",
-            record.level(),
-            record.target(),
-            record.args()
-        );
+        use std::fmt::Write;
+        let mut message = format!("%c{}%c ", record.level());
+        let _ = write!(&mut message, "[{}] ", record.target());
+        let _ = writeln!(&mut message, "{}", record.args());
+
         let log_level_style = get_style_str(record.level());
 
         let console_args = js_sys::Array::of3(

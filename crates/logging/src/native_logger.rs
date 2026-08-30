@@ -5,6 +5,7 @@ pub struct DefaultLogger {
     listeners: Vec<Box<dyn Fn(LogRecord) + Send + Sync>>,
     default_level_filter: log::LevelFilter,
     crate_level_filters: Vec<(String, log::LevelFilter)>,
+    display_target: bool,
 }
 
 impl DefaultLogger {
@@ -13,6 +14,7 @@ impl DefaultLogger {
             listeners: Vec::new(),
             default_level_filter: log::LevelFilter::Trace,
             crate_level_filters: Vec::new(),
+            display_target: true,
         }
     }
 
@@ -26,6 +28,11 @@ impl DefaultLogger {
         self.crate_level_filters
             .push((crate_name.replace('-', "_"), level));
 
+        self
+    }
+
+    pub fn with_display_target(mut self, display_target: bool) -> Self {
+        self.display_target = display_target;
         self
     }
 
@@ -103,7 +110,12 @@ impl log::Log for DefaultLogger {
             write!(&mut stderr, "{} ", record.level()).unwrap();
 
             stderr.reset().unwrap();
-            writeln!(&mut stderr, "[{}] {}", record.target(), record.args()).unwrap();
+
+            if self.display_target {
+                write!(&mut stderr, "[{}] ", record.target()).unwrap();
+            }
+
+            writeln!(&mut stderr, "{}", record.args()).unwrap();
         });
 
         cfg_android!({
