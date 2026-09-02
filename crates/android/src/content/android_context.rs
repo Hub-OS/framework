@@ -1,3 +1,4 @@
+use crate::content::AndroidIntent;
 use crate::net::wifi::AndroidWifiManager;
 use crate::text::AndroidClipboardManager;
 use android_activity::AndroidApp;
@@ -8,7 +9,20 @@ use jni::objects::JString;
 /// API level 1
 jni::bind_java_type! {
     pub AndroidContext => "android.content.Context",
+    type_map {
+        AndroidIntent => "android.content.Intent",
+    },
     methods {
+        /// https://developer.android.com/reference/android/content/Context#getPackageName()
+        ///
+        /// API level 1
+        pub fn get_package_name() -> JString,
+
+        /// https://developer.android.com/reference/android/content/Context#startActivity(android.content.Intent)
+        ///
+        /// API level 1
+        pub fn start_activity(intent: AndroidIntent),
+
         /// https://developer.android.com/reference/android/content/Context#getSystemService(java.lang.String)
         ///
         /// API level 1
