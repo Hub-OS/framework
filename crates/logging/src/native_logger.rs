@@ -75,9 +75,9 @@ impl log::Log for DefaultLogger {
 
         if !self.listeners.is_empty() {
             let record = LogRecord {
-                target: record.target().to_string(),
+                target: record.target().into(),
                 level: record.level(),
-                message: format!("{}", record.args()),
+                message: format!("{}", record.args()).into(),
             };
 
             for listener in &self.listeners {

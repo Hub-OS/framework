@@ -1,4 +1,5 @@
 use cfg_macros::*;
+use std::sync::Arc;
 
 pub use log;
 pub mod crate_name;
@@ -7,8 +8,8 @@ pub mod default_logger;
 #[derive(Clone)]
 pub struct LogRecord {
     pub level: log::Level,
-    pub target: String,
-    pub message: String,
+    pub target: Arc<str>,
+    pub message: Arc<str>,
 }
 
 cfg_web! {
