@@ -46,8 +46,8 @@ wasm_forward = { path = "crates/wasm_forward" }
 default = ["winit", "default_image_formats"]
 default_image_formats = ["framework_core/default_image_formats"]
 all_image_formats = ["framework_core/all_image_formats"]
-sdl3 = ["dep:sdl3_game_loop"]
 sdl2 = ["dep:sdl2_game_loop"]
+sdl3 = ["dep:sdl3_game_loop"]
 winit = ["dep:winit_game_loop"]
 android = ["dep:android_game_loop"]
 
