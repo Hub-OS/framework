@@ -1,0 +1,25 @@
+[package]
+name = "sdl3_game_loop"
+version = "0.1.0"
+edition = "2021"
+license = "Zlib"
+
+[dependencies]
+input = { path = "../input" }
+math = { path = "../math" }
+framework_core = { path = "../framework_core" }
+anyhow = "1"
+
+# desktop
+[target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
+sdl3 = { version = "0.22", default-features = false, features = [
+  "raw-window-handle",
+  "build-from-source"
+] }
+
+# android
+[target.'cfg(target_os = "android")'.dependencies]
+sdl3 = { version = "0.22", default-features = false, features = [
+  "raw-window-handle",
+  "build-from-source-static",
+] }

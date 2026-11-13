@@ -33,13 +33,10 @@ impl Sdl2GameWindow {
             flags: wgpu::InstanceFlags::empty(),
             memory_budget_thresholds: wgpu::MemoryBudgetThresholds::default(),
             backend_options: Default::default(),
-            // todo: need to find out if SDL2 exposes this, or if SDL3 does
-            // required for Wayland support?
             display: None,
         });
 
-        let surface_target = unsafe { wgpu::SurfaceTargetUnsafe::from_window(&window).unwrap() };
-        let surface = unsafe { wgpu_instance.create_surface_unsafe(surface_target).unwrap() };
+        let surface = wgpu_instance.create_surface(SyncWindow(window.clone()))?;
         let mut graphics = GraphicsContext::new(wgpu_instance, Some(&surface)).await?;
 
         let adapter = graphics.adapter();
@@ -90,15 +87,12 @@ impl GameWindowLifecycle for Sdl2GameWindow {
         let instance = graphics.wgpu_instance();
         let device = graphics.device();
 
-        let Ok(surface_target) = (unsafe { wgpu::SurfaceTargetUnsafe::from_window(&self.window) })
-        else {
+        let Ok(surface) = instance.create_surface(SyncWindow(self.window.clone())) else {
             return;
         };
 
-        if let Ok(surface) = unsafe { instance.create_surface_unsafe(surface_target) } {
-            surface.configure(device, &self.surface_config);
-            self.surface = surface;
-        }
+        surface.configure(device, &self.surface_config);
+        self.surface = surface;
     }
 
     fn acquire_render_target(&mut self) -> Option<RenderTarget> {
@@ -205,6 +199,10 @@ impl GameWindow for Sdl2GameWindow {
 
     fn request_size(&mut self, size: UVec2) {
         let _ = self.window.set_size(size.x, size.y);
+
+        let (w, h) = self.window.size();
+        let size = UVec2::new(w, h);
+        self.resized(size);
     }
 
     fn size(&self) -> UVec2 {
@@ -278,5 +276,23 @@ impl HasWindowHandle for Sdl2GameWindow {
 impl HasDisplayHandle for Sdl2GameWindow {
     fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
         self.window.display_handle()
+    }
+}
+
+// modified from https://github.com/vhspace/sdl3-rs/blob/master/examples/raw-window-handle-with-wgpu/main.rs
+struct SyncWindow(sdl2::video::Window);
+
+unsafe impl Send for SyncWindow {}
+unsafe impl Sync for SyncWindow {}
+
+impl HasWindowHandle for SyncWindow {
+    fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
+        self.0.window_handle()
+    }
+}
+
+impl HasDisplayHandle for SyncWindow {
+    fn display_handle(&self) -> Result<DisplayHandle<'_>, HandleError> {
+        self.0.display_handle()
     }
 }

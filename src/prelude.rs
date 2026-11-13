@@ -14,6 +14,9 @@ cfg_web! {
 #[cfg(feature = "sdl2")]
 pub use sdl2_game_loop::*;
 
+#[cfg(feature = "sdl3")]
+pub use sdl3_game_loop::*;
+
 #[cfg(feature = "winit")]
 pub use winit_game_loop::*;
 

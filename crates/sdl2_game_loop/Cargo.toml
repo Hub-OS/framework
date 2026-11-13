@@ -12,11 +12,11 @@ anyhow = "1"
 
 # desktop
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
-sdl2 = { version = "0.37", features = ["raw-window-handle", "bundled"] }
+sdl2 = { version = "0.38", features = ["raw-window-handle", "bundled"] }
 
 # android
 [target.'cfg(target_os = "android")'.dependencies]
-sdl2 = { version = "0.37", features = [
+sdl2 = { version = "0.38", features = [
   "raw-window-handle",
   "bundled",
   "static-link",

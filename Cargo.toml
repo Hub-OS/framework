@@ -14,6 +14,7 @@ members = [
   "crates/logging",
   "crates/math",
   "crates/sdl2_game_loop",
+  "crates/sdl3_game_loop",
   "crates/wasm_forward",
   "crates/winit_game_loop",
   "examples/multiplatform"
@@ -34,6 +35,7 @@ logging = { path = "crates/logging" }
 math = { path = "crates/math" }
 winit_game_loop = { path = "crates/winit_game_loop", optional = true }
 sdl2_game_loop = { path = "crates/sdl2_game_loop", optional = true }
+sdl3_game_loop = { path = "crates/sdl3_game_loop", optional = true }
 android_game_loop = { path = "crates/android_game_loop", optional = true }
 
 # web dependencies
@@ -44,6 +46,7 @@ wasm_forward = { path = "crates/wasm_forward" }
 default = ["winit", "default_image_formats"]
 default_image_formats = ["framework_core/default_image_formats"]
 all_image_formats = ["framework_core/all_image_formats"]
+sdl3 = ["dep:sdl3_game_loop"]
 sdl2 = ["dep:sdl2_game_loop"]
 winit = ["dep:winit_game_loop"]
 android = ["dep:android_game_loop"]

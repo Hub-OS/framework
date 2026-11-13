@@ -1,0 +1,120 @@
+use crate::{translate_sdl_event, Sdl3GameWindow, Sdl3RumblePack};
+use framework_core::runtime::{
+    DesktopClipboard, GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent,
+    GameWindowLoop, InputEvent,
+};
+use input::*;
+use std::future::Future;
+
+pub struct Sdl3GameLoop {
+    window: Sdl3GameWindow,
+    event_pump: sdl3::EventPump,
+    gamepad_subsystem: sdl3::GamepadSubsystem,
+}
+
+impl GameWindowLoop for Sdl3GameLoop {
+    type PlatformApp = ();
+
+    fn run(
+        window_config: GameWindowConfig<Self::PlatformApp>,
+        params: GameRuntimeCoreParams,
+    ) -> Box<dyn Future<Output = anyhow::Result<()>>> {
+        Box::new(async {
+            let game_loop = Self::build(window_config).await?;
+            game_loop.run(params).await
+        })
+    }
+}
+
+impl Sdl3GameLoop {
+    async fn build(window_config: GameWindowConfig<()>) -> anyhow::Result<Sdl3GameLoop> {
+        let sdl_context = sdl3::init().map_err(|e| anyhow::anyhow!(e))?;
+        let event_pump = sdl_context.event_pump().map_err(|e| anyhow::anyhow!(e))?;
+
+        let video_subsystem = sdl_context.video().map_err(|e| anyhow::anyhow!(e))?;
+        let mut sdl_window_builder = video_subsystem.window(
+            &window_config.title,
+            window_config.size.x,
+            window_config.size.y,
+        );
+
+        sdl_window_builder.position_centered();
+
+        if window_config.resizable {
+            sdl_window_builder.resizable();
+        }
+
+        if window_config.fullscreen {
+            sdl_window_builder.fullscreen();
+        }
+
+        if window_config.borderless {
+            sdl_window_builder.borderless();
+        }
+
+        let sdl_window = sdl_window_builder.build()?;
+
+        let window = Sdl3GameWindow::from_window_and_config(sdl_window, window_config).await?;
+
+        let gamepad_subsystem = sdl_context.gamepad().map_err(|e| anyhow::anyhow!(e))?;
+
+        let window_loop = Self {
+            window,
+            event_pump,
+            gamepad_subsystem,
+        };
+
+        Ok(window_loop)
+    }
+
+    async fn run(mut self, loop_params: GameRuntimeCoreParams) -> anyhow::Result<()> {
+        let window_id = self.window.id();
+
+        let window = Box::new(self.window);
+        let clipboard = Box::new(DesktopClipboard::new());
+        let mut game_runtime = GameRuntimeCore::new(window, clipboard, loop_params)?;
+
+        while !game_runtime.quitting() {
+            for sdl_event in self.event_pump.poll_iter() {
+                if let sdl3::event::Event::GamepadAdded { which, .. } = sdl_event {
+                    if let Ok(controller) = self.gamepad_subsystem.open(which) {
+                        game_runtime.push_event(
+                            InputEvent::ControllerConnected {
+                                controller_id: which.raw() as usize,
+                                rumble_pack: Box::from(Sdl3RumblePack::new(controller)),
+                            }
+                            .into(),
+                        );
+                    }
+                }
+
+                let window = game_runtime.game_io().window();
+
+                if let Some(event) = translate_sdl_event(window, window_id, sdl_event) {
+                    // reducing differences with winit
+                    let text = match event {
+                        GameWindowEvent::InputEvent(InputEvent::KeyDown(Key::Backspace)) => {
+                            Some("\u{8}")
+                        }
+                        GameWindowEvent::InputEvent(InputEvent::KeyDown(Key::Delete)) => {
+                            Some("\u{7f}")
+                        }
+                        _ => None,
+                    };
+
+                    if let Some(text) = text {
+                        game_runtime.push_event(GameWindowEvent::InputEvent(InputEvent::Text(
+                            text.to_string(),
+                        )));
+                    }
+
+                    game_runtime.push_event(event);
+                }
+            }
+
+            game_runtime.tick();
+            game_runtime.sleep().await;
+        }
+        Ok(())
+    }
+}
