@@ -14,7 +14,7 @@ anyhow = "1"
 [target.'cfg(all(not(target_arch = "wasm32"), not(target_os = "android")))'.dependencies]
 sdl3 = { version = "0.22", default-features = false, features = [
   "raw-window-handle",
-  "build-from-source"
+  "build-from-source-static",
 ] }
 
 # android
