@@ -9,4 +9,4 @@ mod window_handle;
 pub use android_activity::AndroidApp as AndroidPlatformApp;
 pub use android_game_loop::AndroidGameLoop;
 
-pub use android::*;
+pub use android;
