@@ -26,6 +26,7 @@ pub enum Key {
     Numpad8,
     Numpad9,
     Numpad0,
+    NumpadHash,
     NumpadPlus,
     NumpadDivide,
     NumpadDecimal,
@@ -119,14 +120,15 @@ pub enum Key {
     Apostrophe,
     Return,
     Space,
-    Caret, // not in winit
-    Asterisk,
-    At, // not in winit
+    Caret,    // not in winit
+    Asterisk, // not in winit
+    At,       // not in winit
     Calculator,
     Comma,
     Period,
     Slash,
     Backslash,
+    Hash,
     Mail,
     MediaPlayPause,
     MediaSelect,

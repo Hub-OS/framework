@@ -27,6 +27,7 @@ pub(super) fn translate_sdl_key(sdl_key: SDLKeycode) -> Option<Key> {
         SDLKeycode::Kp8 => Some(Key::Numpad8),
         SDLKeycode::Kp9 => Some(Key::Numpad9),
         SDLKeycode::Kp0 => Some(Key::Numpad0),
+        SDLKeycode::KpHash => Some(Key::NumpadHash),
         SDLKeycode::KpPlus => Some(Key::NumpadPlus),
         SDLKeycode::KpDivide => Some(Key::NumpadDivide),
         SDLKeycode::KpDecimal => Some(Key::NumpadDecimal),
@@ -145,6 +146,7 @@ pub(super) fn translate_sdl_key(sdl_key: SDLKeycode) -> Option<Key> {
         SDLKeycode::AcStop => Some(Key::WebStop),
         SDLKeycode::Stop => Some(Key::Stop),
         SDLKeycode::Plus => Some(Key::Plus),
+        SDLKeycode::Hash => Some(Key::Hash),
         _ => None,
     }
 }
