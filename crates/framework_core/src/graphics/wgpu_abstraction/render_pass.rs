@@ -95,7 +95,7 @@ impl<'a> RenderPass<'a> {
                         render_pass.set_pipeline(render_pipeline);
                         // println!("set pipeline");
                     }
-                    RenderOperation::SetScissor(mut rect) => {
+                    &RenderOperation::SetScissor(mut rect) => {
                         rect *= self.texture_size.as_vec2();
 
                         // rounding to avoid precision issues

@@ -78,16 +78,16 @@ impl Sdl2GameLoop {
 
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {
-                if let sdl2::event::Event::JoyDeviceAdded { which, .. } = sdl_event {
-                    if let Ok(controller) = self.game_controller_subsystem.open(which) {
-                        game_runtime.push_event(
-                            InputEvent::ControllerConnected {
-                                controller_id: which as usize,
-                                rumble_pack: Box::from(Sdl2RumblePack::new(controller)),
-                            }
-                            .into(),
-                        );
-                    }
+                if let sdl2::event::Event::JoyDeviceAdded { which, .. } = sdl_event
+                    && let Ok(controller) = self.game_controller_subsystem.open(which)
+                {
+                    game_runtime.push_event(
+                        InputEvent::ControllerConnected {
+                            controller_id: which as usize,
+                            rumble_pack: Box::from(Sdl2RumblePack::new(controller)),
+                        }
+                        .into(),
+                    );
                 }
 
                 let window = game_runtime.game_io().window();

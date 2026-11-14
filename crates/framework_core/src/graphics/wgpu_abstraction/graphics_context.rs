@@ -166,7 +166,7 @@ impl GraphicsContext {
     ) -> SyncResultAsyncError<
         wgpu::ShaderModule,
         wgpu::Error,
-        impl Future<Output = Option<wgpu::Error>>,
+        impl Future<Output = Option<wgpu::Error>> + use<'_>,
     > {
         let device = self.device();
 

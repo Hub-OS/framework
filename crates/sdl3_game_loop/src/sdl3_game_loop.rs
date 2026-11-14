@@ -76,16 +76,16 @@ impl Sdl3GameLoop {
 
         while !game_runtime.quitting() {
             for sdl_event in self.event_pump.poll_iter() {
-                if let sdl3::event::Event::GamepadAdded { which, .. } = sdl_event {
-                    if let Ok(controller) = self.gamepad_subsystem.open(which) {
-                        game_runtime.push_event(
-                            InputEvent::ControllerConnected {
-                                controller_id: which.raw() as usize,
-                                rumble_pack: Box::from(Sdl3RumblePack::new(controller)),
-                            }
-                            .into(),
-                        );
-                    }
+                if let sdl3::event::Event::GamepadAdded { which, .. } = sdl_event
+                    && let Ok(controller) = self.gamepad_subsystem.open(which)
+                {
+                    game_runtime.push_event(
+                        InputEvent::ControllerConnected {
+                            controller_id: which.raw() as usize,
+                            rumble_pack: Box::from(Sdl3RumblePack::new(controller)),
+                        }
+                        .into(),
+                    );
                 }
 
                 let window = game_runtime.game_io().window();
