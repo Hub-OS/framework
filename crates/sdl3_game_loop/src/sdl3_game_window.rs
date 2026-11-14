@@ -1,4 +1,5 @@
-use framework_core::graphics::{wgpu, Color, GraphicsContext, HasGraphicsContext, RenderTarget};
+use crate::Sdl3PlatformApp;
+use framework_core::graphics::{Color, GraphicsContext, HasGraphicsContext, RenderTarget, wgpu};
 use framework_core::runtime::GameWindowConfig;
 use framework_core::{common::GameWindow, runtime::GameWindowLifecycle};
 use math::*;
@@ -23,7 +24,7 @@ pub struct Sdl3GameWindow {
 impl Sdl3GameWindow {
     pub(crate) async fn from_window_and_config(
         window: sdl3::video::Window,
-        window_config: GameWindowConfig<()>,
+        window_config: GameWindowConfig<Sdl3PlatformApp>,
     ) -> anyhow::Result<Self> {
         let position = window.position().into();
         let size = window.size().into();

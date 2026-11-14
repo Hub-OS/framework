@@ -1,4 +1,4 @@
-use crate::{Sdl3GameWindow, Sdl3RumblePack, translate_sdl_event};
+use crate::{Sdl3GameWindow, Sdl3PlatformApp, Sdl3RumblePack, translate_sdl_event};
 use framework_core::raw_window_handle::HasDisplayHandle;
 use framework_core::runtime::{
     DesktopClipboard, GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent,
@@ -14,7 +14,7 @@ pub struct Sdl3GameLoop {
 }
 
 impl GameWindowLoop for Sdl3GameLoop {
-    type PlatformApp = ();
+    type PlatformApp = Sdl3PlatformApp;
 
     fn run(
         window_config: GameWindowConfig<Self::PlatformApp>,
@@ -28,7 +28,9 @@ impl GameWindowLoop for Sdl3GameLoop {
 }
 
 impl Sdl3GameLoop {
-    async fn build(window_config: GameWindowConfig<()>) -> anyhow::Result<Sdl3GameLoop> {
+    async fn build(
+        window_config: GameWindowConfig<Sdl3PlatformApp>,
+    ) -> anyhow::Result<Sdl3GameLoop> {
         sdl3::hint::set("SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY", "1");
 
         let sdl_context = sdl3::init().map_err(|e| anyhow::anyhow!(e))?;

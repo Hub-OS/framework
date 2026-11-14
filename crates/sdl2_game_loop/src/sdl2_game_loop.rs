@@ -1,4 +1,4 @@
-use crate::{Sdl2GameWindow, Sdl2RumblePack, translate_sdl_event};
+use crate::{Sdl2GameWindow, Sdl2PlatformApp, Sdl2RumblePack, translate_sdl_event};
 use framework_core::raw_window_handle::HasDisplayHandle;
 use framework_core::runtime::{
     DesktopClipboard, GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent,
@@ -14,7 +14,7 @@ pub struct Sdl2GameLoop {
 }
 
 impl GameWindowLoop for Sdl2GameLoop {
-    type PlatformApp = ();
+    type PlatformApp = Sdl2PlatformApp;
 
     fn run(
         window_config: GameWindowConfig<Self::PlatformApp>,
@@ -28,7 +28,9 @@ impl GameWindowLoop for Sdl2GameLoop {
 }
 
 impl Sdl2GameLoop {
-    async fn build(window_config: GameWindowConfig<()>) -> anyhow::Result<Sdl2GameLoop> {
+    async fn build(
+        window_config: GameWindowConfig<Sdl2PlatformApp>,
+    ) -> anyhow::Result<Sdl2GameLoop> {
         let sdl_context = sdl2::init().map_err(|e| anyhow::anyhow!(e))?;
         let event_pump = sdl_context.event_pump().map_err(|e| anyhow::anyhow!(e))?;
 
