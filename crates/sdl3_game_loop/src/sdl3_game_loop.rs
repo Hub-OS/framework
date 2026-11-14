@@ -29,6 +29,8 @@ impl GameWindowLoop for Sdl3GameLoop {
 
 impl Sdl3GameLoop {
     async fn build(window_config: GameWindowConfig<()>) -> anyhow::Result<Sdl3GameLoop> {
+        sdl3::hint::set("SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY", "1");
+
         let sdl_context = sdl3::init().map_err(|e| anyhow::anyhow!(e))?;
         let event_pump = sdl_context.event_pump().map_err(|e| anyhow::anyhow!(e))?;
 
