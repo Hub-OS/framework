@@ -5,6 +5,7 @@ use framework_core::runtime::*;
 use winit::application::ApplicationHandler;
 use winit::event::StartCause as WinitEventStartCause;
 use winit::event_loop::{ActiveEventLoop, ControlFlow};
+use winit::raw_window_handle::HasDisplayHandle;
 use winit::window::WindowId;
 
 pub struct ActiveStateParams {
@@ -33,7 +34,7 @@ impl ActiveState {
         .await?;
 
         let window = Box::new(window);
-        let clipboard = Box::new(DesktopClipboard::new());
+        let clipboard = Box::new(DesktopClipboard::new(window.display_handle().ok()));
         let mut game_runtime = GameRuntimeCore::new(window, clipboard, params.runtime_params)?;
 
         let controller_event_pump = ControllerEventPump::new(&mut game_runtime)?;

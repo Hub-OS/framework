@@ -1,11 +1,11 @@
 use crate::key_translation::{translate_android_button, translate_android_key};
 use android::util::is_this_device_a_controller;
+use android_activity::AndroidApp;
 use android_activity::input::{
     Axis as AndroidAxis, InputEvent as AndroidInputEvent, KeyAction as AndroidKeyAction,
     KeyEvent as AndroidKeyEvent, KeyMapChar as AndroidKeyMapChar, Keycode as AndroidKeyCode,
     MotionAction as AndroidMotionAction, Source as AndroidInputSource,
 };
-use android_activity::AndroidApp;
 use framework_core::common::GameWindow;
 use framework_core::runtime::InputEvent;
 use input::{AnalogAxis, Touch, TouchPhase};
@@ -136,8 +136,8 @@ pub(crate) fn translate_input_event(
             }
             _ => {}
         },
+        #[cfg(debug_assertions)]
         AndroidInputEvent::TextEvent(state) => {
-            #[cfg(debug_assertions)]
             println!("Input Method State: {state:?}");
         }
         _ => {}
@@ -169,7 +169,9 @@ fn character_map_and_combine_key(
                         Ok(Some(key)) => Some(key),
                         Ok(None) => None,
                         Err(err) => {
-                            log::error!("KeyEvent: Failed to combine 'dead key' accent '{accent}' with '{unicode}': {err:?}");
+                            log::error!(
+                                "KeyEvent: Failed to combine 'dead key' accent '{accent}' with '{unicode}': {err:?}"
+                            );
                             None
                         }
                     }

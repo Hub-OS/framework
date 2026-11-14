@@ -1,4 +1,5 @@
-use crate::{translate_sdl_event, Sdl3GameWindow, Sdl3RumblePack};
+use crate::{Sdl3GameWindow, Sdl3RumblePack, translate_sdl_event};
+use framework_core::raw_window_handle::HasDisplayHandle;
 use framework_core::runtime::{
     DesktopClipboard, GameRuntimeCore, GameRuntimeCoreParams, GameWindowConfig, GameWindowEvent,
     GameWindowLoop, InputEvent,
@@ -71,7 +72,7 @@ impl Sdl3GameLoop {
         let window_id = self.window.id();
 
         let window = Box::new(self.window);
-        let clipboard = Box::new(DesktopClipboard::new());
+        let clipboard = Box::new(DesktopClipboard::new(window.display_handle().ok()));
         let mut game_runtime = GameRuntimeCore::new(window, clipboard, loop_params)?;
 
         while !game_runtime.quitting() {

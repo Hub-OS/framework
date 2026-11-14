@@ -4,7 +4,7 @@ pub trait GameClipboard {
     fn set_text(&mut self, text: String) -> bool;
 }
 
-use copypasta::{ClipboardContext, ClipboardProvider};
+use copypasta::ClipboardProvider;
 
 /// Does not touch OS clipboard
 #[derive(Default)]
@@ -31,20 +31,35 @@ impl GameClipboard for PrivateClipboard {
 
 /// MacOS, Linux, and Windows compatible clipboard
 pub struct DesktopClipboard {
-    clipboard: Option<ClipboardContext>,
+    clipboard: Option<Box<dyn ClipboardProvider>>,
 }
 
 impl DesktopClipboard {
-    pub fn new() -> Self {
-        Self {
-            clipboard: ClipboardContext::new().ok(),
-        }
-    }
-}
+    pub fn new(#[allow(unused)] display_handle: Option<raw_window_handle::DisplayHandle>) -> Self {
+        #[cfg(target_os = "linux")]
+        {
+            use raw_window_handle::RawDisplayHandle;
 
-impl Default for DesktopClipboard {
-    fn default() -> Self {
-        Self::new()
+            if let Some(display_handle) = display_handle
+                && let RawDisplayHandle::Wayland(wayland_handle) = display_handle.as_raw()
+            {
+                let (clipboard, _) = unsafe {
+                    copypasta::wayland_clipboard::create_clipboards_from_external(
+                        wayland_handle.display.as_ptr(),
+                    )
+                };
+
+                return Self {
+                    clipboard: Some(Box::new(clipboard)),
+                };
+            }
+        }
+
+        Self {
+            clipboard: copypasta::ClipboardContext::new()
+                .ok()
+                .map(|clipboard| -> Box<dyn ClipboardProvider> { Box::new(clipboard) }),
+        }
     }
 }
 

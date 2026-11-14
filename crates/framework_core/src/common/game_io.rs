@@ -10,12 +10,13 @@ use std::future::Future;
 use std::time::Duration;
 
 pub struct GameIO {
+    // storing input_manager before window to drop the clipboard (which may contain a display handle from the window) first
+    input_manager: GameInputManager,
     window: Box<dyn GameWindowLifecycle>,
     resources: HashMap<TypeId, Box<dyn Any>>,
     pub(crate) runtime_requests: Vec<GameRuntimeRequest>,
     disabled_post_processes: Vec<TypeId>,
     async_executor: async_executor::LocalExecutor<'static>,
-    input_manager: GameInputManager,
     target_fps: u16,
     game_start_instant: Instant,
     frame_start_instant: Instant,
@@ -42,12 +43,12 @@ impl GameIO {
         clipboard: Box<dyn GameClipboard>,
     ) -> Self {
         Self {
+            input_manager: GameInputManager::new(clipboard),
             window,
             resources: HashMap::new(),
             runtime_requests: Vec::new(),
             disabled_post_processes: Vec::new(),
             async_executor: async_executor::LocalExecutor::new(),
-            input_manager: GameInputManager::new(clipboard),
             target_fps: 60,
             game_start_instant: Instant::now(),
             frame_start_instant: Instant::now(),
