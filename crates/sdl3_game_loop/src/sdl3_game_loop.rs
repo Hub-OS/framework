@@ -33,10 +33,10 @@ impl Sdl3GameLoop {
     ) -> anyhow::Result<Sdl3GameLoop> {
         sdl3::hint::set("SDL_VIDEO_WAYLAND_SCALE_TO_DISPLAY", "1");
 
-        let sdl_context = sdl3::init().map_err(|e| anyhow::anyhow!(e))?;
-        let event_pump = sdl_context.event_pump().map_err(|e| anyhow::anyhow!(e))?;
+        let sdl_context = sdl3::init()?;
+        let event_pump = sdl_context.event_pump()?;
 
-        let video_subsystem = sdl_context.video().map_err(|e| anyhow::anyhow!(e))?;
+        let video_subsystem = sdl_context.video()?;
         let mut sdl_window_builder = video_subsystem.window(
             &window_config.title,
             window_config.size.x,
@@ -61,7 +61,7 @@ impl Sdl3GameLoop {
 
         let window = Sdl3GameWindow::from_window_and_config(sdl_window, window_config).await?;
 
-        let gamepad_subsystem = sdl_context.gamepad().map_err(|e| anyhow::anyhow!(e))?;
+        let gamepad_subsystem = sdl_context.gamepad()?;
 
         let window_loop = Self {
             window,
@@ -120,6 +120,7 @@ impl Sdl3GameLoop {
             game_runtime.tick();
             game_runtime.sleep().await;
         }
+
         Ok(())
     }
 }
