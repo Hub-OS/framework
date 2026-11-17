@@ -186,7 +186,6 @@ impl GameWindow for Sdl3GameWindow {
     }
 
     fn set_fullscreen(&mut self, fullscreen: bool) {
-        let _ = self.window.set_display_mode(None);
         let _ = self.window.set_fullscreen(fullscreen);
     }
 
